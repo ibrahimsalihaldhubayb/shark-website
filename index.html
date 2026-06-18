@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     fetch(SCRIPT_URL, {
       method: 'POST',
       mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ sheet: sheetName, record: record })
     }).catch(function() {});
   }
@@ -688,7 +688,7 @@ if (typeof module !== 'undefined' && module.exports) {
     var record = { name: name, phone: phone, kind: 'رغبة استثمار', note: 'المنطقة: ' + region + ' — الميزانية: ' + budget };
     fetch(SCRIPT_URL, {
       method: 'POST', mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ sheet: 'رغبة استثمار', record: record })
     }).catch(function(){}).finally(function(){
       document.getElementById('inv-form-wrap').style.display = 'none';
