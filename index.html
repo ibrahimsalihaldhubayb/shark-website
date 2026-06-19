@@ -549,10 +549,10 @@ if (typeof module !== 'undefined' && module.exports) {
   };
 })();
 
-// ===== Google Sheets: poll localStorage for new entries =====
+// ===== Google Sheets: intercept localStorage.setItem =====
 (function(){
   var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBzst69WR3puIEqCBukDbOdRzNaldZyzHyBt-6V-nuvIvSrVRJNoRO71HGkN7JbDUw/exec';
-  
+
   function send(sheetName, record) {
     fetch(SCRIPT_URL, {
       method: 'POST',
@@ -561,42 +561,25 @@ if (typeof module !== 'undefined' && module.exports) {
       body: JSON.stringify({ sheet: sheetName, record: record })
     }).catch(function(){});
   }
-  
-  function getArr(key) {
-    try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; }
-  }
-  
-  var counts = {
-    shark_leads: getArr('shark_leads').length,
-    shark_interests: getArr('shark_interests').length,
-    shark_requests: getArr('shark_requests').length
+
+  var _setItem = Storage.prototype.setItem;
+  Storage.prototype.setItem = function(key, value) {
+    _setItem.call(this, key, value);
+    if (this !== localStorage) return;
+    try {
+      var arr = JSON.parse(value);
+      if (!Array.isArray(arr) || arr.length === 0) return;
+      var rec = arr[0];
+      if (key === 'shark_leads') {
+        if ((rec.kind || '') === 'عرض عقار') send('طلب تسويق', rec);
+        send('(العملاء) قاعدة البيانات', rec);
+      } else if (key === 'shark_interests') {
+        send('تسجيل الاهتمام', rec);
+      } else if (key === 'shark_requests') {
+        send('الطلبات', rec);
+      }
+    } catch(e) {}
   };
-  
-  setInterval(function() {
-    var leads = getArr('shark_leads');
-    var interests = getArr('shark_interests');
-    var requests = getArr('shark_requests');
-    
-    if (leads.length > counts.shark_leads) {
-      var latest = leads[0];
-      var kind = latest.kind || '';
-      if (kind === 'عرض عقار') send('طلب تسويق', latest);
-      send('(العملاء) قاعدة البيانات', latest);
-      counts.shark_leads = leads.length;
-    }
-    if (interests.length > counts.shark_interests) {
-      var latest = interests[0];
-      send('تسجيل الاهتمام', latest);
-      send('(العملاء) قاعدة البيانات', latest);
-      counts.shark_interests = interests.length;
-    }
-    if (requests.length > counts.shark_requests) {
-      var latest = requests[0];
-      send('الطلبات', latest);
-      send('(العملاء) قاعدة البيانات', latest);
-      counts.shark_requests = requests.length;
-    }
-  }, 1500);
 })();
 </script>
 
