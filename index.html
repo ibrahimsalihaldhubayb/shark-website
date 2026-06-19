@@ -572,11 +572,13 @@ if (typeof module !== 'undefined' && module.exports) {
       var rec = arr[0];
       if (key === 'shark_leads') {
         if ((rec.kind || '') === 'عرض عقار') send('طلب تسويق', rec);
-        send('(العملاء) قاعدة البيانات', rec);
+        send('قاعدة البيانات', rec);
       } else if (key === 'shark_interests') {
         send('تسجيل الاهتمام', rec);
+        send('قاعدة البيانات', rec);
       } else if (key === 'shark_requests') {
         send('الطلبات', rec);
+        send('قاعدة البيانات', rec);
       }
     } catch(e) {}
   };
@@ -724,11 +726,14 @@ if (typeof module !== 'undefined' && module.exports) {
     var btn = document.getElementById('inv-submit');
     btn.disabled = true; btn.textContent = 'جاري الإرسال...';
     var record = { name: name, phone: phone, kind: 'رغبة استثمار', note: 'المنطقة: ' + region + ' — الميزانية: ' + budget };
-    fetch(SCRIPT_URL, {
-      method: 'POST', mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ sheet: 'رغبة استثمار', record: record })
-    }).catch(function(){}).finally(function(){
+    [['رغبة استثمار', record], ['قاعدة البيانات', record]].forEach(function(pair) {
+      fetch(SCRIPT_URL, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ sheet: pair[0], record: pair[1] })
+      }).catch(function(){});
+    });
+    setTimeout(function(){
       document.getElementById('inv-form-wrap').style.display = 'none';
       document.getElementById('inv-success').style.display = 'block';
       setTimeout(function(){
