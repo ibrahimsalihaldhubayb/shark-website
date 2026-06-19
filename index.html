@@ -223,8 +223,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 })();
 </script>
 
+
 <script>
-// Offer Brochure — injected from Claude Design
+// ===== Offer Brochure Generator =====
 /**
  * Offer Brochure (PDF) — framework-agnostic reference implementation
  * ===================================================================
@@ -507,41 +508,95 @@ if (typeof module !== 'undefined' && module.exports) {
 }
 
 
-// Patch the app's savePdf to use the new dark brochure
-(function() {
-  function tryPatch() {
-    var root = document.getElementById('root') || document.querySelector('[data-reactroot]') || document.body.firstElementChild;
-    if (!root) { setTimeout(tryPatch, 500); return; }
-    var fiberKey = Object.keys(root).find(function(k){ return k.startsWith('__reactFiber') || k.startsWith('__reactInternalInstance'); });
-    if (!fiberKey) { setTimeout(tryPatch, 500); return; }
-    var fiber = root[fiberKey];
-    var found = false;
-    function traverse(f) {
-      if (!f || found) return;
-      if (f.stateNode && typeof f.stateNode.savePdf === 'function') {
-        f.stateNode.savePdf = function(o) {
-          var company = {
+// ===== PDF: intercept window.open to replace old invoice with new brochure =====
+(function(){
+  var _open = window.open.bind(window);
+  window.open = function(url, target, features) {
+    // Detect old savePdf call (empty URL, width=840)
+    if (url === '' && target === '_blank' && features && features.indexOf('width=840') !== -1) {
+      // Find current offer ID from visible DOM text
+      var txt = document.body ? document.body.innerText : '';
+      var m = txt.match(/(?:رقم العرض|Offer)[^S]*[·\-]?\s*(SH-\d+)/);
+      var offerId = m ? m[1] : null;
+      
+      if (!offerId) {
+        // Try data attributes or links
+        var idEl = document.querySelector('[data-id^="SH-"]');
+        if (idEl) offerId = idEl.getAttribute('data-id');
+      }
+      
+      var allOffers = [];
+      try { allOffers = JSON.parse(localStorage.getItem('shark_offers') || '[]'); } catch(e) {}
+      var offer = offerId ? allOffers.find(function(o){ return o.id === offerId; }) : null;
+      
+      // If we found the offer, open the new brochure
+      if (offer && window.OfferBrochure) {
+        var win = _open('', '_blank', 'width=920,height=1200');
+        if (win) {
+          var bhtml = window.OfferBrochure.buildBrochureHTML(offer, {
             name: 'شركة شارك العقارية',
             tagline: 'القصيم — نخدم كل المملكة',
             phones: ['0539997060','0539995070','0539996010'],
             accent: '#e9c46a'
-          };
-          var ok = window.OfferBrochure.openOfferBrochure(o, company);
-          if (!ok) {
-            var ar = this.state && this.state.lang === 'ar';
-            this.toast(ar ? 'فضلاً فعّل النوافذ المنبثقة لحفظ PDF' : 'Allow pop-ups to save the PDF');
-          }
-        };
-        found = true;
-        return;
+          });
+          win.document.open(); win.document.write(bhtml); win.document.close();
+        }
+        // Return dummy window so old savePdf does nothing harmful
+        return { document: { open: function(){}, write: function(){}, close: function(){} } };
       }
-      traverse(f.child);
-      traverse(f.sibling);
     }
-    traverse(fiber);
-    if (!found) setTimeout(tryPatch, 500);
+    return _open(url, target, features);
+  };
+})();
+
+// ===== Google Sheets: poll localStorage for new entries =====
+(function(){
+  var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBzst69WR3puIEqCBukDbOdRzNaldZyzHyBt-6V-nuvIvSrVRJNoRO71HGkN7JbDUw/exec';
+  
+  function send(sheetName, record) {
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ sheet: sheetName, record: record })
+    }).catch(function(){});
   }
-  setTimeout(tryPatch, 1200);
+  
+  function getArr(key) {
+    try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; }
+  }
+  
+  var counts = {
+    shark_leads: getArr('shark_leads').length,
+    shark_interests: getArr('shark_interests').length,
+    shark_requests: getArr('shark_requests').length
+  };
+  
+  setInterval(function() {
+    var leads = getArr('shark_leads');
+    var interests = getArr('shark_interests');
+    var requests = getArr('shark_requests');
+    
+    if (leads.length > counts.shark_leads) {
+      var latest = leads[0];
+      var kind = latest.kind || '';
+      if (kind === 'عرض عقار') send('طلب تسويق', latest);
+      send('(العملاء) قاعدة البيانات', latest);
+      counts.shark_leads = leads.length;
+    }
+    if (interests.length > counts.shark_interests) {
+      var latest = interests[0];
+      send('تسجيل الاهتمام', latest);
+      send('(العملاء) قاعدة البيانات', latest);
+      counts.shark_interests = interests.length;
+    }
+    if (requests.length > counts.shark_requests) {
+      var latest = requests[0];
+      send('الطلبات', latest);
+      send('(العملاء) قاعدة البيانات', latest);
+      counts.shark_requests = requests.length;
+    }
+  }, 1500);
 })();
 </script>
 
