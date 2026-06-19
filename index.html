@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 <!-- ===== Investment Interest Widget ===== -->
 <style>
 #inv-btn {
-  position: fixed; left: 22px; bottom: 22px; z-index: 9000;
+  position: fixed; left: 22px; bottom: 22px; z-index: 999999;
   background: #e9c46a; color: #0b0b0c; border: none; border-radius: 50px;
   padding: 14px 22px; font-family: Tajawal, Arial, sans-serif;
   font-size: 15px; font-weight: 700; cursor: pointer;
@@ -219,11 +219,12 @@ document.addEventListener('DOMContentLoaded', async function() {
 #inv-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(233,196,106,0.45); }
 #inv-btn svg { width: 20px; height: 20px; }
 #inv-overlay {
-  display: none; position: fixed; inset: 0; z-index: 9100;
+  display: none; position: fixed; inset: 0; z-index: 9999999;
   background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
   align-items: center; justify-content: center;
 }
 #inv-overlay.open { display: flex; }
+#inv-modal { z-index: 10000000; }
 #inv-modal {
   background: #0f0f11; border: 1px solid rgba(233,196,106,0.25);
   border-radius: 20px; padding: 36px 32px; width: 100%; max-width: 480px;
@@ -338,6 +339,153 @@ document.addEventListener('DOMContentLoaded', async function() {
 })();
 </script>
 <!-- ===== End Shark Widgets ===== -->
+
+
+<!-- ===== Marketing Property Widget ===== -->
+<style>
+#mkt-btn {
+  position: fixed; right: 22px; bottom: 22px; z-index: 999999;
+  background: #264653; color: #e9c46a; border: 2px solid #e9c46a; border-radius: 50px;
+  padding: 14px 22px; font-family: Tajawal, Arial, sans-serif;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; gap: 9px;
+  box-shadow: 0 4px 20px rgba(38,70,83,0.5); transition: transform .15s, box-shadow .15s;
+}
+#mkt-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(38,70,83,0.6); }
+#mkt-btn svg { width: 20px; height: 20px; }
+#mkt-overlay {
+  display: none; position: fixed; inset: 0; z-index: 9999999;
+  background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+  align-items: center; justify-content: center;
+}
+#mkt-overlay.open { display: flex; }
+#mkt-modal {
+  background: #0f0f11; border: 1px solid rgba(233,196,106,0.25);
+  border-radius: 20px; padding: 36px 32px; width: 100%; max-width: 520px;
+  margin: 16px; direction: rtl; font-family: Tajawal, Arial, sans-serif;
+  position: relative; max-height: 90vh; overflow-y: auto;
+}
+#mkt-modal h2 { font-size: 22px; font-weight: 700; color: #f4f3ef; margin-bottom: 6px; }
+#mkt-modal p { font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 20px; line-height: 1.7; }
+#mkt-modal label { display: block; font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 5px; margin-top: 13px; }
+#mkt-modal input, #mkt-modal select, #mkt-modal textarea {
+  width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px; padding: 12px 14px; color: #f4f3ef;
+  font-family: Tajawal, Arial, sans-serif; font-size: 15px; outline: none; transition: border-color .15s;
+}
+#mkt-modal textarea { resize: vertical; min-height: 80px; }
+#mkt-modal input:focus, #mkt-modal select:focus, #mkt-modal textarea:focus { border-color: rgba(233,196,106,0.6); }
+#mkt-modal select option { background: #1a1a1e; color: #f4f3ef; }
+#mkt-submit {
+  width: 100%; margin-top: 22px; background: #e9c46a; color: #0b0b0c; border: none;
+  border-radius: 12px; padding: 15px; font-family: Tajawal, Arial, sans-serif;
+  font-size: 16px; font-weight: 700; cursor: pointer; transition: opacity .15s;
+}
+#mkt-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+#mkt-close { position: absolute; top: 16px; left: 16px; background: none; border: none; color: rgba(255,255,255,0.4); font-size: 22px; cursor: pointer; line-height: 1; }
+#mkt-success { display: none; text-align: center; padding: 20px 0; }
+#mkt-success .ok-icon { font-size: 48px; margin-bottom: 12px; }
+#mkt-success h3 { color: #e9c46a; font-size: 20px; margin-bottom: 8px; }
+#mkt-success p { color: rgba(255,255,255,0.6); font-size: 14px; }
+</style>
+
+<button id="mkt-btn" onclick="document.getElementById('mkt-overlay').classList.add('open')">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+  </svg>
+  أسوّق عقاري
+</button>
+
+<div id="mkt-overlay" onclick="if(event.target===this)this.classList.remove('open')">
+  <div id="mkt-modal">
+    <button id="mkt-close" onclick="document.getElementById('mkt-overlay').classList.remove('open')">&#x00D7;</button>
+    <div id="mkt-form-wrap">
+      <h2>تسويق عقارك معنا</h2>
+      <p>أدخل تفاصيل عقارك وسيتواصل معك فريق شارك العقارية لعرضه على المشترين المناسبين.</p>
+      <form id="mkt-form">
+        <label>اسم المالك</label>
+        <input type="text" id="mkt-name" placeholder="الاسم الثلاثي" required>
+        <label>رقم الجوال</label>
+        <input type="tel" id="mkt-phone" placeholder="05xxxxxxxx" required>
+        <label>نوع العقار</label>
+        <select id="mkt-type" required>
+          <option value="">اختر نوع العقار</option>
+          <option>أرض سكنية</option>
+          <option>أرض تجارية</option>
+          <option>شقة</option>
+          <option>فيلا</option>
+          <option>دور</option>
+          <option>استراحة</option>
+          <option>عمارة</option>
+          <option>محل تجاري</option>
+          <option>مستودع</option>
+          <option>مزرعة</option>
+        </select>
+        <label>المنطقة / الحي</label>
+        <input type="text" id="mkt-location" placeholder="مثال: القصيم — حي النهضة" required>
+        <label>المساحة التقريبية (م²)</label>
+        <input type="text" id="mkt-area" placeholder="مثال: 400">
+        <label>السعر المطلوب (ريال)</label>
+        <input type="text" id="mkt-price" placeholder="مثال: 500,000">
+        <label>ملاحظات إضافية</label>
+        <textarea id="mkt-note" placeholder="أي تفاصيل إضافية عن العقار..."></textarea>
+        <button type="submit" id="mkt-submit">إرسال طلب التسويق</button>
+      </form>
+    </div>
+    <div id="mkt-success">
+      <div class="ok-icon">&#x2705;</div>
+      <h3>تم استلام طلبك!</h3>
+      <p>سيتواصل معك فريق شارك العقارية خلال 24 ساعة لمتابعة تسويق عقارك.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBzst69WR3puIEqCBukDbOdRzNaldZyzHyBt-6V-nuvIvSrVRJNoRO71HGkN7JbDUw/exec';
+  function sendSheet(sheet, record) {
+    fetch(SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ sheet: sheet, record: record })
+    }).catch(function(){});
+  }
+  document.getElementById('mkt-form').addEventListener('submit', function(e){
+    e.preventDefault();
+    var name     = document.getElementById('mkt-name').value.trim();
+    var phone    = document.getElementById('mkt-phone').value.trim();
+    var type     = document.getElementById('mkt-type').value;
+    var location = document.getElementById('mkt-location').value.trim();
+    var area     = document.getElementById('mkt-area').value.trim();
+    var price    = document.getElementById('mkt-price').value.trim();
+    var note     = document.getElementById('mkt-note').value.trim();
+    if (!name || !phone || !type || !location) return;
+    var btn = document.getElementById('mkt-submit');
+    btn.disabled = true; btn.textContent = 'جاري الإرسال...';
+    var record = {
+      name: name, phone: phone, kind: 'عرض عقار',
+      note: 'النوع: ' + type + ' | الموقع: ' + location +
+            (area ? ' | المساحة: ' + area + ' م²' : '') +
+            (price ? ' | السعر: ' + price + ' ريال' : '') +
+            (note ? ' | ' + note : '')
+    };
+    sendSheet('طلب تسويق', record);
+    sendSheet('قاعدة البيانات', record);
+    setTimeout(function(){
+      document.getElementById('mkt-form-wrap').style.display = 'none';
+      document.getElementById('mkt-success').style.display = 'block';
+      setTimeout(function(){
+        document.getElementById('mkt-overlay').classList.remove('open');
+        document.getElementById('mkt-form-wrap').style.display = 'block';
+        document.getElementById('mkt-success').style.display = 'none';
+        document.getElementById('mkt-form').reset();
+        btn.disabled = false; btn.textContent = 'إرسال طلب التسويق';
+      }, 3000);
+    }, 500);
+  });
+})();
+</script>
+<!-- ===== End Marketing Widget ===== -->
 
 </body>
 </html>
