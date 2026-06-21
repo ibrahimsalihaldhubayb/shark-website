@@ -68,38 +68,54 @@
     ['sm-name','sm-phone','sm-kind','sm-note'].forEach(function(id){document.getElementById(id).value='';});
     alert('تم إرسال طلبك بنجاح!');
   };
-  window.sharkExportExcel = function() {
-    var rows = [];
-    rows.push(['الاسم','الجوال','النوع / الاهتمام','ملاحظات','التاريخ','المصدر']);
-    var sources = {
-      shark_leads:     'عميل / تسويق',
-      shark_interests: 'رغبة استثمار',
-      shark_requests:  'طلب عقار'
+  function sharkGetData() {
+    var hdr = ['الاسم','الجوال','النوع / الاهتمام','ملاحظات','التاريخ'];
+    function parse(k){ try{ return JSON.parse(localStorage.getItem(k)||'[]'); }catch(e){ return []; } }
+    function row(r){ return [r.name||'', r.phone||'', r.kind||r.interest||r.type||'', r.note||r.city||'', r.date||r.createdAt||'']; }
+    var leads = parse('shark_leads');
+    var ints  = parse('shark_interests');
+    var reqs  = parse('shark_requests');
+    var allRows = leads.concat(ints).concat(reqs).map(row);
+    return {
+      hdr: hdr,
+      'قاعدة البيانات':  allRows,
+      'تسجيل الاهتمام':  ints.map(row),
+      'الطلبات':          reqs.map(row),
+      'طلب تسويق':        leads.filter(function(r){ return (r.kind||'')==='عرض عقار'; }).map(row),
+      'عملاء اتصال':      leads.filter(function(r){ return (r.kind||'')===''; }).map(row)
     };
-    Object.keys(sources).forEach(function(k){
-      try {
-        var arr = JSON.parse(localStorage.getItem(k)||'[]');
-        arr.forEach(function(r){
-          rows.push([
-            r.name||'', r.phone||'',
-            r.kind||r.interest||r.type||'',
-            r.note||r.city||'',
-            r.date||r.createdAt||'',
-            sources[k]
-          ]);
-        });
-      } catch(e){}
+  }
+  window.sharkExportExcel = function() {
+    var data = sharkGetData();
+    var total = data['قاعدة البيانات'].length;
+    if(!total){ alert('لا توجد بيانات محفوظة بعد'); return; }
+    if(window.XLSX){ doExport(data); return; }
+    var s = document.createElement('script');
+    s.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+    s.onload = function(){ doExport(data); };
+    s.onerror = function(){ fallbackCSV(data); };
+    document.head.appendChild(s);
+  };
+  function doExport(data) {
+    var wb = XLSX.utils.book_new();
+    var sheets = ['قاعدة البيانات','تسجيل الاهتمام','الطلبات','طلب تسويق','عملاء اتصال'];
+    sheets.forEach(function(name){
+      var rows = [data.hdr].concat(data[name]);
+      var ws = XLSX.utils.aoa_to_sheet(rows);
+      ws['!cols'] = [{wch:22},{wch:16},{wch:18},{wch:30},{wch:22}];
+      XLSX.utils.book_append_sheet(wb, ws, name);
     });
-    if(rows.length<=1){alert('لا توجد بيانات محفوظة بعد');return;}
+    XLSX.writeFile(wb, 'shark-' + new Date().toISOString().slice(0,10) + '.xlsx');
+  }
+  function fallbackCSV(data) {
     var bom = '﻿';
-    var csv = bom + rows.map(function(r){
-      return r.map(function(c){ return '"'+(String(c)).replace(/"/g,'""')+'"'; }).join(',');
-    }).join('\r\n');
+    var rows = [data.hdr].concat(data['قاعدة البيانات']);
+    var csv = bom + rows.map(function(r){ return r.map(function(c){ return '"'+String(c).replace(/"/g,'""')+'"'; }).join(','); }).join('\r\n');
     var a = document.createElement('a');
     a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-    a.download = 'shark-leads-' + new Date().toISOString().slice(0,10) + '.csv';
+    a.download = 'shark-' + new Date().toISOString().slice(0,10) + '.csv';
     a.click();
-  };
+  }
   function injectWidgets() {
     if (document.getElementById('shark-fab-wrap')) return;
     var css = document.createElement('style');
