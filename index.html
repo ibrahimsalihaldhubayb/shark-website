@@ -116,7 +116,89 @@
     a.download = 'shark-' + new Date().toISOString().slice(0,10) + '.csv';
     a.click();
   }
-  function injectWidgets() {
+  /* Photo upload injection for admin editor */
+  function compressImage(file, maxPx, quality, cb) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var w = img.width, h = img.height;
+        if (w > maxPx || h > maxPx) {
+          if (w > h) { h = Math.round(h * maxPx / w); w = maxPx; }
+          else { w = Math.round(w * maxPx / h); h = maxPx; }
+        }
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        cb(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+  function injectPhotoUploader() {
+    var coverInput = document.querySelector('input[name="coverImg"]');
+    if (!coverInput || coverInput.dataset.photoReady) return;
+    coverInput.dataset.photoReady = '1';
+    coverInput.placeholder = 'رابط أو اضغط 📷 لرفع صورة';
+
+    /* Cover image picker */
+    var coverPick = document.createElement('input');
+    coverPick.type = 'file'; coverPick.accept = 'image/*'; coverPick.style.display = 'none';
+    coverPick.onchange = function() {
+      if (!this.files[0]) return;
+      var btn = coverInput.previousSibling;
+      btn.textContent = '⏳';
+      compressImage(this.files[0], 1400, 0.78, function(b64) {
+        coverInput.value = b64;
+        btn.textContent = '✅ صورة';
+      });
+    };
+    var coverBtn = document.createElement('button');
+    coverBtn.type = 'button';
+    coverBtn.textContent = '📷 رفع صورة';
+    coverBtn.style.cssText = 'background:#c8a96e;color:#fff;border:none;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;margin-top:6px;width:100%';
+    coverBtn.onclick = function(){ coverPick.click(); };
+    coverInput.parentNode.appendChild(coverBtn);
+    coverInput.parentNode.appendChild(coverPick);
+
+    /* Gallery multi-picker */
+    var galleryArea = document.querySelector('textarea[name="gallery"]');
+    if (galleryArea && !galleryArea.dataset.photoReady) {
+      galleryArea.dataset.photoReady = '1';
+      galleryArea.placeholder = 'روابط (سطر لكل رابط) أو استخدم زر الرفع أدناه';
+      var gallPick = document.createElement('input');
+      gallPick.type = 'file'; gallPick.accept = 'image/*'; gallPick.multiple = true; gallPick.style.display = 'none';
+      gallPick.onchange = function() {
+        var files = Array.from(this.files);
+        if (!files.length) return;
+        gallBtn.textContent = '⏳ جاري الضغط...';
+        var results = [], done = 0;
+        files.forEach(function(f, i) {
+          compressImage(f, 1200, 0.75, function(b64) {
+            results[i] = b64; done++;
+            if (done === files.length) {
+              var existing = galleryArea.value.trim();
+              galleryArea.value = (existing ? existing + '\n' : '') + results.filter(Boolean).join('\n');
+              gallBtn.textContent = '📷 إضافة للمعرض (' + files.length + ' صور)';
+            }
+          });
+        });
+      };
+      var gallBtn = document.createElement('button');
+      gallBtn.type = 'button';
+      gallBtn.textContent = '📷 إضافة للمعرض';
+      gallBtn.style.cssText = 'background:#555;color:#fff;border:none;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;margin-top:6px;width:100%';
+      gallBtn.onclick = function(){ gallPick.click(); };
+      galleryArea.parentNode.appendChild(gallBtn);
+      galleryArea.parentNode.appendChild(gallPick);
+    }
+  }
+  /* Watch for editor modal to open */
+  var _photoOb = new MutationObserver(function(){ injectPhotoUploader(); });
+  document.addEventListener('DOMContentLoaded', function(){
+    _photoOb.observe(document.body || document.documentElement, {childList:true, subtree:true});
+  });
     if (document.getElementById('shark-fab-wrap')) return;
     var css = document.createElement('style');
     css.textContent = '#shark-fab-wrap{position:fixed;bottom:22px;left:0;right:0;display:flex;justify-content:space-between;padding:0 18px;z-index:99999;pointer-events:none}#shark-fab-wrap button{pointer-events:all;background:#c8a96e;color:#fff;border:none;border-radius:50px;padding:13px 18px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.28);font-family:inherit;white-space:nowrap}#shark-fab-wrap button:hover{background:#b8954f}.sk-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100000;align-items:center;justify-content:center}.sk-modal{background:#fff;border-radius:16px;padding:28px 24px;width:92%;max-width:400px;direction:rtl;position:relative;max-height:90vh;overflow-y:auto}.sk-modal h3{margin:0 0 18px;color:#c8a96e;font-size:18px;font-weight:700}.sk-modal input,.sk-modal select,.sk-modal textarea{width:100%;padding:10px 13px;margin-bottom:12px;border:1px solid #ddd;border-radius:8px;font-size:15px;box-sizing:border-box;font-family:inherit;direction:rtl}.sk-modal .sk-submit{width:100%;padding:13px;background:#c8a96e;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}.sk-modal .sk-close{position:absolute;top:10px;left:14px;background:none;border:none;font-size:24px;cursor:pointer;color:#aaa;line-height:1}';
