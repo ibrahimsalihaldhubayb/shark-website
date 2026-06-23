@@ -37,7 +37,6 @@
   };
   window.sharkOpen = function(id){ document.getElementById(id).style.display='flex'; };
   window.sharkClose = function(id){ document.getElementById(id).style.display='none'; };
-  /* Save to localStorage so data appears in Excel export */
   function saveLocal(key, rec) {
     try {
       var arr = JSON.parse(localStorage.getItem(key)||'[]');
@@ -72,23 +71,19 @@
     var hdr = ['الاسم','الجوال','النوع / الاهتمام','ملاحظات','التاريخ'];
     function parse(k){ try{ return JSON.parse(localStorage.getItem(k)||'[]'); }catch(e){ return []; } }
     function row(r){ return [r.name||'', r.phone||'', r.kind||r.interest||r.type||'', r.note||r.city||'', r.date||r.createdAt||'']; }
-    var leads = parse('shark_leads');
-    var ints  = parse('shark_interests');
-    var reqs  = parse('shark_requests');
-    var allRows = leads.concat(ints).concat(reqs).map(row);
+    var leads = parse('shark_leads'), ints = parse('shark_interests'), reqs = parse('shark_requests');
     return {
       hdr: hdr,
-      'قاعدة البيانات':  allRows,
-      'تسجيل الاهتمام':  ints.map(row),
-      'الطلبات':          reqs.map(row),
-      'طلب تسويق':        leads.filter(function(r){ return (r.kind||'')==='عرض عقار'; }).map(row),
-      'عملاء اتصال':      leads.filter(function(r){ return (r.kind||'')===''; }).map(row)
+      'قاعدة البيانات': leads.concat(ints).concat(reqs).map(row),
+      'تسجيل الاهتمام': ints.map(row),
+      'الطلبات': reqs.map(row),
+      'طلب تسويق': leads.filter(function(r){ return (r.kind||'')==='عرض عقار'; }).map(row),
+      'عملاء اتصال': leads.filter(function(r){ return (r.kind||'')===''; }).map(row)
     };
   }
   window.sharkExportExcel = function() {
     var data = sharkGetData();
-    var total = data['قاعدة البيانات'].length;
-    if(!total){ alert('لا توجد بيانات محفوظة بعد'); return; }
+    if(!data['قاعدة البيانات'].length){ alert('لا توجد بيانات محفوظة بعد'); return; }
     if(window.XLSX){ doExport(data); return; }
     var s = document.createElement('script');
     s.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
@@ -98,25 +93,20 @@
   };
   function doExport(data) {
     var wb = XLSX.utils.book_new();
-    var sheets = ['قاعدة البيانات','تسجيل الاهتمام','الطلبات','طلب تسويق','عملاء اتصال'];
-    sheets.forEach(function(name){
-      var rows = [data.hdr].concat(data[name]);
-      var ws = XLSX.utils.aoa_to_sheet(rows);
+    ['قاعدة البيانات','تسجيل الاهتمام','الطلبات','طلب تسويق','عملاء اتصال'].forEach(function(name){
+      var ws = XLSX.utils.aoa_to_sheet([data.hdr].concat(data[name]));
       ws['!cols'] = [{wch:22},{wch:16},{wch:18},{wch:30},{wch:22}];
       XLSX.utils.book_append_sheet(wb, ws, name);
     });
     XLSX.writeFile(wb, 'shark-' + new Date().toISOString().slice(0,10) + '.xlsx');
   }
   function fallbackCSV(data) {
-    var bom = '﻿';
     var rows = [data.hdr].concat(data['قاعدة البيانات']);
-    var csv = bom + rows.map(function(r){ return r.map(function(c){ return '"'+String(c).replace(/"/g,'""')+'"'; }).join(','); }).join('\r\n');
-    var a = document.createElement('a');
-    a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-    a.download = 'shark-' + new Date().toISOString().slice(0,10) + '.csv';
-    a.click();
+    var csv = '﻿' + rows.map(function(r){ return r.map(function(c){ return '"'+String(c).replace(/"/g,'""')+'"'; }).join(','); }).join('\r\n');
+    var a = document.createElement('a'); a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = 'shark-' + new Date().toISOString().slice(0,10) + '.csv'; a.click();
   }
-  /* Photo upload injection for admin editor */
+  /* ── Image compression ── */
   function compressImage(file, maxPx, quality, cb) {
     var reader = new FileReader();
     reader.onload = function(e) {
@@ -127,78 +117,108 @@
           if (w > h) { h = Math.round(h * maxPx / w); w = maxPx; }
           else { w = Math.round(w * maxPx / h); h = maxPx; }
         }
-        var canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        cb(canvas.toDataURL('image/jpeg', quality));
+        var c = document.createElement('canvas'); c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        cb(c.toDataURL('image/jpeg', quality));
       };
       img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   }
-  function injectPhotoUploader() {
+  /* ── Photo uploader + custom features — injected into admin editor ── */
+  function injectAdminExtras() {
+    /* Cover photo */
     var coverInput = document.querySelector('input[name="coverImg"]');
-    if (!coverInput || coverInput.dataset.photoReady) return;
-    coverInput.dataset.photoReady = '1';
-    coverInput.placeholder = 'رابط أو اضغط 📷 لرفع صورة';
-
-    /* Cover image picker */
-    var coverPick = document.createElement('input');
-    coverPick.type = 'file'; coverPick.accept = 'image/*'; coverPick.style.display = 'none';
-    coverPick.onchange = function() {
-      if (!this.files[0]) return;
-      var btn = coverInput.previousSibling;
-      btn.textContent = '⏳';
-      compressImage(this.files[0], 1400, 0.78, function(b64) {
-        coverInput.value = b64;
-        btn.textContent = '✅ صورة';
-      });
-    };
-    var coverBtn = document.createElement('button');
-    coverBtn.type = 'button';
-    coverBtn.textContent = '📷 رفع صورة';
-    coverBtn.style.cssText = 'background:#c8a96e;color:#fff;border:none;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;margin-top:6px;width:100%';
-    coverBtn.onclick = function(){ coverPick.click(); };
-    coverInput.parentNode.appendChild(coverBtn);
-    coverInput.parentNode.appendChild(coverPick);
-
-    /* Gallery multi-picker */
+    if (coverInput && !coverInput.dataset.photoReady) {
+      coverInput.dataset.photoReady = '1';
+      coverInput.placeholder = 'رابط أو اضغط زر الرفع';
+      var coverPick = document.createElement('input');
+      coverPick.type = 'file'; coverPick.accept = 'image/*'; coverPick.style.display = 'none';
+      var coverBtn = document.createElement('button');
+      coverBtn.type = 'button'; coverBtn.textContent = '📷 رفع صورة الغلاف';
+      coverBtn.style.cssText = 'background:#c8a96e;color:#fff;border:none;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px;width:100%';
+      coverPick.onchange = function() {
+        if (!this.files[0]) return;
+        coverBtn.textContent = '⏳ جاري الضغط...';
+        compressImage(this.files[0], 1400, 0.78, function(b64) {
+          coverInput.value = b64; coverBtn.textContent = '✅ تم رفع صورة الغلاف';
+        });
+      };
+      coverBtn.onclick = function(){ coverPick.click(); };
+      coverInput.parentNode.appendChild(coverBtn);
+      coverInput.parentNode.appendChild(coverPick);
+    }
+    /* Gallery photos */
     var galleryArea = document.querySelector('textarea[name="gallery"]');
     if (galleryArea && !galleryArea.dataset.photoReady) {
       galleryArea.dataset.photoReady = '1';
-      galleryArea.placeholder = 'روابط (سطر لكل رابط) أو استخدم زر الرفع أدناه';
+      galleryArea.placeholder = 'روابط (سطر لكل رابط) أو استخدم زر الرفع';
       var gallPick = document.createElement('input');
       gallPick.type = 'file'; gallPick.accept = 'image/*'; gallPick.multiple = true; gallPick.style.display = 'none';
+      var gallBtn = document.createElement('button');
+      gallBtn.type = 'button'; gallBtn.textContent = '📷 إضافة صور للمعرض';
+      gallBtn.style.cssText = 'background:#555;color:#fff;border:none;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:6px;width:100%';
       gallPick.onchange = function() {
-        var files = Array.from(this.files);
-        if (!files.length) return;
+        var files = Array.from(this.files); if (!files.length) return;
         gallBtn.textContent = '⏳ جاري الضغط...';
         var results = [], done = 0;
         files.forEach(function(f, i) {
           compressImage(f, 1200, 0.75, function(b64) {
             results[i] = b64; done++;
             if (done === files.length) {
-              var existing = galleryArea.value.trim();
-              galleryArea.value = (existing ? existing + '\n' : '') + results.filter(Boolean).join('\n');
-              gallBtn.textContent = '📷 إضافة للمعرض (' + files.length + ' صور)';
+              var ex = galleryArea.value.trim();
+              galleryArea.value = (ex ? ex + '\n' : '') + results.filter(Boolean).join('\n');
+              gallBtn.textContent = '📷 إضافة صور للمعرض (' + files.length + ' صور)';
             }
           });
         });
       };
-      var gallBtn = document.createElement('button');
-      gallBtn.type = 'button';
-      gallBtn.textContent = '📷 إضافة للمعرض';
-      gallBtn.style.cssText = 'background:#555;color:#fff;border:none;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;margin-top:6px;width:100%';
       gallBtn.onclick = function(){ gallPick.click(); };
       galleryArea.parentNode.appendChild(gallBtn);
       galleryArea.parentNode.appendChild(gallPick);
     }
+    /* Custom features "+" entry */
+    var firstFeat = document.querySelector('input[name="features"]');
+    if (firstFeat && !firstFeat.closest('[data-feat-ready]')) {
+      var featContainer = firstFeat.parentNode;
+      while (featContainer && featContainer.childElementCount < 3) featContainer = featContainer.parentNode;
+      if (featContainer) {
+        featContainer.setAttribute('data-feat-ready', '1');
+        var addRow = document.createElement('div');
+        addRow.style.cssText = 'display:flex;gap:8px;margin-top:12px;align-items:center;grid-column:1/-1';
+        var addInp = document.createElement('input');
+        addInp.type = 'text'; addInp.placeholder = 'أدخل ميزة مخصصة...';
+        addInp.style.cssText = 'flex:1;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;direction:rtl';
+        var addBtn = document.createElement('button');
+        addBtn.type = 'button'; addBtn.textContent = '+ إضافة';
+        addBtn.style.cssText = 'background:#c8a96e;color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap';
+        addBtn.onclick = function() {
+          var val = addInp.value.trim(); if (!val) return;
+          var lbl = document.createElement('label');
+          lbl.style.cssText = 'display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;font-family:inherit';
+          var cb = document.createElement('input');
+          cb.type = 'checkbox'; cb.name = 'features'; cb.value = val; cb.checked = true;
+          lbl.appendChild(cb); lbl.appendChild(document.createTextNode(val));
+          featContainer.insertBefore(lbl, addRow);
+          addInp.value = '';
+        };
+        addInp.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); addBtn.click(); } });
+        addRow.appendChild(addInp); addRow.appendChild(addBtn);
+        featContainer.appendChild(addRow);
+      }
+    }
   }
-  /* Watch for editor modal to open */
-  var _photoOb = new MutationObserver(function(){ injectPhotoUploader(); });
-  document.addEventListener('DOMContentLoaded', function(){
-    _photoOb.observe(document.body || document.documentElement, {childList:true, subtree:true});
-  });
+  /* ── Observer — re-attaches to the live body after replaceWith ── */
+  var _adminOb = null;
+  function startAdminObserver() {
+    if (_adminOb) _adminOb.disconnect();
+    _adminOb = new MutationObserver(function(){ injectAdminExtras(); });
+    _adminOb.observe(document.body || document.documentElement, {childList:true, subtree:true});
+  }
+  /* ── FABs + modals ── */
+  function injectWidgets() {
+    /* Re-attach admin observer to the new body every time widgets are injected */
+    startAdminObserver();
     if (document.getElementById('shark-fab-wrap')) return;
     var css = document.createElement('style');
     css.textContent = '#shark-fab-wrap{position:fixed;bottom:22px;left:0;right:0;display:flex;justify-content:space-between;padding:0 18px;z-index:99999;pointer-events:none}#shark-fab-wrap button{pointer-events:all;background:#c8a96e;color:#fff;border:none;border-radius:50px;padding:13px 18px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.28);font-family:inherit;white-space:nowrap}#shark-fab-wrap button:hover{background:#b8954f}.sk-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100000;align-items:center;justify-content:center}.sk-modal{background:#fff;border-radius:16px;padding:28px 24px;width:92%;max-width:400px;direction:rtl;position:relative;max-height:90vh;overflow-y:auto}.sk-modal h3{margin:0 0 18px;color:#c8a96e;font-size:18px;font-weight:700}.sk-modal input,.sk-modal select,.sk-modal textarea{width:100%;padding:10px 13px;margin-bottom:12px;border:1px solid #ddd;border-radius:8px;font-size:15px;box-sizing:border-box;font-family:inherit;direction:rtl}.sk-modal .sk-submit{width:100%;padding:13px;background:#c8a96e;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}.sk-modal .sk-close{position:absolute;top:10px;left:14px;background:none;border:none;font-size:24px;cursor:pointer;color:#aaa;line-height:1}';
@@ -208,14 +228,14 @@
     wrap.innerHTML = '<button onclick="sharkOpen(\'sm-inv\')">💰 مهتم بالاستثمار</button><button onclick="sharkExportExcel()" style="background:#2d6a4f;font-size:12px;padding:10px 12px">📥 Excel</button><button onclick="sharkOpen(\'sm-mkt\')">🏠 أسوّق عقاري</button>';
     document.body.appendChild(wrap);
     var invM = document.createElement('div');
-    invM.className='sk-overlay'; invM.id='sm-inv'; invM.style.display='none';
-    invM.innerHTML='<div class="sk-modal"><button class="sk-close" onclick="sharkClose('sm-inv')">×</button><h3>تسجيل اهتمام استثماري</h3><input id="si-name" type="text" placeholder="الاسم الكريم"><input id="si-phone" type="tel" placeholder="رقم الجوال"><select id="si-type"><option value="">نوع الاستثمار</option><option>أراضي</option><option>فلل</option><option>شقق</option><option>تجاري</option><option>مستودعات</option></select><textarea id="si-note" rows="3" placeholder="ملاحظات إضافية"></textarea><button class="sk-submit" onclick="sharkSubmitInv()">إرسال الطلب</button></div>';
+    invM.className = 'sk-overlay'; invM.id = 'sm-inv'; invM.style.display = 'none';
+    invM.innerHTML = '<div class="sk-modal"><button class="sk-close" onclick="sharkClose(\'sm-inv\')">&#215;</button><h3>تسجيل اهتمام استثماري</h3><input id="si-name" type="text" placeholder="الاسم الكريم"><input id="si-phone" type="tel" placeholder="رقم الجوال"><select id="si-type"><option value="">نوع الاستثمار</option><option>أراضي</option><option>فلل</option><option>شقق</option><option>تجاري</option><option>مستودعات</option></select><textarea id="si-note" rows="3" placeholder="ملاحظات إضافية"></textarea><button class="sk-submit" onclick="sharkSubmitInv()">إرسال الطلب</button></div>';
     document.body.appendChild(invM);
     var mktM = document.createElement('div');
-    mktM.className='sk-overlay'; mktM.id='sm-mkt'; mktM.style.display='none';
-    mktM.innerHTML='<div class="sk-modal"><button class="sk-close" onclick="sharkClose('sm-mkt')">×</button><h3>تسويق عقاري</h3><input id="sm-name" type="text" placeholder="الاسم الكريم"><input id="sm-phone" type="tel" placeholder="رقم الجوال"><select id="sm-kind"><option value="">نوع العقار</option><option>أرض</option><option>فيلا</option><option>شقة</option><option>عمارة</option><option>تجاري</option><option>مستودع</option></select><textarea id="sm-note" rows="3" placeholder="وصف العقار والموقع والسعر"></textarea><button class="sk-submit" onclick="sharkSubmitMkt()">إرسال الطلب</button></div>';
+    mktM.className = 'sk-overlay'; mktM.id = 'sm-mkt'; mktM.style.display = 'none';
+    mktM.innerHTML = '<div class="sk-modal"><button class="sk-close" onclick="sharkClose(\'sm-mkt\')">&#215;</button><h3>تسويق عقاري</h3><input id="sm-name" type="text" placeholder="الاسم الكريم"><input id="sm-phone" type="tel" placeholder="رقم الجوال"><select id="sm-kind"><option value="">نوع العقار</option><option>أرض</option><option>فيلا</option><option>شقة</option><option>عمارة</option><option>تجاري</option><option>مستودع</option></select><textarea id="sm-note" rows="3" placeholder="وصف العقار والموقع والسعر"></textarea><button class="sk-submit" onclick="sharkSubmitMkt()">إرسال الطلب</button></div>';
     document.body.appendChild(mktM);
-    [invM,mktM].forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.style.display='none';});});
+    [invM, mktM].forEach(function(m){ m.addEventListener('click', function(e){ if(e.target===m) m.style.display='none'; }); });
   }
   var _rw = Element.prototype.replaceWith;
   Element.prototype.replaceWith = function() {
