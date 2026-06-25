@@ -125,70 +125,6 @@
     };
     reader.readAsDataURL(file);
   }
-  /* ── Floating upload panel — lives OUTSIDE React, survives re-renders ── */
-  function buildUploadPanel() {
-    if (document.getElementById('sp-panel')) return;
-    var coverPick = document.createElement('input');
-    coverPick.type = 'file'; coverPick.accept = 'image/*'; coverPick.id = 'sp-cpick'; coverPick.style.display = 'none';
-    var gallPick = document.createElement('input');
-    gallPick.type = 'file'; gallPick.accept = 'image/*'; gallPick.multiple = true; gallPick.id = 'sp-gpick'; gallPick.style.display = 'none';
-
-    var panel = document.createElement('div');
-    panel.id = 'sp-panel';
-    panel.style.cssText = 'display:none;position:fixed;left:16px;top:50%;transform:translateY(-50%);z-index:200000;flex-direction:column;gap:10px;align-items:stretch;width:160px';
-
-    function mkBtn(txt, bg, pickId) {
-      var b = document.createElement('button');
-      b.type = 'button'; b.textContent = txt; b.dataset.pickId = pickId;
-      b.style.cssText = 'background:' + bg + ';color:#fff;border:none;border-radius:10px;padding:12px 10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(0,0,0,.4);text-align:center;line-height:1.3';
-      b.onclick = function(){ document.getElementById(this.dataset.pickId).click(); };
-      return b;
-    }
-
-    var coverBtn = mkBtn('📷\nصورة الغلاف', '#c8a96e', 'sp-cpick');
-    var gallBtn  = mkBtn('🖼️\nصور المعرض', '#2d6a4f', 'sp-gpick');
-
-    coverPick.onchange = function() {
-      if (!this.files[0]) return;
-      coverBtn.textContent = '⏳ ضغط...';
-      var f = this.files[0];
-      compressImage(f, 1400, 0.78, function(b64) {
-        var inp = document.querySelector('input[name="coverImg"]');
-        if (inp) {
-          Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(inp, b64);
-          inp.dispatchEvent(new Event('input',{bubbles:true}));
-          inp.dispatchEvent(new Event('change',{bubbles:true}));
-        }
-        coverBtn.textContent = '✅\nغلاف جاهز';
-      });
-    };
-    gallPick.onchange = function() {
-      var files = Array.from(this.files); if (!files.length) return;
-      gallBtn.textContent = '⏳ ضغط...';
-      var results = [], done = 0;
-      files.forEach(function(f, i) {
-        compressImage(f, 1200, 0.75, function(b64) {
-          results[i] = b64; done++;
-          if (done !== files.length) return;
-          var ta = document.querySelector('textarea[name="gallery"]');
-          if (ta) {
-            var ex = ta.value.trim();
-            Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(ta, (ex?ex+'\n':'')+results.filter(Boolean).join('\n'));
-            ta.dispatchEvent(new Event('input',{bubbles:true}));
-            ta.dispatchEvent(new Event('change',{bubbles:true}));
-          }
-          gallBtn.textContent = '✅\n' + files.length + ' صور';
-        });
-      });
-    };
-
-    panel.appendChild(coverPick);
-    panel.appendChild(gallPick);
-    panel.appendChild(coverBtn);
-    panel.appendChild(gallBtn);
-    document.body.appendChild(panel);
-  }
-
   /* ── Custom features "+" entry — injected into React form ── */
   function injectCustomFeature() {
     var firstFeat = document.querySelector('input[name="features"]');
@@ -220,29 +156,87 @@
     featContainer.appendChild(addRow);
   }
 
-  /* ── Poll: show/hide upload panel + inject feature button ── */
+  /* ── Poll: toggle upload buttons + inject feature button ── */
   setInterval(function() {
-    buildUploadPanel();
-    var panel = document.getElementById('sp-panel');
     var editorOpen = !!document.querySelector('input[name="coverImg"]');
-    if (panel) panel.style.display = editorOpen ? 'flex' : 'none';
-    if (editorOpen) {
-      // Reset button labels when a fresh editor opens
-      var cp = document.getElementById('sp-cpick');
-      if (cp && cp.value) { /* keep status */ }
-    }
-    injectCustomFeature();
+    var cb = document.getElementById('sp-cover-btn');
+    var gb = document.getElementById('sp-gall-btn');
+    if (cb) cb.style.display = editorOpen ? 'inline-block' : 'none';
+    if (gb) gb.style.display = editorOpen ? 'inline-block' : 'none';
+    if (editorOpen) injectCustomFeature();
   }, 300);
+
   /* ── FABs + modals ── */
   function injectWidgets() {
     if (document.getElementById('shark-fab-wrap')) return;
     var css = document.createElement('style');
-    css.textContent = '#shark-fab-wrap{position:fixed;bottom:22px;left:0;right:0;display:flex;justify-content:space-between;padding:0 18px;z-index:99999;pointer-events:none}#shark-fab-wrap button{pointer-events:all;background:#c8a96e;color:#fff;border:none;border-radius:50px;padding:13px 18px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.28);font-family:inherit;white-space:nowrap}#shark-fab-wrap button:hover{background:#b8954f}.sk-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100000;align-items:center;justify-content:center}.sk-modal{background:#fff;border-radius:16px;padding:28px 24px;width:92%;max-width:400px;direction:rtl;position:relative;max-height:90vh;overflow-y:auto}.sk-modal h3{margin:0 0 18px;color:#c8a96e;font-size:18px;font-weight:700}.sk-modal input,.sk-modal select,.sk-modal textarea{width:100%;padding:10px 13px;margin-bottom:12px;border:1px solid #ddd;border-radius:8px;font-size:15px;box-sizing:border-box;font-family:inherit;direction:rtl}.sk-modal .sk-submit{width:100%;padding:13px;background:#c8a96e;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}.sk-modal .sk-close{position:absolute;top:10px;left:14px;background:none;border:none;font-size:24px;cursor:pointer;color:#aaa;line-height:1}';
+    css.textContent = '#shark-fab-wrap{position:fixed;bottom:22px;left:0;right:0;display:flex;justify-content:space-between;padding:0 18px;z-index:99999;pointer-events:none;flex-wrap:wrap;gap:8px}#shark-fab-wrap button{pointer-events:all;background:#c8a96e;color:#fff;border:none;border-radius:50px;padding:13px 18px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.28);font-family:inherit;white-space:nowrap}#shark-fab-wrap button:hover{background:#b8954f}.sk-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100000;align-items:center;justify-content:center}.sk-modal{background:#fff;border-radius:16px;padding:28px 24px;width:92%;max-width:400px;direction:rtl;position:relative;max-height:90vh;overflow-y:auto}.sk-modal h3{margin:0 0 18px;color:#c8a96e;font-size:18px;font-weight:700}.sk-modal input,.sk-modal select,.sk-modal textarea{width:100%;padding:10px 13px;margin-bottom:12px;border:1px solid #ddd;border-radius:8px;font-size:15px;box-sizing:border-box;font-family:inherit;direction:rtl}.sk-modal .sk-submit{width:100%;padding:13px;background:#c8a96e;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}.sk-modal .sk-close{position:absolute;top:10px;left:14px;background:none;border:none;font-size:24px;cursor:pointer;color:#aaa;line-height:1}';
     document.head.appendChild(css);
+
+    /* Hidden file inputs */
+    var coverPick = document.createElement('input');
+    coverPick.type='file'; coverPick.accept='image/*'; coverPick.id='sp-cpick'; coverPick.style.display='none';
+    var gallPick = document.createElement('input');
+    gallPick.type='file'; gallPick.accept='image/*'; gallPick.multiple=true; gallPick.id='sp-gpick'; gallPick.style.display='none';
+
+    var coverUpBtn = document.createElement('button');
+    coverUpBtn.id='sp-cover-btn'; coverUpBtn.type='button'; coverUpBtn.textContent='📷 صورة الغلاف';
+    coverUpBtn.style.cssText='display:none;background:#8b6914';
+    coverUpBtn.onclick=function(){ coverPick.click(); };
+
+    var gallUpBtn = document.createElement('button');
+    gallUpBtn.id='sp-gall-btn'; gallUpBtn.type='button'; gallUpBtn.textContent='🖼️ صور المعرض';
+    gallUpBtn.style.cssText='display:none;background:#1a4a30';
+    gallUpBtn.onclick=function(){ gallPick.click(); };
+
+    coverPick.onchange = function() {
+      if (!this.files[0]) return;
+      coverUpBtn.textContent = '⏳ ضغط...';
+      compressImage(this.files[0], 1400, 0.78, function(b64) {
+        var inp = document.querySelector('input[name="coverImg"]');
+        if (inp) {
+          Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(inp, b64);
+          inp.dispatchEvent(new Event('input',{bubbles:true}));
+          inp.dispatchEvent(new Event('change',{bubbles:true}));
+          coverUpBtn.textContent = '✅ غلاف جاهز';
+        }
+      });
+    };
+    gallPick.onchange = function() {
+      var files = Array.from(this.files); if (!files.length) return;
+      gallUpBtn.textContent = '⏳ ضغط...';
+      var results=[], done=0;
+      files.forEach(function(f,i){
+        compressImage(f, 1200, 0.75, function(b64){
+          results[i]=b64; done++;
+          if (done!==files.length) return;
+          var ta = document.querySelector('textarea[name="gallery"]');
+          if (ta) {
+            var ex=ta.value.trim();
+            Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(ta,(ex?ex+'\n':'')+results.filter(Boolean).join('\n'));
+            ta.dispatchEvent(new Event('input',{bubbles:true}));
+            ta.dispatchEvent(new Event('change',{bubbles:true}));
+            gallUpBtn.textContent = '✅ ' + files.length + ' صور';
+          }
+        });
+      });
+    };
+
     var wrap = document.createElement('div');
     wrap.id = 'shark-fab-wrap';
-    wrap.innerHTML = '<button onclick="sharkOpen(\'sm-inv\')">💰 مهتم بالاستثمار</button><button onclick="sharkExportExcel()" style="background:#2d6a4f;font-size:12px;padding:10px 12px">📥 Excel</button><button onclick="sharkOpen(\'sm-mkt\')">🏠 أسوّق عقاري</button>';
     document.body.appendChild(wrap);
+    wrap.appendChild(coverPick);
+    wrap.appendChild(gallPick);
+    wrap.appendChild(coverUpBtn);
+    wrap.appendChild(gallUpBtn);
+
+    function mkFab(html, onclick) {
+      var b = document.createElement('button'); b.innerHTML = html; b.onclick = onclick; return b;
+    }
+    wrap.appendChild(mkFab('💰 مهتم بالاستثمار', function(){ sharkOpen('sm-inv'); }));
+    wrap.appendChild(mkFab('<span style="background:#2d6a4f;display:inline-block;border-radius:50px;padding:3px 8px;font-size:12px">📥 Excel</span>', function(){ sharkExportExcel(); }));
+    wrap.appendChild(mkFab('🏠 أسوّق عقاري', function(){ sharkOpen('sm-mkt'); }));
+
     var invM = document.createElement('div');
     invM.className = 'sk-overlay'; invM.id = 'sm-inv'; invM.style.display = 'none';
     invM.innerHTML = '<div class="sk-modal"><button class="sk-close" onclick="sharkClose(\'sm-inv\')">&#215;</button><h3>تسجيل اهتمام استثماري</h3><input id="si-name" type="text" placeholder="الاسم الكريم"><input id="si-phone" type="tel" placeholder="رقم الجوال"><select id="si-type"><option value="">نوع الاستثمار</option><option>أراضي</option><option>فلل</option><option>شقق</option><option>تجاري</option><option>مستودعات</option></select><textarea id="si-note" rows="3" placeholder="ملاحظات إضافية"></textarea><button class="sk-submit" onclick="sharkSubmitInv()">إرسال الطلب</button></div>';
