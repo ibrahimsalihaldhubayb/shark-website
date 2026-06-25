@@ -208,17 +208,10 @@
       }
     }
   }
-  /* ── Observer — re-attaches to the live body after replaceWith ── */
-  var _adminOb = null;
-  function startAdminObserver() {
-    if (_adminOb) _adminOb.disconnect();
-    _adminOb = new MutationObserver(function(){ injectAdminExtras(); });
-    _adminOb.observe(document.body || document.documentElement, {childList:true, subtree:true});
-  }
+  /* ── Poll for admin editor form every 300ms — reliable across React renders ── */
+  setInterval(function(){ injectAdminExtras(); }, 300);
   /* ── FABs + modals ── */
   function injectWidgets() {
-    /* Re-attach admin observer to the new body every time widgets are injected */
-    startAdminObserver();
     if (document.getElementById('shark-fab-wrap')) return;
     var css = document.createElement('style');
     css.textContent = '#shark-fab-wrap{position:fixed;bottom:22px;left:0;right:0;display:flex;justify-content:space-between;padding:0 18px;z-index:99999;pointer-events:none}#shark-fab-wrap button{pointer-events:all;background:#c8a96e;color:#fff;border:none;border-radius:50px;padding:13px 18px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.28);font-family:inherit;white-space:nowrap}#shark-fab-wrap button:hover{background:#b8954f}.sk-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100000;align-items:center;justify-content:center}.sk-modal{background:#fff;border-radius:16px;padding:28px 24px;width:92%;max-width:400px;direction:rtl;position:relative;max-height:90vh;overflow-y:auto}.sk-modal h3{margin:0 0 18px;color:#c8a96e;font-size:18px;font-weight:700}.sk-modal input,.sk-modal select,.sk-modal textarea{width:100%;padding:10px 13px;margin-bottom:12px;border:1px solid #ddd;border-radius:8px;font-size:15px;box-sizing:border-box;font-family:inherit;direction:rtl}.sk-modal .sk-submit{width:100%;padding:13px;background:#c8a96e;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}.sk-modal .sk-close{position:absolute;top:10px;left:14px;background:none;border:none;font-size:24px;cursor:pointer;color:#aaa;line-height:1}';
