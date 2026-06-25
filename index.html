@@ -157,8 +157,17 @@
   }
 
   /* ── Poll: toggle upload buttons + inject feature button ── */
+  function isVisible(el) {
+    if (!el) return false;
+    var r = el.getBoundingClientRect();
+    if (r.width === 0 && r.height === 0) return false;
+    var s = window.getComputedStyle(el);
+    if (s.display === 'none' || s.visibility === 'hidden' || parseFloat(s.opacity) === 0) return false;
+    return true;
+  }
   setInterval(function() {
-    var editorOpen = !!document.querySelector('input[name="coverImg"]');
+    var inp = document.querySelector('input[name="coverImg"]');
+    var editorOpen = inp && isVisible(inp);
     var cb = document.getElementById('sp-cover-btn');
     var gb = document.getElementById('sp-gall-btn');
     if (cb) cb.style.display = editorOpen ? 'inline-block' : 'none';
