@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة تحكم شارك العقارية</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#0f0f11;color:#e8e6e0;min-height:100vh;direction:rtl}
+:root{--gold:#c8a96e;--gold2:#b8954f;--dark:#0f0f11;--card:#1a1a1f;--border:rgba(255,255,255,.1);--red:#e05252;--green:#4caf50}
+
+/* ── Login ── */
+#login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0f0f11 60%,#1a1208)}
+.login-box{background:#1a1a1f;border:1px solid var(--border);border-radius:20px;padding:48px 40px;width:min(380px,90vw);text-align:center}
+.login-box .logo{font-size:32px;font-weight:900;color:var(--gold);letter-spacing:2px;margin-bottom:6px}
+.login-box p{color:rgba(255,255,255,.45);font-size:14px;margin-bottom:32px}
+.login-box input{width:100%;padding:14px 16px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;color:#fff;font-size:16px;font-family:inherit;text-align:center;margin-bottom:14px;direction:ltr}
+.login-box input:focus{outline:none;border-color:var(--gold)}
+.login-box button{width:100%;padding:15px;background:var(--gold);color:#1a1a1f;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}
+.login-box button:hover{background:var(--gold2)}
+.login-err{color:var(--red);font-size:13px;margin-top:10px;min-height:20px}
+
+/* ── Dashboard ── */
+#dashboard{display:none;min-height:100vh}
+.topbar{background:#141416;border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100}
+.topbar .brand{font-size:18px;font-weight:900;color:var(--gold)}
+.topbar-actions{display:flex;gap:12px;align-items:center}
+.topbar-actions span{color:rgba(255,255,255,.4);font-size:13px}
+.btn-sm{padding:8px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s}
+.btn-logout{background:rgba(255,255,255,.08);color:#fff}.btn-logout:hover{background:rgba(255,255,255,.14)}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:#141416;padding:0 24px;overflow-x:auto}
+.tab{padding:16px 22px;font-size:14px;font-weight:600;color:rgba(255,255,255,.4);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:.2s}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.tab:hover:not(.active){color:rgba(255,255,255,.7)}
+
+/* ── Content ── */
+.content{padding:28px 24px;max-width:1200px;margin:0 auto}
+.section{display:none}.section.active{display:block}
+
+/* ── Cards ── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;text-align:center}
+.stat-card .num{font-size:34px;font-weight:800;color:var(--gold)}
+.stat-card .lbl{font-size:13px;color:rgba(255,255,255,.45);margin-top:4px}
+
+/* ── Table ── */
+.tbl-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.tbl-header{padding:18px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.tbl-header h3{font-size:16px;font-weight:700}
+.tbl-header .actions{display:flex;gap:10px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{background:rgba(255,255,255,.04);padding:12px 16px;text-align:right;font-weight:600;color:rgba(255,255,255,.5);font-size:12px;border-bottom:1px solid var(--border)}
+td{padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.025)}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-lead{background:rgba(200,169,110,.15);color:var(--gold)}
+.badge-inv{background:rgba(76,175,80,.15);color:#4caf50}
+.badge-req{background:rgba(100,149,237,.15);color:#6495ed}
+.act-btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn-wa{background:#25d366;color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-pdf{background:rgba(200,169,110,.15);color:var(--gold);border:1px solid rgba(200,169,110,.3);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-del{background:rgba(224,82,82,.12);color:var(--red);border:1px solid rgba(224,82,82,.25);border-radius:8px;padding:7px 12px;font-size:12px;cursor:pointer;font-family:inherit}
+.btn-primary{background:var(--gold);color:#1a1a1f;border:none;border-radius:8px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-primary:hover{background:var(--gold2)}
+.btn-outline{background:transparent;color:var(--gold);border:1px solid var(--gold);border-radius:8px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+
+/* ── Modal ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:#1a1a1f;border:1px solid var(--border);border-radius:18px;padding:32px 28px;width:min(560px,100%);max-height:90vh;overflow-y:auto;position:relative}
+.modal h3{font-size:18px;font-weight:700;color:var(--gold);margin-bottom:22px}
+.modal-close{position:absolute;top:14px;left:18px;background:none;border:none;color:rgba(255,255,255,.4);font-size:24px;cursor:pointer;line-height:1}
+.form-row{margin-bottom:16px}
+.form-row label{display:block;font-size:12px;color:rgba(255,255,255,.45);margin-bottom:6px}
+.form-row input,.form-row select,.form-row textarea{width:100%;padding:11px 14px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:9px;color:#fff;font-size:14px;font-family:inherit;direction:rtl}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{outline:none;border-color:var(--gold)}
+.form-row select option{background:#1a1a1f;color:#fff}
+.form-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-footer{display:flex;gap:12px;justify-content:flex-end;margin-top:22px}
+
+/* ── Offer cards ── */
+.offers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.offer-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.offer-card img,.offer-card .no-img{width:100%;height:160px;object-fit:cover;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.2);font-size:13px}
+.offer-card .oc-body{padding:16px}
+.offer-card .oc-title{font-weight:700;font-size:15px;margin-bottom:6px}
+.offer-card .oc-price{color:var(--gold);font-weight:700;font-size:16px;margin-bottom:10px}
+.offer-card .oc-acts{display:flex;gap:8px}
+.btn-edit{background:rgba(255,255,255,.08);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;font-family:inherit}
+.btn-edit:hover{background:rgba(255,255,255,.14)}
+
+/* ── Upload btn ── */
+.upload-btn{background:rgba(200,169,110,.12);color:var(--gold);border:1px solid rgba(200,169,110,.3);border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;margin-top:8px;text-align:center}
+.preview-img{max-width:100%;max-height:120px;border-radius:8px;margin-top:8px;object-fit:cover}
+
+/* ── Settings ── */
+.settings-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;max-width:400px;margin-bottom:20px}
+.settings-card h4{font-size:15px;font-weight:700;margin-bottom:18px;color:var(--gold)}
+
+/* ── Print / PDF ── */
+@media print{
+  body *{visibility:hidden}
+  #print-area,#print-area *{visibility:visible}
+  #print-area{position:fixed;inset:0;background:#fff;color:#000;padding:40px;font-family:'Segoe UI',Arial,sans-serif;direction:rtl;font-size:14px;z-index:99999}
+}
+#print-area{display:none}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="login">
+  <div class="login-box">
+    <div class="logo">SHARK</div>
+    <p>شارك العقارية — لوحة التحكم</p>
+    <input id="pass-input" type="password" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')doLogin()">
+    <button onclick="doLogin()">دخول</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- ══ DASHBOARD ══ -->
+<div id="dashboard">
+  <div class="topbar">
+    <div class="brand">⚡ SHARK — لوحة التحكم</div>
+    <div class="topbar-actions">
+      <span id="topbar-date"></span>
+      <button class="btn-sm btn-logout" onclick="doLogout()">خروج</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('clients')">👥 العملاء</div>
+    <div class="tab" onclick="showTab('offers')">🏠 العروض</div>
+    <div class="tab" onclick="showTab('export')">📊 التقارير</div>
+    <div class="tab" onclick="showTab('settings')">⚙️ الإعدادات</div>
+  </div>
+
+  <!-- ── CLIENTS ── -->
+  <div class="content">
+    <div class="section active" id="sec-clients">
+      <div class="stats-row" id="stats-row"></div>
+      <div class="tbl-wrap">
+        <div class="tbl-header">
+          <h3>سجل العملاء</h3>
+          <div class="actions">
+            <input id="search-inp" type="text" placeholder="🔍 بحث..." style="background:rgba(255,255,255,.07);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:#fff;font-size:13px;font-family:inherit;width:200px" oninput="renderClients()">
+            <button class="btn-primary" onclick="openAddClient()">+ إضافة عميل</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="clients-table">
+            <thead><tr>
+              <th>#</th><th>الاسم</th><th>الجوال</th><th>النوع</th><th>الاهتمام</th><th>العرض المرفق</th><th>التاريخ</th><th>إجراءات</th>
+            </tr></thead>
+            <tbody id="clients-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── OFFERS ── -->
+    <div class="section" id="sec-offers">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h3 style="font-size:18px;font-weight:700">إدارة العروض العقارية</h3>
+        <button class="btn-primary" onclick="openOfferEditor(null)">+ إضافة عرض</button>
+      </div>
+      <div class="offers-grid" id="offers-grid"></div>
+    </div>
+
+    <!-- ── EXPORT ── -->
+    <div class="section" id="sec-export">
+      <div class="tbl-wrap" style="padding:32px;max-width:500px">
+        <h3 style="font-size:17px;font-weight:700;margin-bottom:8px">تصدير البيانات</h3>
+        <p style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:28px">تصدير جميع بيانات العملاء بملف Excel متعدد الأوراق</p>
+        <button class="btn-primary" style="width:100%;padding:16px;font-size:15px;margin-bottom:12px" onclick="exportExcel()">📥 تنزيل Excel</button>
+        <button class="btn-outline" style="width:100%;padding:14px;font-size:14px" onclick="exportOffersExcel()">🏠 تصدير العروض</button>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
+    <div class="section" id="sec-settings">
+      <div class="settings-card">
+        <h4>🔐 تغيير كلمة المرور</h4>
+        <div class="form-row"><label>كلمة المرور الحالية</label><input id="old-pass" type="password"></div>
+        <div class="form-row"><label>كلمة المرور الجديدة</label><input id="new-pass" type="password"></div>
+        <div class="form-row"><label>تأكيد كلمة المرور الجديدة</label><input id="new-pass2" type="password"></div>
+        <button class="btn-primary" onclick="changePass()">حفظ</button>
+        <div id="pass-msg" style="margin-top:10px;font-size:13px"></div>
+      </div>
+      <div class="settings-card">
+        <h4>🗑️ إدارة البيانات</h4>
+        <p style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:16px">حذف سجلات العملاء فقط (العروض لا تتأثر)</p>
+        <button class="btn-del" onclick="clearClients()">حذف جميع سجلات العملاء</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Add Client ══ -->
+<div class="modal-bg" id="modal-client">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-client')">×</button>
+    <h3 id="modal-client-title">إضافة عميل جديد</h3>
+    <div class="form-2col">
+      <div class="form-row"><label>الاسم الكريم *</label><input id="cl-name" type="text" placeholder="محمد أحمد"></div>
+      <div class="form-row"><label>رقم الجوال *</label><input id="cl-phone" type="tel" placeholder="05xxxxxxxx"></div>
+    </div>
+    <div class="form-row"><label>نوع التواصل</label>
+      <select id="cl-type">
+        <option value="عميل اتصال">عميل اتصال</option>
+        <option value="رغبة استثمار">رغبة استثمار</option>
+        <option value="عرض عقار">عرض عقار للتسويق</option>
+        <option value="طلب شراء">طلب شراء</option>
+      </select>
+    </div>
+    <div class="form-row"><label>العرض المرفق (اختياري)</label>
+      <select id="cl-offer"><option value="">— بدون عرض —</option></select>
+    </div>
+    <div class="form-row"><label>الاهتمام / نوع العقار</label>
+      <input id="cl-interest" type="text" placeholder="مثال: مستودع في بريدة">
+    </div>
+    <div class="form-row"><label>ملاحظات</label>
+      <textarea id="cl-note" rows="3" placeholder="أي تفاصيل إضافية..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-client')">إلغاء</button>
+      <button class="btn-primary" onclick="saveClient()">حفظ العميل</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Client Actions ══ -->
+<div class="modal-bg" id="modal-actions">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-actions')">×</button>
+    <h3 id="act-client-name">إجراءات العميل</h3>
+    <div style="display:flex;flex-direction:column;gap:14px;margin-top:8px">
+      <button class="btn-wa" style="padding:15px;font-size:15px;border-radius:10px" onclick="openWA()">
+        📲 فتح واتساب — إرسال رسالة
+      </button>
+      <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:16px">
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:8px">نص الرسالة (قابل للتعديل)</div>
+        <textarea id="wa-msg" rows="4" style="width:100%;background:transparent;border:none;color:#fff;font-size:13px;font-family:inherit;resize:vertical;direction:rtl;outline:none"></textarea>
+      </div>
+      <button class="btn-pdf" style="padding:15px;font-size:15px;border-radius:10px" onclick="generatePDF()">
+        📄 توليد رسالة شكر PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Offer Editor ══ -->
+<div class="modal-bg" id="modal-offer">
+  <div class="modal" style="max-width:640px">
+    <button class="modal-close" onclick="closeModal('modal-offer')">×</button>
+    <h3 id="offer-modal-title">إضافة عرض عقاري</h3>
+    <input type="hidden" id="offer-edit-id">
+    <div class="form-2col">
+      <div class="form-row"><label>اسم العرض *</label><input id="of-name" type="text" placeholder="مستودع شمال بريدة"></div>
+      <div class="form-row"><label>نوع العقار</label>
+        <select id="of-type">
+          <option value="warehouses">مستودع</option>
+          <option value="commercial">تجاري</option>
+          <option value="residential">سكني</option>
+          <option value="villas">فيلا</option>
+          <option value="apartments">شقة</option>
+          <option value="lands">أرض</option>
+          <option value="agricultural">زراعي</option>
+          <option value="rest">استراحة</option>
+          <option value="chalets">شاليه</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-2col">
+      <div class="form-row"><label>السعر (ريال)</label><input id="of-price" type="text" inputmode="numeric" placeholder="2400000"></div>
+      <div class="form-row"><label>المساحة (م²)</label><input id="of-area" type="text" inputmode="numeric" placeholder="1200"></div>
+    </div>
+    <div class="form-2col">
+      <div class="form-row"><label>المدينة</label><input id="of-city" type="text" placeholder="بريدة"></div>
+      <div class="form-row"><label>الحي</label><input id="of-district" type="text" placeholder="حي الشمالية"></div>
+    </div>
+    <div class="form-row"><label>الوصف</label><textarea id="of-desc" rows="3" placeholder="وصف تفصيلي للعقار..."></textarea></div>
+
+    <!-- Cover photo -->
+    <div class="form-row">
+      <label>صورة الغلاف</label>
+      <input type="file" id="of-cover-pick" accept="image/*" style="display:none" onchange="handleCoverPick(this)">
+      <img id="of-cover-preview" class="preview-img" style="display:none">
+      <input id="of-cover-b64" type="hidden">
+      <button type="button" class="upload-btn" onclick="document.getElementById('of-cover-pick').click()">📷 رفع صورة الغلاف</button>
+    </div>
+
+    <!-- Gallery -->
+    <div class="form-row">
+      <label>صور المعرض</label>
+      <input type="file" id="of-gall-pick" accept="image/*" multiple style="display:none" onchange="handleGalleryPick(this)">
+      <div id="of-gall-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px"></div>
+      <button type="button" class="upload-btn" style="background:rgba(45,106,79,.2);color:#4caf50;border-color:rgba(76,175,80,.3)" onclick="document.getElementById('of-gall-pick').click()">🖼️ إضافة صور المعرض</button>
+    </div>
+
+    <!-- Features -->
+    <div class="form-row">
+      <label>المميزات</label>
+      <div id="feat-checks" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px"></div>
+      <div style="display:flex;gap:8px">
+        <input id="feat-custom" type="text" placeholder="ميزة مخصصة..." style="flex:1;padding:8px 12px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;color:#fff;font-family:inherit">
+        <button type="button" onclick="addCustomFeat()" style="background:var(--gold);color:#1a1a1f;border:none;border-radius:8px;padding:8px 16px;font-weight:700;cursor:pointer;font-family:inherit">+ إضافة</button>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-offer')">إلغاء</button>
+      <button class="btn-primary" onclick="saveOffer()">حفظ العرض</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PRINT AREA ══ -->
+<div id="print-area"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════
+const DEFAULT_PASS = 'shark2024';
+const PASS_KEY = 'shark_admin_pass';
+const SESSION_KEY = 'shark_admin_auth';
+const CLIENTS_KEY = 'shark_admin_clients'; // our own clients (separate from bundled app)
+const OFFERS_KEY = 'shark_offers';          // shared with main site
+
+const FEAT_CATALOG = [
+  'بوابة واسعة للشاحنات','ارتفاع عالٍ','أرضية إسمنتية مسلّحة','كهرباء ٣ فاز',
+  'عوازل حرارية','موقع استراتيجي','أمن وحراسة','مواقف واسعة',
+  'صك إلكتروني جاهز','عائد استثماري مرتفع','قريب من الخدمات','إطلالة مميزة'
+];
+const TYPE_LABELS = {warehouses:'مستودع',commercial:'تجاري',residential:'سكني',villas:'فيلا',apartments:'شقة',lands:'أرض',agricultural:'زراعي',rest:'استراحة',chalets:'شاليه'};
+
+// ══════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════
+const $  = id => document.getElementById(id);
+const gs = k => { try{ return JSON.parse(localStorage.getItem(k)||'null'); }catch(e){ return null; } };
+const ss = (k,v) => localStorage.setItem(k, JSON.stringify(v));
+function getPass(){ return localStorage.getItem(PASS_KEY) || DEFAULT_PASS; }
+function fmtPrice(n){ return Number(n).toLocaleString('ar-SA') + ' ريال'; }
+function nowAr(){ return new Date().toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'}); }
+function uid(){ return 'CL-' + Date.now().toString(36).toUpperCase(); }
+function ouid(){ return 'OF-' + Date.now().toString(36).toUpperCase(); }
+
+// ══════════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════════
+function doLogin(){
+  const p = $('pass-input').value;
+  if(p === getPass()){
+    sessionStorage.setItem(SESSION_KEY,'1');
+    $('login').style.display='none';
+    $('dashboard').style.display='block';
+    init();
+  } else {
+    $('login-err').textContent='كلمة المرور غير صحيحة';
+    $('pass-input').value='';
+  }
+}
+function doLogout(){ sessionStorage.removeItem(SESSION_KEY); location.reload(); }
+function changePass(){
+  const old=$('old-pass').value, nw=$('new-pass').value, nw2=$('new-pass2').value;
+  const msg=$('pass-msg');
+  if(old!==getPass()){ msg.style.color='#e05252'; msg.textContent='كلمة المرور الحالية غير صحيحة'; return; }
+  if(nw.length<6){ msg.style.color='#e05252'; msg.textContent='كلمة المرور يجب أن تكون 6 أحرف على الأقل'; return; }
+  if(nw!==nw2){ msg.style.color='#e05252'; msg.textContent='كلمتا المرور غير متطابقتين'; return; }
+  localStorage.setItem(PASS_KEY, nw);
+  msg.style.color='#4caf50'; msg.textContent='تم تغيير كلمة المرور بنجاح ✓';
+  ['old-pass','new-pass','new-pass2'].forEach(id=>$(id).value='');
+}
+
+// Check session on load
+window.addEventListener('load',()=>{
+  if(sessionStorage.getItem(SESSION_KEY)==='1'){
+    $('login').style.display='none'; $('dashboard').style.display='block'; init();
+  }
+});
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+function init(){
+  $('topbar-date').textContent = new Date().toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  renderStats(); renderClients(); renderOffers();
+}
+
+// ══════════════════════════════════════════════
+//  TABS
+// ══════════════════════════════════════════════
+function showTab(name){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  const tabs=['clients','offers','export','settings'];
+  const idx=tabs.indexOf(name);
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+  $('sec-'+name).classList.add('active');
+}
+
+// ══════════════════════════════════════════════
+//  CLIENTS DATA
+// ══════════════════════════════════════════════
+function getClients(){ return gs(CLIENTS_KEY)||[]; }
+function saveClients(arr){ ss(CLIENTS_KEY,arr); }
+
+function renderStats(){
+  const c=getClients();
+  const types={};
+  c.forEach(r=>{ types[r.type]=(types[r.type]||0)+1; });
+  $('stats-row').innerHTML=`
+    <div class="stat-card"><div class="num">${c.length}</div><div class="lbl">إجمالي العملاء</div></div>
+    <div class="stat-card"><div class="num">${c.filter(r=>r.type==='عميل اتصال').length}</div><div class="lbl">عملاء اتصال</div></div>
+    <div class="stat-card"><div class="num">${c.filter(r=>r.type==='رغبة استثمار').length}</div><div class="lbl">رغبات استثمار</div></div>
+    <div class="stat-card"><div class="num">${(gs(OFFERS_KEY)||[]).length}</div><div class="lbl">عروض عقارية</div></div>
+  `;
+}
+
+function renderClients(){
+  const q=($('search-inp')||{}).value?.trim().toLowerCase()||'';
+  let rows=getClients().filter(r=>!q||r.name?.toLowerCase().includes(q)||r.phone?.includes(q)||(r.interest||'').toLowerCase().includes(q));
+  const badge={
+    'عميل اتصال':'badge-lead','رغبة استثمار':'badge-inv','عرض عقار':'badge-req','طلب شراء':'badge-req'
+  };
+  const offers=gs(OFFERS_KEY)||[];
+  const offerMap={}; offers.forEach(o=>{offerMap[o.id]=o.ar||o.name||o.id;});
+
+  $('clients-body').innerHTML = rows.length===0
+    ? '<tr><td colspan="8" style="text-align:center;padding:32px;color:rgba(255,255,255,.3)">لا توجد سجلات بعد</td></tr>'
+    : rows.map((r,i)=>`
+      <tr>
+        <td style="color:rgba(255,255,255,.3)">${i+1}</td>
+        <td style="font-weight:600">${r.name||'—'}</td>
+        <td dir="ltr">${r.phone||'—'}</td>
+        <td><span class="badge ${badge[r.type]||'badge-lead'}">${r.type||'—'}</span></td>
+        <td style="color:rgba(255,255,255,.6);font-size:13px">${r.interest||'—'}</td>
+        <td style="font-size:12px;color:var(--gold)">${r.offerId ? (offerMap[r.offerId]||r.offerId) : '—'}</td>
+        <td style="color:rgba(255,255,255,.4);font-size:12px">${r.date||'—'}</td>
+        <td><div class="act-btns">
+          <button class="btn-wa" onclick="openClientActions('${r.id}')">واتساب / PDF</button>
+          <button class="btn-del" onclick="deleteClient('${r.id}')">×</button>
+        </div></td>
+      </tr>`).join('');
+}
+
+// ── Add Client ──
+function openAddClient(){
+  ['cl-name','cl-phone','cl-interest','cl-note'].forEach(id=>$(id).value='');
+  $('cl-type').value='عميل اتصال';
+  // Populate offers dropdown
+  const offers=gs(OFFERS_KEY)||[];
+  $('cl-offer').innerHTML='<option value="">— بدون عرض —</option>'+offers.map(o=>`<option value="${o.id}">${o.ar||o.name||o.id}</option>`).join('');
+  $('modal-client').classList.add('open');
+  $('modal-client-title').textContent='إضافة عميل جديد';
+}
+function saveClient(){
+  const name=$('cl-name').value.trim(), phone=$('cl-phone').value.trim();
+  if(!name||!phone){ alert('الرجاء إدخال الاسم ورقم الجوال'); return; }
+  const offerId=$('cl-offer').value;
+  const offers=gs(OFFERS_KEY)||[];
+  const offer=offerId ? offers.find(o=>o.id===offerId) : null;
+  const rec={
+    id:uid(), name, phone, type:$('cl-type').value,
+    interest:$('cl-interest').value.trim(), note:$('cl-note').value.trim(),
+    offerId: offerId||'', offerName: offer ? (offer.ar||offer.name||'') : '',
+    date:nowAr()
+  };
+  const arr=getClients(); arr.unshift(rec); saveClients(arr);
+  closeModal('modal-client'); renderStats(); renderClients();
+}
+function deleteClient(id){
+  if(!confirm('هل تريد حذف هذا السجل؟')) return;
+  saveClients(getClients().filter(r=>r.id!==id));
+  renderStats(); renderClients();
+}
+function clearClients(){
+  if(!confirm('سيتم حذف جميع سجلات العملاء. هل أنت متأكد؟')) return;
+  ss(CLIENTS_KEY,[]); renderStats(); renderClients();
+}
+
+// ══════════════════════════════════════════════
+//  WHATSAPP + PDF
+// ══════════════════════════════════════════════
+let _activeClient = null;
+function openClientActions(id){
+  const c=getClients().find(r=>r.id===id); if(!c) return;
+  _activeClient=c;
+  $('act-client-name').textContent='إجراءات: '+c.name;
+  // Build WhatsApp message
+  let msg = `السلام عليكم ${c.name}،\n\nشكراً لتواصلك مع شركة شارك العقارية 🏢\n`;
+  if(c.offerName || c.offerId){
+    msg += `\nاهتمامك بالعقار: ${c.offerName||c.offerId}\n`;
+    // Add offer details
+    const offers=gs(OFFERS_KEY)||[];
+    const offer=offers.find(o=>o.id===c.offerId);
+    if(offer){
+      msg += `📍 الموقع: ${offer.city||''} ${offer.district?'— '+offer.district:''}\n`;
+      if(offer.price) msg += `💰 السعر: ${fmtPrice(offer.price)}\n`;
+      if(offer.area) msg += `📐 المساحة: ${offer.area} م²\n`;
+    }
+  } else if(c.interest){
+    msg += `\nاهتمامك: ${c.interest}\n`;
+  }
+  msg += `\nيسعدنا خدمتك في أي وقت.\nفريق شارك العقارية`;
+  $('wa-msg').value=msg;
+  $('modal-actions').classList.add('open');
+}
+function openWA(){
+  const c=_activeClient; if(!c) return;
+  const phone=c.phone.replace(/^0/,'966').replace(/\D/g,'');
+  const msg=encodeURIComponent($('wa-msg').value);
+  window.open(`https://wa.me/${phone}?text=${msg}`,'_blank');
+}
+
+function generatePDF(){
+  const c=_activeClient; if(!c) return;
+  const offers=gs(OFFERS_KEY)||[];
+  const offer=c.offerId ? offers.find(o=>o.id===c.offerId) : null;
+  const coverImg=offer?.coverImg||'';
+  const galleryImgs=(offer?.gallery||'').split('\n').filter(Boolean).slice(0,4);
+
+  const html=`
+  <div id="print-area" style="display:block;font-family:'Segoe UI',Arial,sans-serif;direction:rtl;color:#111;padding:50px 60px;background:#fff;max-width:900px;margin:0 auto">
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px;padding-bottom:24px;border-bottom:3px solid #c8a96e">
+      <div>
+        <div style="font-size:34px;font-weight:900;color:#c8a96e;letter-spacing:2px">SHARK</div>
+        <div style="font-size:13px;color:#888;margin-top:4px">شركة شارك العقارية</div>
+        <div style="font-size:12px;color:#aaa">sharekre.sa</div>
+      </div>
+      <div style="text-align:left;font-size:12px;color:#999">
+        <div>${new Date().toLocaleDateString('ar-SA',{year:'numeric',month:'long',day:'numeric'})}</div>
+      </div>
+    </div>
+
+    <!-- Greeting -->
+    <div style="font-size:18px;font-weight:700;margin-bottom:10px">السيد / ${c.name} المحترم</div>
+    <div style="font-size:15px;line-height:1.8;color:#333;margin-bottom:28px">
+      السلام عليكم ورحمة الله وبركاته،<br>
+      <strong>شكراً لتواصلك مع شركة شارك العقارية</strong>، نُثمّن اهتمامك واختيارك لنا شريكاً في رحلتك العقارية.
+      ${offer ? `<br>يسعدنا نقدم لكم تفاصيل العقار الذي أبديتم اهتماماً به:` : c.interest ? `<br>نودّ إخطاركم بأننا نعمل على تلبية احتياجكم في: <strong>${c.interest}</strong>` : ''}
+    </div>
+
+    ${offer ? `
+    <!-- Offer Details -->
+    <div style="background:#f9f7f2;border-radius:12px;padding:24px;margin-bottom:28px;border:1px solid #e8e0cc">
+      <div style="font-size:17px;font-weight:800;color:#c8a96e;margin-bottom:16px">🏠 ${offer.ar||offer.name||''}</div>
+      ${coverImg ? `<img src="${coverImg}" style="width:100%;max-height:260px;object-fit:cover;border-radius:8px;margin-bottom:16px">` : ''}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+        ${offer.city ? `<div><span style="color:#999;font-size:12px">الموقع</span><br><strong>${offer.city}${offer.district?' — '+offer.district:''}</strong></div>` : ''}
+        ${offer.price ? `<div><span style="color:#999;font-size:12px">السعر</span><br><strong style="color:#c8a96e">${fmtPrice(offer.price)}</strong></div>` : ''}
+        ${offer.area ? `<div><span style="color:#999;font-size:12px">المساحة</span><br><strong>${offer.area} م²</strong></div>` : ''}
+        ${offer.type ? `<div><span style="color:#999;font-size:12px">النوع</span><br><strong>${TYPE_LABELS[offer.type]||offer.type}</strong></div>` : ''}
+      </div>
+      ${offer.desc ? `<div style="font-size:13px;color:#555;line-height:1.7;margin-bottom:12px">${offer.desc}</div>` : ''}
+      ${(offer.features||[]).length ? `
+        <div style="margin-top:10px">
+          <div style="font-size:12px;color:#999;margin-bottom:8px">المميزات</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">${(offer.features||[]).map(f=>`<span style="background:#c8a96e22;color:#8b6914;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600">${f}</span>`).join('')}</div>
+        </div>` : ''}
+      ${galleryImgs.length ? `
+        <div style="display:grid;grid-template-columns:repeat(${Math.min(galleryImgs.length,2)},1fr);gap:8px;margin-top:14px">
+          ${galleryImgs.map(src=>`<img src="${src}" style="width:100%;height:120px;object-fit:cover;border-radius:6px">`).join('')}
+        </div>` : ''}
+    </div>` : ''}
+
+    <!-- Closing -->
+    <div style="font-size:14px;line-height:1.9;color:#444;margin-bottom:32px">
+      نحن في شركة شارك العقارية على أتم الاستعداد لتزويدكم بأي معلومات إضافية أو ترتيب زيارة ميدانية للعقار في أي وقت يناسبكم.<br>
+      ونتطلع إلى شراكة ناجحة ومثمرة معكم.
+    </div>
+    <div style="font-weight:700;font-size:15px;margin-bottom:4px">مع أطيب التحيات</div>
+    <div style="color:#c8a96e;font-weight:800;font-size:16px">فريق شارك العقارية</div>
+
+    <!-- Footer -->
+    <div style="margin-top:40px;padding-top:16px;border-top:1px solid #e8e0cc;display:flex;justify-content:space-between;font-size:11px;color:#bbb">
+      <span>شارك العقارية — sharekre.sa</span>
+      <span>هذه الوثيقة سرية وصادرة لـ ${c.name}</span>
+    </div>
+  </div>`;
+
+  $('print-area').innerHTML=html;
+  $('print-area').style.display='block';
+  setTimeout(()=>{ window.print(); $('print-area').style.display='none'; },200);
+}
+
+// ══════════════════════════════════════════════
+//  OFFERS
+// ══════════════════════════════════════════════
+var _galleryB64 = [];
+
+function renderOffers(){
+  const offers=gs(OFFERS_KEY)||[];
+  if(!offers.length){
+    $('offers-grid').innerHTML='<div style="color:rgba(255,255,255,.3);padding:32px">لا توجد عروض بعد — أضف أول عرض</div>';
+    return;
+  }
+  $('offers-grid').innerHTML=offers.map(o=>`
+    <div class="offer-card">
+      ${o.coverImg ? `<img src="${o.coverImg}" alt="${o.ar||''}">` : `<div class="no-img">لا توجد صورة</div>`}
+      <div class="oc-body">
+        <div class="oc-title">${o.ar||o.name||o.id}</div>
+        <div class="oc-price">${o.price?fmtPrice(o.price):'السعر غير محدد'}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:10px">${o.city||''} ${o.district?'· '+o.district:''} ${o.area?'· '+o.area+' م²':''}</div>
+        <div class="oc-acts">
+          <button class="btn-edit" onclick="openOfferEditor('${o.id}')">✏️ تعديل</button>
+          <button class="btn-del" onclick="deleteOffer('${o.id}')">حذف</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function openOfferEditor(id){
+  _galleryB64=[];
+  $('offer-modal-title').textContent = id ? 'تعديل العرض' : 'إضافة عرض عقاري';
+  $('offer-edit-id').value = id||'';
+  // Reset form
+  ['of-name','of-price','of-area','of-city','of-district','of-desc'].forEach(i=>$(i).value='');
+  $('of-type').value='warehouses';
+  $('of-cover-b64').value='';
+  $('of-cover-preview').style.display='none';
+  $('of-gall-preview').innerHTML='';
+  // Feature checkboxes
+  $('feat-checks').innerHTML=FEAT_CATALOG.map(f=>`
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:rgba(255,255,255,.8)">
+      <input type="checkbox" name="feat" value="${f}" style="width:15px;height:15px;accent-color:var(--gold)">
+      ${f}
+    </label>`).join('');
+
+  if(id){
+    const offers=gs(OFFERS_KEY)||[];
+    const o=offers.find(x=>x.id===id); if(!o) return;
+    $('of-name').value=o.ar||o.name||'';
+    $('of-type').value=o.type||'warehouses';
+    $('of-price').value=o.price||'';
+    $('of-area').value=o.area||'';
+    $('of-city').value=o.city||'';
+    $('of-district').value=o.district||'';
+    $('of-desc').value=o.desc||'';
+    if(o.coverImg){ $('of-cover-b64').value=o.coverImg; $('of-cover-preview').src=o.coverImg; $('of-cover-preview').style.display='block'; }
+    if(o.gallery){ _galleryB64=o.gallery.split('\n').filter(Boolean); renderGalleryPreviews(); }
+    const feats=o.features||[];
+    document.querySelectorAll('[name="feat"]').forEach(cb=>{ if(feats.includes(cb.value)) cb.checked=true; });
+  }
+  $('modal-offer').classList.add('open');
+}
+
+function addCustomFeat(){
+  const val=$('feat-custom').value.trim(); if(!val) return;
+  const lbl=document.createElement('label');
+  lbl.style.cssText='display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:rgba(255,255,255,.8)';
+  lbl.innerHTML=`<input type="checkbox" name="feat" value="${val}" checked style="width:15px;height:15px;accent-color:var(--gold)"> ${val}`;
+  $('feat-checks').appendChild(lbl);
+  $('feat-custom').value='';
+}
+
+function compressImage(file,maxPx,quality,cb){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      let w=img.width,h=img.height;
+      if(w>maxPx||h>maxPx){ if(w>h){h=Math.round(h*maxPx/w);w=maxPx;}else{w=Math.round(w*maxPx/h);h=maxPx;} }
+      const c=document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      cb(c.toDataURL('image/jpeg',quality));
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleCoverPick(inp){
+  if(!inp.files[0]) return;
+  compressImage(inp.files[0],1400,0.8,b64=>{
+    $('of-cover-b64').value=b64;
+    $('of-cover-preview').src=b64;
+    $('of-cover-preview').style.display='block';
+  });
+}
+
+function handleGalleryPick(inp){
+  const files=Array.from(inp.files); if(!files.length) return;
+  let done=0;
+  files.forEach((f,i)=>{
+    compressImage(f,1200,0.78,b64=>{
+      _galleryB64.push(b64); done++;
+      if(done===files.length) renderGalleryPreviews();
+    });
+  });
+}
+
+function renderGalleryPreviews(){
+  $('of-gall-preview').innerHTML=_galleryB64.map((b,i)=>
+    `<div style="position:relative">
+      <img src="${b}" style="width:80px;height:60px;object-fit:cover;border-radius:6px">
+      <button onclick="_galleryB64.splice(${i},1);renderGalleryPreviews()" style="position:absolute;top:-6px;right:-6px;background:#e05252;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;line-height:1">×</button>
+    </div>`).join('');
+}
+
+function saveOffer(){
+  const name=$('of-name').value.trim(); if(!name){ alert('الرجاء إدخال اسم العرض'); return; }
+  const features=[...document.querySelectorAll('[name="feat"]:checked')].map(cb=>cb.value);
+  const editId=$('offer-edit-id').value;
+  const offers=gs(OFFERS_KEY)||[];
+  const rec={
+    id: editId||ouid(), ar:name, name:name,
+    type:$('of-type').value,
+    price:Number($('of-price').value.replace(/,/g,''))||0,
+    area:Number($('of-area').value)||0,
+    city:$('of-city').value.trim(),
+    district:$('of-district').value.trim(),
+    desc:$('of-desc').value.trim(),
+    coverImg:$('of-cover-b64').value||'',
+    gallery:_galleryB64.join('\n'),
+    features, status:'available',
+    beds:0, baths:0, map:'', en:name
+  };
+  if(editId){
+    const idx=offers.findIndex(o=>o.id===editId);
+    if(idx>=0) offers[idx]=rec; else offers.unshift(rec);
+  } else { offers.unshift(rec); }
+  ss(OFFERS_KEY,offers);
+  closeModal('modal-offer'); renderOffers();
+}
+
+function deleteOffer(id){
+  if(!confirm('هل تريد حذف هذا العرض؟')) return;
+  ss(OFFERS_KEY,(gs(OFFERS_KEY)||[]).filter(o=>o.id!==id));
+  renderOffers();
+}
+
+// ══════════════════════════════════════════════
+//  EXCEL EXPORT
+// ══════════════════════════════════════════════
+function exportExcel(){
+  if(window.XLSX){ doExcelClients(); return; }
+  const s=document.createElement('script');
+  s.src='https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+  s.onload=doExcelClients; s.onerror=()=>alert('تعذّر تحميل مكتبة Excel');
+  document.head.appendChild(s);
+}
+function doExcelClients(){
+  const clients=getClients();
+  const hdr=['الاسم','الجوال','النوع','الاهتمام','العرض المرفق','الملاحظات','التاريخ'];
+  const rows=clients.map(r=>[r.name||'',r.phone||'',r.type||'',r.interest||'',r.offerName||'',r.note||'',r.date||'']);
+  const wb=XLSX.utils.book_new();
+  const makeWS=(data)=>{ const ws=XLSX.utils.aoa_to_sheet([hdr].concat(data)); ws['!cols']=[{wch:22},{wch:16},{wch:16},{wch:22},{wch:24},{wch:30},{wch:24}]; return ws; };
+  XLSX.utils.book_append_sheet(wb,makeWS(rows),'قاعدة البيانات');
+  XLSX.utils.book_append_sheet(wb,makeWS(clients.filter(r=>r.type==='عميل اتصال').map(r=>[r.name||'',r.phone||'',r.type||'',r.interest||'',r.offerName||'',r.note||'',r.date||'']).concat([])||[]),'عملاء اتصال');
+  XLSX.utils.book_append_sheet(wb,makeWS(clients.filter(r=>r.type==='رغبة استثمار').map(r=>[r.name||'',r.phone||'',r.type||'',r.interest||'',r.offerName||'',r.note||'',r.date||'']).concat([])||[]),'رغبات استثمار');
+  XLSX.utils.book_append_sheet(wb,makeWS(clients.filter(r=>r.type==='عرض عقار').map(r=>[r.name||'',r.phone||'',r.type||'',r.interest||'',r.offerName||'',r.note||'',r.date||'']).concat([])||[]),'طلب تسويق');
+  XLSX.writeFile(wb,'shark-clients-'+new Date().toISOString().slice(0,10)+'.xlsx');
+}
+
+function exportOffersExcel(){
+  if(window.XLSX){ doExcelOffers(); return; }
+  const s=document.createElement('script');
+  s.src='https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+  s.onload=doExcelOffers; s.onerror=()=>alert('تعذّر تحميل مكتبة Excel');
+  document.head.appendChild(s);
+}
+function doExcelOffers(){
+  const offers=gs(OFFERS_KEY)||[];
+  const hdr=['الاسم','النوع','السعر','المساحة','المدينة','الحي','المميزات','الوصف'];
+  const rows=offers.map(o=>[o.ar||o.name||'',TYPE_LABELS[o.type]||o.type||'',o.price||'',o.area||'',o.city||'',o.district||'',(o.features||[]).join(' | '),o.desc||'']);
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet([hdr].concat(rows));
+  ws['!cols']=[{wch:28},{wch:14},{wch:16},{wch:12},{wch:14},{wch:16},{wch:40},{wch:40}];
+  XLSX.utils.book_append_sheet(wb,ws,'العروض العقارية');
+  XLSX.writeFile(wb,'shark-offers-'+new Date().toISOString().slice(0,10)+'.xlsx');
+}
+
+// ══════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════
+function closeModal(id){ $(id).classList.remove('open'); }
+document.querySelectorAll('.modal-bg').forEach(m=>{
+  m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); });
+});
+</script>
+</body>
+</html>

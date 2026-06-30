@@ -19,22 +19,6 @@
   </noscript>
 <script>
 (function(){
-  var SU = "https://script.google.com/macros/s/AKfycbxBzst69WR3puIEqCBukDbOdRzNaldZyzHyBt-6V-nuvIvSrVRJNoRO71HGkN7JbDUw/exec";
-  function send(sheet, rec) {
-    fetch(SU, {method:'POST', headers:{'Content-Type':'text/plain'}, body: JSON.stringify({sheet:sheet, record:rec})}).catch(function(){});
-  }
-  var _si = Storage.prototype.setItem;
-  Storage.prototype.setItem = function(k, v) {
-    _si.apply(this, arguments);
-    try {
-      var a = JSON.parse(v);
-      if (!Array.isArray(a) || !a.length) return;
-      var r = a[a.length-1];
-      if (k === 'shark_leads') { if ((r.kind||'')==='عرض عقار') send('طلب تسويق',r); send('قاعدة البيانات',r); }
-      else if (k === 'shark_interests') { send('تسجيل الاهتمام',r); send('قاعدة البيانات',r); }
-      else if (k === 'shark_requests') { send('الطلبات',r); send('قاعدة البيانات',r); }
-    } catch(e){}
-  };
   window.sharkOpen = function(id){ document.getElementById(id).style.display='flex'; };
   window.sharkClose = function(id){ document.getElementById(id).style.display='none'; };
   function saveLocal(key, rec) {
@@ -49,9 +33,7 @@
     var n=document.getElementById('si-name').value.trim(), p=document.getElementById('si-phone').value.trim(),
         t=document.getElementById('si-type').value, nt=document.getElementById('si-note').value.trim();
     if(!n||!p){alert('الرجاء إدخال الاسم ورقم الجوال');return;}
-    var rec={name:n,phone:p,interest:t,note:nt,kind:'رغبة استثمار'};
-    send('رغبة استثمار',rec); send('قاعدة البيانات',rec);
-    saveLocal('shark_interests', rec);
+    saveLocal('shark_admin_clients', {name:n,phone:p,type:'رغبة استثمار',interest:t,note:nt});
     window.sharkClose('sm-inv');
     ['si-name','si-phone','si-type','si-note'].forEach(function(id){document.getElementById(id).value='';});
     alert('تم إرسال طلبك بنجاح!');
@@ -60,52 +42,11 @@
     var n=document.getElementById('sm-name').value.trim(), p=document.getElementById('sm-phone').value.trim(),
         t=document.getElementById('sm-kind').value, nt=document.getElementById('sm-note').value.trim();
     if(!n||!p){alert('الرجاء إدخال الاسم ورقم الجوال');return;}
-    var rec={name:n,phone:p,kind:'عرض عقار',interest:t,note:nt};
-    send('طلب تسويق',rec); send('قاعدة البيانات',rec);
-    saveLocal('shark_leads', rec);
+    saveLocal('shark_admin_clients', {name:n,phone:p,type:'عرض عقار',interest:t,note:nt});
     window.sharkClose('sm-mkt');
     ['sm-name','sm-phone','sm-kind','sm-note'].forEach(function(id){document.getElementById(id).value='';});
     alert('تم إرسال طلبك بنجاح!');
   };
-  function sharkGetData() {
-    var hdr = ['الاسم','الجوال','النوع / الاهتمام','ملاحظات','التاريخ'];
-    function parse(k){ try{ return JSON.parse(localStorage.getItem(k)||'[]'); }catch(e){ return []; } }
-    function row(r){ return [r.name||'', r.phone||'', r.kind||r.interest||r.type||'', r.note||r.city||'', r.date||r.createdAt||'']; }
-    var leads = parse('shark_leads'), ints = parse('shark_interests'), reqs = parse('shark_requests');
-    return {
-      hdr: hdr,
-      'قاعدة البيانات': leads.concat(ints).concat(reqs).map(row),
-      'تسجيل الاهتمام': ints.map(row),
-      'الطلبات': reqs.map(row),
-      'طلب تسويق': leads.filter(function(r){ return (r.kind||'')==='عرض عقار'; }).map(row),
-      'عملاء اتصال': leads.filter(function(r){ return (r.kind||'')===''; }).map(row)
-    };
-  }
-  window.sharkExportExcel = function() {
-    var data = sharkGetData();
-    if(!data['قاعدة البيانات'].length){ alert('لا توجد بيانات محفوظة بعد'); return; }
-    if(window.XLSX){ doExport(data); return; }
-    var s = document.createElement('script');
-    s.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
-    s.onload = function(){ doExport(data); };
-    s.onerror = function(){ fallbackCSV(data); };
-    document.head.appendChild(s);
-  };
-  function doExport(data) {
-    var wb = XLSX.utils.book_new();
-    ['قاعدة البيانات','تسجيل الاهتمام','الطلبات','طلب تسويق','عملاء اتصال'].forEach(function(name){
-      var ws = XLSX.utils.aoa_to_sheet([data.hdr].concat(data[name]));
-      ws['!cols'] = [{wch:22},{wch:16},{wch:18},{wch:30},{wch:22}];
-      XLSX.utils.book_append_sheet(wb, ws, name);
-    });
-    XLSX.writeFile(wb, 'shark-' + new Date().toISOString().slice(0,10) + '.xlsx');
-  }
-  function fallbackCSV(data) {
-    var rows = [data.hdr].concat(data['قاعدة البيانات']);
-    var csv = '﻿' + rows.map(function(r){ return r.map(function(c){ return '"'+String(c).replace(/"/g,'""')+'"'; }).join(','); }).join('\r\n');
-    var a = document.createElement('a'); a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-    a.download = 'shark-' + new Date().toISOString().slice(0,10) + '.csv'; a.click();
-  }
   /* ── Image compression ── */
   function compressImage(file, maxPx, quality, cb) {
     var reader = new FileReader();
@@ -243,7 +184,6 @@
       var b = document.createElement('button'); b.innerHTML = html; b.onclick = onclick; return b;
     }
     wrap.appendChild(mkFab('💰 مهتم بالاستثمار', function(){ sharkOpen('sm-inv'); }));
-    wrap.appendChild(mkFab('<span style="background:#2d6a4f;display:inline-block;border-radius:50px;padding:3px 8px;font-size:12px">📥 Excel</span>', function(){ sharkExportExcel(); }));
     wrap.appendChild(mkFab('🏠 أسوّق عقاري', function(){ sharkOpen('sm-mkt'); }));
 
     var invM = document.createElement('div');
