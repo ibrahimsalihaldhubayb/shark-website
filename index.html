@@ -107,8 +107,15 @@
     return true;
   }
   setInterval(function() {
-    var inp = document.querySelector('input[name="coverImg"]');
-    var editorOpen = inp && isVisible(inp);
+    // Use price field (never hidden by us) to detect editor state
+    var priceInp = document.querySelector('input[name="price"]');
+    var editorOpen = priceInp ? isVisible(priceInp) : false;
+    // Hide URL text inputs so user uses FAB buttons instead
+    var ci = document.querySelector('input[name="coverImg"]');
+    var gt = document.querySelector('textarea[name="gallery"]');
+    if (ci) ci.style.display = editorOpen ? 'none' : '';
+    if (gt) gt.style.display = editorOpen ? 'none' : '';
+    // Toggle upload FAB buttons
     var cb = document.getElementById('sp-cover-btn');
     var gb = document.getElementById('sp-gall-btn');
     if (cb) cb.style.display = editorOpen ? 'inline-block' : 'none';
