@@ -280,10 +280,11 @@ tr:hover td{background:rgba(255,255,255,.025)}
       <div class="form-row"><label>المساحة (م²)</label><input id="of-area" type="text" inputmode="numeric" placeholder="1200"></div>
     </div>
     <div class="form-2col">
-      <div class="form-row"><label>المدينة</label><input id="of-city" type="text" placeholder="بريدة"></div>
+      <div class="form-row"><label>المدينة</label><input id="of-city" type="text" placeholder="بريدة" oninput="autoFillCityCoords(this.value)"></div>
       <div class="form-row"><label>الحي</label><input id="of-district" type="text" placeholder="حي الشمالية"></div>
     </div>
     <div class="form-row"><label>الوصف</label><textarea id="of-desc" rows="3" placeholder="وصف تفصيلي للعقار..."></textarea></div>
+    <input type="hidden" id="of-lat"><input type="hidden" id="of-lng">
 
     <!-- Cover photo -->
     <div class="form-row">
@@ -622,7 +623,7 @@ function openOfferEditor(id){
   $('offer-modal-title').textContent = id ? 'تعديل العرض' : 'إضافة عرض عقاري';
   $('offer-edit-id').value = id||'';
   // Reset form
-  ['of-name','of-price','of-area','of-city','of-district','of-desc'].forEach(i=>$(i).value='');
+  ['of-name','of-price','of-area','of-city','of-district','of-desc','of-lat','of-lng'].forEach(i=>$(i).value='');
   $('of-type').value='warehouses';
   $('of-cover-b64').value='';
   $('of-cover-preview').style.display='none';
@@ -643,6 +644,7 @@ function openOfferEditor(id){
     $('of-area').value=o.area||'';
     $('of-city').value=o.city||'';
     $('of-district').value=o.district||'';
+    $('of-lat').value=o.lat||''; $('of-lng').value=o.lng||'';
     $('of-desc').value=o.desc||'';
     if(o.coverImg){ $('of-cover-b64').value=o.coverImg; $('of-cover-preview').src=o.coverImg; $('of-cover-preview').style.display='block'; }
     if(o.gallery){ _galleryB64=o.gallery.split('\n').filter(Boolean); renderGalleryPreviews(); }
@@ -705,6 +707,19 @@ function renderGalleryPreviews(){
     </div>`).join('');
 }
 
+const CITY_COORDS_ADM = {
+  'الرياض':[24.7136,46.6753],'جدة':[21.4858,39.1925],'مكة المكرمة':[21.3891,39.8579],'المدينة المنورة':[24.5247,39.5692],
+  'الدمام':[26.4207,50.0888],'الخبر':[26.2172,50.1971],'الظهران':[26.2792,50.1522],'الأحساء':[25.3814,49.5875],
+  'تبوك':[28.3998,36.5700],'أبها':[18.2164,42.5053],'بريدة':[26.3292,43.9749],'القصيم':[26.3500,43.9700],
+  'القطيف':[26.5272,50.0090],'الطائف':[21.2703,40.4158],'حائل':[27.5219,41.7087],'نجران':[17.5656,44.2289],
+  'جازان':[16.8892,42.5511],'ينبع':[24.0895,38.0618],'خميس مشيط':[18.3000,42.7333],'الجبيل':[27.0025,49.6603],
+  'الرس':[25.8589,43.4994],'عرعر':[30.9754,41.0381],'سكاكا':[29.9697,40.2065],'الباحة':[20.0129,41.4677]
+};
+function autoFillCityCoords(city){
+  var c=CITY_COORDS_ADM[city.trim()];
+  if(c){ $('of-lat').value=c[0]; $('of-lng').value=c[1]; }
+}
+
 function saveOffer(){
   const name=$('of-name').value.trim(); if(!name){ alert('الرجاء إدخال اسم العرض'); return; }
   const features=[...document.querySelectorAll('[name="feat"]:checked')].map(cb=>cb.value);
@@ -718,6 +733,7 @@ function saveOffer(){
     city:$('of-city').value.trim(),
     district:$('of-district').value.trim(),
     desc:$('of-desc').value.trim(),
+    lat:$('of-lat').value||'', lng:$('of-lng').value||'',
     coverImg:$('of-cover-b64').value||'',
     gallery:_galleryB64.join('\n'),
     features, status:'available',

@@ -116,11 +116,77 @@
     if (editorOpen) injectCustomFeature();
   }, 300);
 
+  /* ── City coordinates for map ── */
+  var CITY_COORDS = {
+    'الرياض':[24.7136,46.6753],'جدة':[21.4858,39.1925],'مكة المكرمة':[21.3891,39.8579],'المدينة المنورة':[24.5247,39.5692],
+    'الدمام':[26.4207,50.0888],'الخبر':[26.2172,50.1971],'الظهران':[26.2792,50.1522],'الأحساء':[25.3814,49.5875],
+    'تبوك':[28.3998,36.5700],'أبها':[18.2164,42.5053],'بريدة':[26.3292,43.9749],'القصيم':[26.3500,43.9700],
+    'القطيف':[26.5272,50.0090],'الطائف':[21.2703,40.4158],'حائل':[27.5219,41.7087],'نجران':[17.5656,44.2289],
+    'جازان':[16.8892,42.5511],'ينبع':[24.0895,38.0618],'خميس مشيط':[18.3000,42.7333],'الجبيل':[27.0025,49.6603],
+    'الرس':[25.8589,43.4994],'عرعر':[30.9754,41.0381],'سكاكا':[29.9697,40.2065],'الباحة':[20.0129,41.4677]
+  };
+
+  /* ── Interactive offers map ── */
+  window.openOffersMap = function() {
+    var mapM = document.getElementById('sk-map-modal');
+    if (!mapM) return;
+    mapM.style.display = 'flex';
+    if (window._mapInited) { window._leafMap && window._leafMap.invalidateSize(); return; }
+    window._mapInited = true;
+    var offers = [];
+    try { offers = JSON.parse(localStorage.getItem('shark_offers')||'[]'); } catch(e){}
+    var mapDiv = document.getElementById('sk-map-div');
+    if (!window.L) {
+      var s=document.createElement('script'); s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      var l=document.createElement('link'); l.rel='stylesheet'; l.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(l); document.head.appendChild(s);
+      s.onload = function(){ initMap(mapDiv, offers); };
+    } else { initMap(mapDiv, offers); }
+  };
+  function initMap(mapDiv, offers) {
+    var center = [24.7136, 46.6753]; var hasMarker = false;
+    var map = L.map(mapDiv, {zoomControl:true, attributionControl:false}).setView(center, 6);
+    window._leafMap = map;
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18}).addTo(map);
+    var icon = L.divIcon({className:'',html:'<div style="background:linear-gradient(135deg,#c8a96e,#f0d080);width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4)"></div>',iconSize:[34,34],iconAnchor:[17,34]});
+    offers.forEach(function(o) {
+      var lat = parseFloat(o.lat), lng = parseFloat(o.lng);
+      if (!lat && o.city && CITY_COORDS[o.city]) { lat=CITY_COORDS[o.city][0]; lng=CITY_COORDS[o.city][1]; }
+      if (!lat || !lng) return;
+      hasMarker = true;
+      var price = o.price ? Number(o.price).toLocaleString('ar-SA') + ' ريال' : '';
+      L.marker([lat,lng],{icon:icon}).addTo(map).bindPopup('<div dir="rtl" style="font-family:inherit;min-width:160px"><b style="color:#c8a96e;font-size:15px">'+o.title+'</b><br><span style="color:#888;font-size:13px">'+o.city+'</span>'+(price?'<br><b style="color:#333">'+price+'</b>':'')+'</div>');
+    });
+    if (hasMarker) { var g=new L.FeatureGroup(Object.values(map._layers).filter(function(l){return l instanceof L.Marker;})); try{map.fitBounds(g.getBounds().pad(0.2));}catch(e){} }
+    if (!hasMarker) { mapDiv.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#888;font-size:16px;direction:rtl">لا توجد عروض على الخريطة بعد</div>'; }
+  }
+
   /* ── FABs + modals ── */
   function injectWidgets() {
     if (document.getElementById('shark-fab-wrap')) return;
     var css = document.createElement('style');
-    css.textContent = '#shark-fab-wrap{position:fixed;bottom:22px;left:0;right:0;display:flex;justify-content:space-between;padding:0 18px;z-index:99999;pointer-events:none;flex-wrap:wrap;gap:8px}#shark-fab-wrap button{pointer-events:all;background:#c8a96e;color:#fff;border:none;border-radius:50px;padding:13px 18px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.28);font-family:inherit;white-space:nowrap}#shark-fab-wrap button:hover{background:#b8954f}.sk-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100000;align-items:center;justify-content:center}.sk-modal{background:#fff;border-radius:16px;padding:28px 24px;width:92%;max-width:400px;direction:rtl;position:relative;max-height:90vh;overflow-y:auto}.sk-modal h3{margin:0 0 18px;color:#c8a96e;font-size:18px;font-weight:700}.sk-modal input,.sk-modal select,.sk-modal textarea{width:100%;padding:10px 13px;margin-bottom:12px;border:1px solid #ddd;border-radius:8px;font-size:15px;box-sizing:border-box;font-family:inherit;direction:rtl}.sk-modal .sk-submit{width:100%;padding:13px;background:#c8a96e;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}.sk-modal .sk-close{position:absolute;top:10px;left:14px;background:none;border:none;font-size:24px;cursor:pointer;color:#aaa;line-height:1}';
+    css.textContent = [
+      '#shark-fab-wrap{position:fixed;bottom:0;left:0;right:0;z-index:99999;pointer-events:none;display:flex;justify-content:center;padding:0 0 18px;gap:0}',
+      '#shark-fab-inner{display:flex;gap:10px;background:rgba(10,10,12,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:60px;padding:10px 18px;pointer-events:all;box-shadow:0 4px 32px rgba(0,0,0,.45)}',
+      '.sk-fab-btn{border:none;border-radius:50px;padding:12px 20px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:inherit;transition:transform .15s,box-shadow .15s;color:#fff;letter-spacing:.3px}',
+      '.sk-fab-btn:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(0,0,0,.38)}',
+      '.sk-fab-btn.gold{background:linear-gradient(135deg,#c8a96e 0%,#f0d080 100%);color:#1a1200}',
+      '.sk-fab-btn.green{background:linear-gradient(135deg,#1e7a4a 0%,#2ecc71 100%)}',
+      '.sk-fab-btn.blue{background:linear-gradient(135deg,#1565c0 0%,#42a5f5 100%)}',
+      '.sk-fab-btn.amber{background:linear-gradient(135deg,#8b6914 0%,#c8a96e 100%)}',
+      '.sk-fab-btn.teal{background:linear-gradient(135deg,#00695c 0%,#26a69a 100%)}',
+      '.sk-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100000;align-items:center;justify-content:center}',
+      '.sk-modal{background:#1a1a22;border:1px solid rgba(200,169,110,.25);border-radius:20px;padding:28px 24px;width:92%;max-width:400px;direction:rtl;position:relative;max-height:90vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,.7)}',
+      '.sk-modal h3{margin:0 0 18px;color:#c8a96e;font-size:19px;font-weight:700}',
+      '.sk-modal input,.sk-modal select,.sk-modal textarea{width:100%;padding:11px 13px;margin-bottom:12px;border:1px solid rgba(255,255,255,.12);border-radius:10px;font-size:15px;box-sizing:border-box;font-family:inherit;direction:rtl;background:#252530;color:#f0ead8}',
+      '.sk-modal input::placeholder,.sk-modal textarea::placeholder{color:#666}',
+      '.sk-modal .sk-submit{width:100%;padding:13px;background:linear-gradient(135deg,#c8a96e,#f0d080);color:#1a1200;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px}',
+      '.sk-modal .sk-close{position:absolute;top:12px;left:16px;background:none;border:none;font-size:22px;cursor:pointer;color:#666;line-height:1}',
+      '#sk-map-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:100001;align-items:center;justify-content:center}',
+      '#sk-map-box{width:96%;max-width:800px;height:78vh;background:#1a1a22;border-radius:20px;overflow:hidden;position:relative;border:1px solid rgba(200,169,110,.25)}',
+      '#sk-map-div{width:100%;height:100%}',
+      '#sk-map-close{position:absolute;top:12px;right:14px;z-index:10;background:rgba(20,20,28,.85);border:none;color:#c8a96e;border-radius:50%;width:36px;height:36px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}'
+    ].join('');
     document.head.appendChild(css);
 
     /* Hidden file inputs */
@@ -175,26 +241,40 @@
     var wrap = document.createElement('div');
     wrap.id = 'shark-fab-wrap';
     document.body.appendChild(wrap);
-    wrap.appendChild(coverPick);
-    wrap.appendChild(gallPick);
-    wrap.appendChild(coverUpBtn);
-    wrap.appendChild(gallUpBtn);
 
-    function mkFab(html, onclick) {
-      var b = document.createElement('button'); b.innerHTML = html; b.onclick = onclick; return b;
+    var inner = document.createElement('div');
+    inner.id = 'shark-fab-inner';
+    wrap.appendChild(inner);
+
+    inner.appendChild(coverPick);
+    inner.appendChild(gallPick);
+    coverUpBtn.className = 'sk-fab-btn amber';
+    gallUpBtn.className = 'sk-fab-btn teal';
+    inner.appendChild(coverUpBtn);
+    inner.appendChild(gallUpBtn);
+
+    function mkFab(html, cls, onclick) {
+      var b = document.createElement('button'); b.innerHTML = html; b.className = 'sk-fab-btn ' + cls; b.onclick = onclick; return b;
     }
-    wrap.appendChild(mkFab('💰 مهتم بالاستثمار', function(){ sharkOpen('sm-inv'); }));
-    wrap.appendChild(mkFab('🏠 أسوّق عقاري', function(){ sharkOpen('sm-mkt'); }));
+    inner.appendChild(mkFab('💰 مهتم بالاستثمار', 'gold', function(){ sharkOpen('sm-inv'); }));
+    inner.appendChild(mkFab('🏠 أسوّق عقاري', 'green', function(){ sharkOpen('sm-mkt'); }));
+    inner.appendChild(mkFab('🗺️ خريطة العروض', 'blue', function(){ openOffersMap(); }));
 
     var invM = document.createElement('div');
     invM.className = 'sk-overlay'; invM.id = 'sm-inv'; invM.style.display = 'none';
-    invM.innerHTML = '<div class="sk-modal"><button class="sk-close" onclick="sharkClose(\'sm-inv\')">&#215;</button><h3>تسجيل اهتمام استثماري</h3><input id="si-name" type="text" placeholder="الاسم الكريم"><input id="si-phone" type="tel" placeholder="رقم الجوال"><select id="si-type"><option value="">نوع الاستثمار</option><option>أراضي</option><option>فلل</option><option>شقق</option><option>تجاري</option><option>مستودعات</option></select><textarea id="si-note" rows="3" placeholder="ملاحظات إضافية"></textarea><button class="sk-submit" onclick="sharkSubmitInv()">إرسال الطلب</button></div>';
+    invM.innerHTML = '<div class="sk-modal"><button class="sk-close" onclick="sharkClose(\'sm-inv\')">&#215;</button><h3>💰 تسجيل اهتمام استثماري</h3><input id="si-name" type="text" placeholder="الاسم الكريم"><input id="si-phone" type="tel" placeholder="رقم الجوال"><select id="si-type"><option value="">نوع الاستثمار</option><option>أراضي</option><option>فلل</option><option>شقق</option><option>تجاري</option><option>مستودعات</option></select><textarea id="si-note" rows="3" placeholder="ملاحظات إضافية"></textarea><button class="sk-submit" onclick="sharkSubmitInv()">إرسال الطلب</button></div>';
     document.body.appendChild(invM);
     var mktM = document.createElement('div');
     mktM.className = 'sk-overlay'; mktM.id = 'sm-mkt'; mktM.style.display = 'none';
-    mktM.innerHTML = '<div class="sk-modal"><button class="sk-close" onclick="sharkClose(\'sm-mkt\')">&#215;</button><h3>تسويق عقاري</h3><input id="sm-name" type="text" placeholder="الاسم الكريم"><input id="sm-phone" type="tel" placeholder="رقم الجوال"><select id="sm-kind"><option value="">نوع العقار</option><option>أرض</option><option>فيلا</option><option>شقة</option><option>عمارة</option><option>تجاري</option><option>مستودع</option></select><textarea id="sm-note" rows="3" placeholder="وصف العقار والموقع والسعر"></textarea><button class="sk-submit" onclick="sharkSubmitMkt()">إرسال الطلب</button></div>';
+    mktM.innerHTML = '<div class="sk-modal"><button class="sk-close" onclick="sharkClose(\'sm-mkt\')">&#215;</button><h3>🏠 تسويق عقاري</h3><input id="sm-name" type="text" placeholder="الاسم الكريم"><input id="sm-phone" type="tel" placeholder="رقم الجوال"><select id="sm-kind"><option value="">نوع العقار</option><option>أرض</option><option>فيلا</option><option>شقة</option><option>عمارة</option><option>تجاري</option><option>مستودع</option></select><textarea id="sm-note" rows="3" placeholder="وصف العقار والموقع والسعر"></textarea><button class="sk-submit" onclick="sharkSubmitMkt()">إرسال الطلب</button></div>';
     document.body.appendChild(mktM);
     [invM, mktM].forEach(function(m){ m.addEventListener('click', function(e){ if(e.target===m) m.style.display='none'; }); });
+
+    var mapModal = document.createElement('div');
+    mapModal.id = 'sk-map-modal';
+    mapModal.innerHTML = '<div id="sk-map-box"><button id="sk-map-close" onclick="document.getElementById(\'sk-map-modal\').style.display=\'none\'">✕</button><div id="sk-map-div"></div></div>';
+    document.body.appendChild(mapModal);
+    mapModal.addEventListener('click', function(e){ if(e.target===mapModal) mapModal.style.display='none'; });
   }
   var _rw = Element.prototype.replaceWith;
   Element.prototype.replaceWith = function() {
