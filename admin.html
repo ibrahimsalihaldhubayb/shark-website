@@ -184,6 +184,36 @@ tr:hover td{background:rgba(255,255,255,.025)}
     <!-- ── SETTINGS ── -->
     <div class="section" id="sec-settings">
       <div class="settings-card">
+        <h4>📱 رقم واتساب الشركة</h4>
+        <p style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:14px">يُستخدم في أزرار التواصل وصفحات الهبوط</p>
+        <div class="form-row"><label>رقم الجوال (مع مفتاح الدولة بدون +)</label><input id="set-phone" type="tel" placeholder="966500000000" dir="ltr"></div>
+        <button class="btn-primary" onclick="saveSettings()">حفظ</button>
+        <div id="settings-msg" style="margin-top:10px;font-size:13px"></div>
+      </div>
+      <div class="settings-card">
+        <h4>📊 تسجيل العملاء في Google Sheets</h4>
+        <p style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:6px">أنشئ Google Apps Script وأدخل رابط الـ webhook هنا لإرسال بيانات العملاء تلقائياً عند كل تسجيل.</p>
+        <details style="margin-bottom:14px">
+          <summary style="font-size:12px;color:var(--gold);cursor:pointer;margin-bottom:8px">كيفية الإعداد ←</summary>
+          <div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.8;padding:8px;background:rgba(255,255,255,.04);border-radius:8px;direction:rtl">
+            1. افتح <b style="color:var(--gold)">script.google.com</b> وأنشئ مشروعاً جديداً<br>
+            2. أنشئ Google Sheet واربطه بالسكريبت<br>
+            3. ألصق الكود التالي في المحرر:<br>
+            <pre style="background:#0b0b0c;padding:8px;border-radius:6px;margin:6px 0;overflow-x:auto;font-size:11px;color:#c8a96e;direction:ltr">function doPost(e){
+  var sheet=SpreadsheetApp.getActive().getActiveSheet();
+  var d=JSON.parse(e.postData.contents);
+  sheet.appendRow([d.date,d.name,d.phone,d.type,
+    d.interest,d.offerTitle||'',d.note||'',d.source||'']);
+  return ContentService.createTextOutput('ok');
+}</pre>
+            4. انشر → نشر كتطبيق ويب → الوصول: <b>أي شخص</b><br>
+            5. انسخ رابط النشر والصقه أدناه
+          </div>
+        </details>
+        <div class="form-row"><label>رابط Google Apps Script (Webhook URL)</label><input id="set-sheets" type="url" placeholder="https://script.google.com/macros/s/.../exec" dir="ltr"></div>
+        <button class="btn-primary" onclick="saveSettings()">حفظ</button>
+      </div>
+      <div class="settings-card">
         <h4>🔐 تغيير كلمة المرور</h4>
         <div class="form-row"><label>كلمة المرور الحالية</label><input id="old-pass" type="password"></div>
         <div class="form-row"><label>كلمة المرور الجديدة</label><input id="new-pass" type="password"></div>
@@ -280,10 +310,11 @@ tr:hover td{background:rgba(255,255,255,.025)}
       <div class="form-row"><label>المساحة (م²)</label><input id="of-area" type="text" inputmode="numeric" placeholder="1200"></div>
     </div>
     <div class="form-2col">
-      <div class="form-row"><label>المدينة</label><input id="of-city" type="text" placeholder="بريدة"></div>
+      <div class="form-row"><label>المدينة</label><input id="of-city" type="text" placeholder="بريدة" oninput="autoFillCityCoords(this.value)"></div>
       <div class="form-row"><label>الحي</label><input id="of-district" type="text" placeholder="حي الشمالية"></div>
     </div>
     <div class="form-row"><label>الوصف</label><textarea id="of-desc" rows="3" placeholder="وصف تفصيلي للعقار..."></textarea></div>
+    <input type="hidden" id="of-lat"><input type="hidden" id="of-lng">
 
     <!-- Cover photo -->
     <div class="form-row">
@@ -390,7 +421,7 @@ window.addEventListener('load',()=>{
 // ══════════════════════════════════════════════
 function init(){
   $('topbar-date').textContent = new Date().toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  renderStats(); renderClients(); renderOffers();
+  renderStats(); renderClients(); renderOffers(); loadSettings();
 }
 
 // ══════════════════════════════════════════════
@@ -444,8 +475,7 @@ function renderClients(){
         <td style="font-size:12px;color:var(--gold)">${r.offerId ? (offerMap[r.offerId]||r.offerId) : '—'}</td>
         <td style="color:rgba(255,255,255,.4);font-size:12px">${r.date||'—'}</td>
         <td><div class="act-btns">
-          <button class="btn-wa" onclick="openClientActions('${r.id}')">📱 واتساب</button>
-          <button class="btn-pdf" onclick="generatePDFFor('${r.id}')">📄 PDF</button>
+          <button class="btn-wa" onclick="openClientActions('${r.id}')">واتساب / PDF</button>
           <button class="btn-del" onclick="deleteClient('${r.id}')">×</button>
         </div></td>
       </tr>`).join('');
@@ -461,6 +491,28 @@ function openAddClient(){
   $('modal-client').classList.add('open');
   $('modal-client-title').textContent='إضافة عميل جديد';
 }
+function sendToSheets(rec){
+  try{
+    const s=gs('shark_admin_settings')||{};
+    if(!s.sheetsUrl) return;
+    fetch(s.sheetsUrl,{method:'POST',body:JSON.stringify(rec),headers:{'Content-Type':'application/json'}}).catch(()=>{});
+  }catch(e){}
+}
+function saveSettings(){
+  const phone=$('set-phone').value.trim();
+  const sheetsUrl=$('set-sheets').value.trim();
+  const s=gs('shark_admin_settings')||{};
+  if(phone) s.phone=phone;
+  if(sheetsUrl) s.sheetsUrl=sheetsUrl;
+  ss('shark_admin_settings',s);
+  const msg=$('settings-msg'); if(msg){ msg.style.color='#4caf50'; msg.textContent='تم الحفظ ✓'; setTimeout(()=>msg.textContent='',2000); }
+  showToast('تم حفظ الإعدادات ✓');
+}
+function loadSettings(){
+  const s=gs('shark_admin_settings')||{};
+  if(s.phone && $('set-phone')) $('set-phone').value=s.phone;
+  if(s.sheetsUrl && $('set-sheets')) $('set-sheets').value=s.sheetsUrl;
+}
 function saveClient(){
   const name=$('cl-name').value.trim(), phone=$('cl-phone').value.trim();
   if(!name||!phone){ alert('الرجاء إدخال الاسم ورقم الجوال'); return; }
@@ -471,9 +523,11 @@ function saveClient(){
     id:uid(), name, phone, type:$('cl-type').value,
     interest:$('cl-interest').value.trim(), note:$('cl-note').value.trim(),
     offerId: offerId||'', offerName: offer ? (offer.ar||offer.name||'') : '',
-    date:nowAr()
+    offerTitle: offer ? (offer.title||offer.name||'') : '',
+    source:'admin', date:nowAr()
   };
   const arr=getClients(); arr.unshift(rec); saveClients(arr);
+  sendToSheets(rec);
   closeModal('modal-client'); renderStats(); renderClients();
   showToast('تم حفظ العميل بنجاح ✓');
 }
@@ -510,7 +564,7 @@ function openClientActions(id){
   } else if(c.interest){
     msg += `\nاهتمامك: ${c.interest}\n`;
   }
-  msg += `\nللاطلاع على جميع عروضنا: https://sharekre.sa\nيسعدنا خدمتك في أي وقت.\nفريق شارك العقارية 🏢`;
+  msg += `\nيسعدنا خدمتك في أي وقت.\nفريق شارك العقارية`;
   $('wa-msg').value=msg;
   $('modal-actions').classList.add('open');
 }
@@ -613,6 +667,7 @@ function renderOffers(){
         <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:10px">${o.city||''} ${o.district?'· '+o.district:''} ${o.area?'· '+o.area+' م²':''}</div>
         <div class="oc-acts">
           <button class="btn-edit" onclick="openOfferEditor('${o.id}')">✏️ تعديل</button>
+          <button class="btn-wa" onclick="shareLanding('${o.id}')" style="font-size:11px;padding:6px 10px">🔗 مشاركة</button>
           <button class="btn-del" onclick="deleteOffer('${o.id}')">حذف</button>
         </div>
       </div>
@@ -624,7 +679,7 @@ function openOfferEditor(id){
   $('offer-modal-title').textContent = id ? 'تعديل العرض' : 'إضافة عرض عقاري';
   $('offer-edit-id').value = id||'';
   // Reset form
-  ['of-name','of-price','of-area','of-city','of-district','of-desc'].forEach(i=>$(i).value='');
+  ['of-name','of-price','of-area','of-city','of-district','of-desc','of-lat','of-lng'].forEach(i=>$(i).value='');
   $('of-type').value='warehouses';
   $('of-cover-b64').value='';
   $('of-cover-preview').style.display='none';
@@ -645,6 +700,7 @@ function openOfferEditor(id){
     $('of-area').value=o.area||'';
     $('of-city').value=o.city||'';
     $('of-district').value=o.district||'';
+    $('of-lat').value=o.lat||''; $('of-lng').value=o.lng||'';
     $('of-desc').value=o.desc||'';
     if(o.coverImg){ $('of-cover-b64').value=o.coverImg; $('of-cover-preview').src=o.coverImg; $('of-cover-preview').style.display='block'; }
     if(o.gallery){ _galleryB64=o.gallery.split('\n').filter(Boolean); renderGalleryPreviews(); }
@@ -707,6 +763,19 @@ function renderGalleryPreviews(){
     </div>`).join('');
 }
 
+const CITY_COORDS_ADM = {
+  'الرياض':[24.7136,46.6753],'جدة':[21.4858,39.1925],'مكة المكرمة':[21.3891,39.8579],'المدينة المنورة':[24.5247,39.5692],
+  'الدمام':[26.4207,50.0888],'الخبر':[26.2172,50.1971],'الظهران':[26.2792,50.1522],'الأحساء':[25.3814,49.5875],
+  'تبوك':[28.3998,36.5700],'أبها':[18.2164,42.5053],'بريدة':[26.3292,43.9749],'القصيم':[26.3500,43.9700],
+  'القطيف':[26.5272,50.0090],'الطائف':[21.2703,40.4158],'حائل':[27.5219,41.7087],'نجران':[17.5656,44.2289],
+  'جازان':[16.8892,42.5511],'ينبع':[24.0895,38.0618],'خميس مشيط':[18.3000,42.7333],'الجبيل':[27.0025,49.6603],
+  'الرس':[25.8589,43.4994],'عرعر':[30.9754,41.0381],'سكاكا':[29.9697,40.2065],'الباحة':[20.0129,41.4677]
+};
+function autoFillCityCoords(city){
+  var c=CITY_COORDS_ADM[city.trim()];
+  if(c){ $('of-lat').value=c[0]; $('of-lng').value=c[1]; }
+}
+
 function saveOffer(){
   const name=$('of-name').value.trim(); if(!name){ alert('الرجاء إدخال اسم العرض'); return; }
   const features=[...document.querySelectorAll('[name="feat"]:checked')].map(cb=>cb.value);
@@ -720,6 +789,7 @@ function saveOffer(){
     city:$('of-city').value.trim(),
     district:$('of-district').value.trim(),
     desc:$('of-desc').value.trim(),
+    lat:$('of-lat').value||'', lng:$('of-lng').value||'',
     coverImg:$('of-cover-b64').value||'',
     gallery:_galleryB64.join('\n'),
     features, status:'available',
@@ -731,9 +801,14 @@ function saveOffer(){
   } else { offers.unshift(rec); }
   ss(OFFERS_KEY,offers);
   closeModal('modal-offer'); renderOffers();
-  showToast('تم حفظ العرض بنجاح ✓');
 }
 
+function shareLanding(id){
+  const base = location.origin + location.pathname.replace('admin.html','') + 'landing.html';
+  const url = base + '?id=' + id;
+  if(navigator.share){ navigator.share({title:'عرض شارك العقارية', url}).catch(()=>{}); return; }
+  navigator.clipboard.writeText(url).then(()=>showToast('تم نسخ الرابط ✓')).catch(()=>{ prompt('انسخ الرابط:',url); });
+}
 function deleteOffer(id){
   if(!confirm('هل تريد حذف هذا العرض؟')) return;
   ss(OFFERS_KEY,(gs(OFFERS_KEY)||[]).filter(o=>o.id!==id));
@@ -788,26 +863,6 @@ function closeModal(id){ $(id).classList.remove('open'); }
 document.querySelectorAll('.modal-bg').forEach(m=>{
   m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); });
 });
-
-function showToast(msg, isErr){
-  var t=$('sp-toast');
-  if(!t){
-    t=document.createElement('div'); t.id='sp-toast';
-    t.style.cssText='position:fixed;bottom:28px;left:50%;transform:translateX(-50%);padding:13px 24px;border-radius:10px;font-size:14px;font-weight:700;z-index:99999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.4)';
-    document.body.appendChild(t);
-  }
-  t.textContent=msg;
-  t.style.background=isErr?'#e05252':'#4caf50';
-  t.style.color='#fff';
-  t.style.opacity='1';
-  clearTimeout(t._tmr);
-  t._tmr=setTimeout(()=>{ t.style.opacity='0'; },2800);
-}
-
-function generatePDFFor(id){
-  const c=getClients().find(r=>r.id===id); if(!c) return;
-  _activeClient=c; generatePDF();
-}
 </script>
 </body>
 </html>
