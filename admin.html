@@ -119,6 +119,7 @@ tr:hover td{background:rgba(255,255,255,.025)}
     <input id="pass-input" type="password" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')doLogin()">
     <button onclick="doLogin()">دخول</button>
     <div class="login-err" id="login-err"></div>
+    <button onclick="resetPass()" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:12px;cursor:pointer;margin-top:10px;font-family:inherit">نسيت كلمة المرور؟ إعادة تعيين</button>
   </div>
 </div>
 
@@ -398,6 +399,7 @@ function doLogin(){
   }
 }
 function doLogout(){ sessionStorage.removeItem(SESSION_KEY); location.reload(); }
+function resetPass(){ localStorage.removeItem(PASS_KEY); $('login-err').style.color='#4caf50'; $('login-err').textContent='تم الإعادة — كلمة المرور: shark2024'; }
 function changePass(){
   const old=$('old-pass').value, nw=$('new-pass').value, nw2=$('new-pass2').value;
   const msg=$('pass-msg');
