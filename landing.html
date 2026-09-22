@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#0b0b0c">
+<title>شارك العقارية – عرض مميز</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--gold:#c8a96e;--gold2:#f0d080;--dark:#0b0b0c;--card:#141418;--border:rgba(200,169,110,.18);--text:#f0ead8;--sub:rgba(240,234,216,.55)}
+html{scroll-behavior:smooth}
+body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:var(--dark);color:var(--text);min-height:100vh;direction:rtl;overflow-x:hidden}
+
+/* ── TOP BAR ── */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(11,11,12,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--border);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.topbar-logo{font-size:20px;font-weight:900;color:var(--gold);letter-spacing:1.5px}
+.topbar-sub{font-size:11px;color:var(--sub);margin-top:1px}
+.topbar-wa{background:#25d366;color:#fff;border:none;border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;white-space:nowrap}
+
+/* ── HERO ── */
+.hero{position:relative;margin-top:56px;min-height:60vw;max-height:480px;overflow:hidden;background:#0e0e10}
+.hero-img{width:100%;height:100%;object-fit:cover;display:block;opacity:.85}
+.hero-placeholder{width:100%;min-height:280px;background:linear-gradient(135deg,#141418 0%,#1e1a10 50%,#0b0b0c 100%);display:flex;align-items:center;justify-content:center}
+.hero-placeholder svg{opacity:.18}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(11,11,12,.95) 0%,rgba(11,11,12,.3) 60%,transparent 100%)}
+.hero-badge{position:absolute;top:16px;right:16px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1200;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:800;letter-spacing:.4px}
+.hero-content{position:absolute;bottom:0;left:0;right:0;padding:20px 20px 28px}
+.hero-title{font-size:clamp(18px,5vw,28px);font-weight:800;line-height:1.3;margin-bottom:6px}
+.hero-loc{font-size:13px;color:var(--gold);font-weight:600;display:flex;align-items:center;gap:5px}
+
+/* ── PRICE STRIP ── */
+.price-strip{background:var(--card);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.price-main{font-size:clamp(22px,6vw,34px);font-weight:900;background:linear-gradient(90deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.price-label{font-size:11px;color:var(--sub);margin-top:1px}
+.price-meta{display:flex;gap:16px;flex-wrap:wrap}
+.price-meta-item{text-align:center}
+.price-meta-item .val{font-size:16px;font-weight:700;color:var(--text)}
+.price-meta-item .key{font-size:11px;color:var(--sub)}
+
+/* ── GALLERY ── */
+.gallery-scroll{display:flex;gap:8px;overflow-x:auto;padding:14px 20px;scrollbar-width:none}
+.gallery-scroll::-webkit-scrollbar{display:none}
+.gallery-scroll img{height:90px;width:130px;object-fit:cover;border-radius:10px;flex-shrink:0;cursor:pointer;border:2px solid transparent;transition:border-color .2s}
+.gallery-scroll img:first-child{border-color:var(--gold)}
+
+/* ── FEATURES ── */
+.section{padding:20px}
+.section-title{font-size:13px;color:var(--sub);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.features-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.feat-chip{background:rgba(200,169,110,.08);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:13px;display:flex;align-items:center;gap:8px}
+.feat-chip .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0}
+.desc-text{font-size:14px;line-height:1.8;color:rgba(240,234,216,.75)}
+
+/* ── CTA FORM ── */
+.cta-wrap{background:linear-gradient(135deg,#0e0e10 0%,#1a1208 100%);border-top:1px solid var(--border);padding:24px 20px 40px}
+.cta-title{font-size:20px;font-weight:800;color:var(--gold);margin-bottom:4px;text-align:center}
+.cta-sub{font-size:13px;color:var(--sub);text-align:center;margin-bottom:22px}
+.form-field{margin-bottom:14px}
+.form-field label{display:block;font-size:12px;color:var(--sub);margin-bottom:6px;font-weight:600}
+.form-field input,.form-field select,.form-field textarea{width:100%;padding:13px 15px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:11px;color:var(--text);font-size:15px;font-family:inherit;direction:rtl;outline:none;transition:border-color .2s}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--gold)}
+.form-field select option{background:#1a1a1f;color:#fff}
+.form-field input::placeholder,.form-field textarea::placeholder{color:rgba(240,234,216,.3)}
+.btn-submit{width:100%;padding:16px;background:linear-gradient(135deg,var(--gold) 0%,var(--gold2) 100%);color:#1a1200;border:none;border-radius:12px;font-size:16px;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:.3px;margin-top:6px;transition:opacity .2s}
+.btn-submit:active{opacity:.85}
+.btn-wa-big{width:100%;padding:15px;background:#25d366;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px}
+.divider{display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--sub);font-size:12px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── SUCCESS ── */
+.success-box{display:none;text-align:center;padding:28px 20px}
+.success-box .icon{font-size:56px;margin-bottom:12px}
+.success-box h2{font-size:20px;font-weight:800;color:var(--gold);margin-bottom:6px}
+.success-box p{font-size:14px;color:var(--sub);line-height:1.6}
+
+/* ── LIGHTBOX ── */
+#lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:9999;align-items:center;justify-content:center}
+#lb img{max-width:96vw;max-height:90vh;border-radius:10px;object-fit:contain}
+#lb-close{position:absolute;top:16px;left:16px;background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:50%;width:38px;height:38px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* ── FOOTER ── */
+.footer{background:#070708;border-top:1px solid var(--border);padding:20px;text-align:center}
+.footer-logo{font-size:16px;font-weight:900;color:var(--gold);letter-spacing:2px;margin-bottom:4px}
+.footer-sub{font-size:11px;color:rgba(255,255,255,.25)}
+
+/* ── LOADING ── */
+.skeleton{background:linear-gradient(90deg,rgba(255,255,255,.05) 0%,rgba(255,255,255,.1) 50%,rgba(255,255,255,.05) 100%);background-size:400% 100%;animation:sk 1.4s ease infinite;border-radius:8px}
+@keyframes sk{0%{background-position:100% 50%}100%{background-position:0% 50%}}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div>
+    <div class="topbar-logo">SHARK</div>
+    <div class="topbar-sub">شارك العقارية</div>
+  </div>
+  <button class="topbar-wa" onclick="waContact()" id="wa-top" style="display:none">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.533 5.847L.054 23.272a.5.5 0 0 0 .625.613l5.563-1.46A11.952 11.952 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.9 0-3.68-.528-5.195-1.443l-.371-.22-3.844 1.009 1.03-3.74-.243-.386A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+    تواصل واتساب
+  </button>
+</header>
+
+<!-- HERO -->
+<div class="hero" id="hero-wrap">
+  <div class="hero-placeholder" id="hero-placeholder">
+    <svg width="80" height="80" viewBox="0 0 24 24" fill="#c8a96e"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+  </div>
+  <div class="hero-overlay"></div>
+  <div class="hero-badge" id="hero-badge" style="display:none"></div>
+  <div class="hero-content">
+    <div class="hero-title" id="hero-title">
+      <span class="skeleton" style="display:inline-block;width:200px;height:22px;border-radius:6px"></span>
+    </div>
+    <div class="hero-loc" id="hero-loc">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+      <span id="hero-loc-txt">جاري التحميل...</span>
+    </div>
+  </div>
+</div>
+
+<!-- PRICE STRIP -->
+<div class="price-strip" id="price-strip">
+  <div>
+    <div class="price-main" id="price-val">—</div>
+    <div class="price-label">السعر الإجمالي</div>
+  </div>
+  <div class="price-meta" id="price-meta"></div>
+</div>
+
+<!-- GALLERY -->
+<div class="gallery-scroll" id="gallery-row" style="display:none"></div>
+
+<!-- DESC -->
+<div class="section" id="desc-sec" style="display:none">
+  <div class="section-title">وصف العقار</div>
+  <p class="desc-text" id="desc-txt"></p>
+</div>
+
+<!-- FEATURES -->
+<div class="section" id="feat-sec" style="display:none">
+  <div class="section-title">المميزات</div>
+  <div class="features-grid" id="feat-grid"></div>
+</div>
+
+<!-- CTA FORM -->
+<div class="cta-wrap" id="cta-section">
+  <div id="cta-form-wrap">
+    <div class="cta-title">سجّل اهتمامك الآن</div>
+    <div class="cta-sub">سيتواصل معك أحد مستشارينا العقاريين خلال وقت قصير</div>
+
+    <div class="form-field">
+      <label>الاسم الكريم *</label>
+      <input type="text" id="f-name" placeholder="محمد أحمد" autocomplete="name">
+    </div>
+    <div class="form-field">
+      <label>رقم الجوال *</label>
+      <input type="tel" id="f-phone" placeholder="05xxxxxxxx" inputmode="tel" autocomplete="tel" dir="ltr" style="text-align:right">
+    </div>
+    <div class="form-field">
+      <label>طبيعة الاهتمام</label>
+      <select id="f-intent">
+        <option value="شراء">شراء</option>
+        <option value="استثمار">استثمار</option>
+        <option value="استفسار">استفسار فقط</option>
+      </select>
+    </div>
+    <div class="form-field">
+      <label>ملاحظات (اختياري)</label>
+      <textarea id="f-note" rows="2" placeholder="أي تفاصيل إضافية..."></textarea>
+    </div>
+
+    <button class="btn-submit" onclick="submitForm()">أرسل طلبي الآن ←</button>
+
+    <div class="divider">أو</div>
+
+    <button class="btn-wa-big" onclick="waContact()" id="wa-form-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.533 5.847L.054 23.272a.5.5 0 0 0 .625.613l5.563-1.46A11.952 11.952 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.9 0-3.68-.528-5.195-1.443l-.371-.22-3.844 1.009 1.03-3.74-.243-.386A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+      تواصل مباشرة عبر واتساب
+    </button>
+  </div>
+
+  <div class="success-box" id="success-box">
+    <div class="icon">🎉</div>
+    <h2>تم استلام طلبك بنجاح</h2>
+    <p>شكراً لاهتمامك بعقارات شارك<br>سيتواصل معك مستشارنا العقاري قريباً</p>
+    <button class="btn-wa-big" onclick="waContact()" style="max-width:320px;margin:20px auto 0">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.533 5.847L.054 23.272a.5.5 0 0 0 .625.613l5.563-1.46A11.952 11.952 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.9 0-3.68-.528-5.195-1.443l-.371-.22-3.844 1.009 1.03-3.74-.243-.386A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+      تواصل عبر واتساب الآن
+    </button>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lb" onclick="closeLb()">
+  <button id="lb-close" onclick="closeLb()">✕</button>
+  <img id="lb-img" src="" alt="">
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-logo">SHARK</div>
+  <div class="footer-sub">شركة شارك العقارية المحدودة · جميع الحقوق محفوظة</div>
+</footer>
+
+<script>
+(function(){
+  var PHONE = '966500000000'; // رقم واتساب الشركة — يمكن تغييره من الإعدادات
+  var offer = null;
+  var offerTitle = '';
+
+  /* ── read settings phone ── */
+  try{
+    var s = JSON.parse(localStorage.getItem('shark_admin_settings')||'{}');
+    if(s.phone) PHONE = s.phone.replace(/\D/g,'');
+  }catch(e){}
+
+  /* ── get offer id from URL ── */
+  var params = new URLSearchParams(location.search);
+  var offerId = params.get('id');
+
+  function fmtPrice(n){
+    if(!n) return '—';
+    var num = Number(String(n).replace(/,/g,''));
+    if(!num) return n;
+    if(num>=1000000) return (num/1000000).toLocaleString('ar',{maximumFractionDigits:2}) + ' مليون ريال';
+    return num.toLocaleString('ar-SA') + ' ريال';
+  }
+
+  function loadOffer(){
+    var offers = [];
+    try{ offers = JSON.parse(localStorage.getItem('shark_offers')||'[]'); }catch(e){}
+    if(offerId) offer = offers.find(function(o){ return o.id===offerId; }) || null;
+    if(!offer && offers.length) offer = offers[0];
+    render();
+  }
+
+  var TYPE_MAP = {warehouses:'مستودع',villa:'فيلا',apartment:'شقة',land:'أرض',commercial:'تجاري',compound:'مجمع'};
+  var FEAT_ICONS = {'غرف نوم':'🛏','حمامات':'🚿','موقف سيارات':'🚗','مسبح':'🏊','مصعد':'🛗','حديقة':'🌿','تكييف مركزي':'❄️','مطبخ':'🍳','صالة':'🛋','مجلس':'☕'};
+
+  function render(){
+    /* hero */
+    if(offer && offer.coverImg){
+      var img = document.createElement('img');
+      img.className='hero-img'; img.src=offer.coverImg; img.alt=offer.title||'';
+      document.getElementById('hero-placeholder').replaceWith(img);
+    }
+    var badge = document.getElementById('hero-badge');
+    if(offer){
+      var typeLabel = TYPE_MAP[offer.type]||offer.type||'عقار';
+      badge.textContent = typeLabel; badge.style.display='block';
+    }
+    document.getElementById('hero-title').textContent = offer ? (offer.title||offer.name||'عرض عقاري مميز') : 'عرض عقاري مميز';
+    offerTitle = document.getElementById('hero-title').textContent;
+    var loc = '';
+    if(offer){ if(offer.city) loc+=offer.city; if(offer.district) loc+=(loc?' · ':'')+offer.district; }
+    document.getElementById('hero-loc-txt').textContent = loc || 'شارك العقارية';
+
+    /* price strip */
+    document.getElementById('price-val').textContent = offer ? fmtPrice(offer.price) : '—';
+    var meta = document.getElementById('price-meta');
+    var items = [];
+    if(offer && offer.area) items.push({val:offer.area+' م²',key:'المساحة'});
+    if(offer && offer.beds) items.push({val:offer.beds,key:'غرف'});
+    if(offer && offer.baths) items.push({val:offer.baths,key:'حمامات'});
+    meta.innerHTML = items.map(function(i){ return '<div class="price-meta-item"><div class="val">'+i.val+'</div><div class="key">'+i.key+'</div></div>'; }).join('');
+
+    /* gallery */
+    if(offer && offer.gallery){
+      var imgs = offer.gallery.split('\n').filter(Boolean);
+      if(imgs.length){
+        var gr = document.getElementById('gallery-row');
+        gr.style.display='flex';
+        if(offer.coverImg){ var ci=document.createElement('img'); ci.src=offer.coverImg; ci.alt=''; ci.onclick=function(){ openLb(offer.coverImg); }; gr.appendChild(ci); }
+        imgs.forEach(function(src){
+          var im=document.createElement('img'); im.src=src; im.alt=''; im.onclick=function(){ openLb(src); };
+          gr.style.borderColor='transparent'; im.style.borderColor='transparent'; gr.appendChild(im);
+        });
+      }
+    }
+
+    /* desc */
+    if(offer && offer.desc){
+      document.getElementById('desc-sec').style.display='block';
+      document.getElementById('desc-txt').textContent=offer.desc;
+    }
+
+    /* features */
+    if(offer && offer.features && offer.features.length){
+      document.getElementById('feat-sec').style.display='block';
+      document.getElementById('feat-grid').innerHTML=offer.features.map(function(f){
+        var ic=FEAT_ICONS[f]||'✦';
+        return '<div class="feat-chip"><span>'+ic+'</span><span>'+f+'</span></div>';
+      }).join('');
+    }
+
+    /* wa button visibility */
+    document.getElementById('wa-top').style.display='flex';
+  }
+
+  function openLb(src){ var lb=document.getElementById('lb'); document.getElementById('lb-img').src=src; lb.style.display='flex'; document.body.style.overflow='hidden'; }
+  window.closeLb=function(){ document.getElementById('lb').style.display='none'; document.body.style.overflow=''; };
+  document.getElementById('lb').addEventListener('click',function(e){ if(e.target===this) window.closeLb(); });
+
+  window.submitForm = function(){
+    var name=document.getElementById('f-name').value.trim();
+    var phone=document.getElementById('f-phone').value.trim();
+    if(!name||!phone){ alert('الرجاء إدخال الاسم ورقم الجوال'); return; }
+    var rec = {
+      name:name, phone:phone,
+      type:'اهتمام بعرض', interest:document.getElementById('f-intent').value,
+      note:(document.getElementById('f-note').value.trim()||'')+(offer?' | العرض: '+offerTitle:''),
+      offerId:offer?offer.id:'', offerTitle:offerTitle,
+      source:'landing', date:new Date().toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'}),
+      id:'SK-'+(Date.now()%100000)
+    };
+    try{
+      var arr=JSON.parse(localStorage.getItem('shark_admin_clients')||'[]');
+      arr.unshift(rec);
+      localStorage.setItem('shark_admin_clients',JSON.stringify(arr));
+    }catch(e){}
+    /* send to Google Sheets if configured */
+    try{
+      var cfg=JSON.parse(localStorage.getItem('shark_admin_settings')||'{}');
+      if(cfg.sheetsUrl) fetch(cfg.sheetsUrl,{method:'POST',body:JSON.stringify(rec),headers:{'Content-Type':'application/json'}}).catch(function(){});
+    }catch(e){}
+    document.getElementById('cta-form-wrap').style.display='none';
+    document.getElementById('success-box').style.display='block';
+  };
+
+  window.waContact = function(){
+    var name=document.getElementById('f-name')?document.getElementById('f-name').value.trim():'';
+    var msg='السلام عليكم، أنا مهتم بـ '+offerTitle+(offer&&offer.city?' في '+offer.city:'')+(name?' - '+name:'')+'\nالرابط: '+location.href;
+    window.open('https://wa.me/'+PHONE+'?text='+encodeURIComponent(msg),'_blank');
+  };
+
+  /* init */
+  loadOffer();
+})();
+</script>
+</body>
+</html>

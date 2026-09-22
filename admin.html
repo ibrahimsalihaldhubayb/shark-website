@@ -184,6 +184,36 @@ tr:hover td{background:rgba(255,255,255,.025)}
     <!-- ── SETTINGS ── -->
     <div class="section" id="sec-settings">
       <div class="settings-card">
+        <h4>📱 رقم واتساب الشركة</h4>
+        <p style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:14px">يُستخدم في أزرار التواصل وصفحات الهبوط</p>
+        <div class="form-row"><label>رقم الجوال (مع مفتاح الدولة بدون +)</label><input id="set-phone" type="tel" placeholder="966500000000" dir="ltr"></div>
+        <button class="btn-primary" onclick="saveSettings()">حفظ</button>
+        <div id="settings-msg" style="margin-top:10px;font-size:13px"></div>
+      </div>
+      <div class="settings-card">
+        <h4>📊 تسجيل العملاء في Google Sheets</h4>
+        <p style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:6px">أنشئ Google Apps Script وأدخل رابط الـ webhook هنا لإرسال بيانات العملاء تلقائياً عند كل تسجيل.</p>
+        <details style="margin-bottom:14px">
+          <summary style="font-size:12px;color:var(--gold);cursor:pointer;margin-bottom:8px">كيفية الإعداد ←</summary>
+          <div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.8;padding:8px;background:rgba(255,255,255,.04);border-radius:8px;direction:rtl">
+            1. افتح <b style="color:var(--gold)">script.google.com</b> وأنشئ مشروعاً جديداً<br>
+            2. أنشئ Google Sheet واربطه بالسكريبت<br>
+            3. ألصق الكود التالي في المحرر:<br>
+            <pre style="background:#0b0b0c;padding:8px;border-radius:6px;margin:6px 0;overflow-x:auto;font-size:11px;color:#c8a96e;direction:ltr">function doPost(e){
+  var sheet=SpreadsheetApp.getActive().getActiveSheet();
+  var d=JSON.parse(e.postData.contents);
+  sheet.appendRow([d.date,d.name,d.phone,d.type,
+    d.interest,d.offerTitle||'',d.note||'',d.source||'']);
+  return ContentService.createTextOutput('ok');
+}</pre>
+            4. انشر → نشر كتطبيق ويب → الوصول: <b>أي شخص</b><br>
+            5. انسخ رابط النشر والصقه أدناه
+          </div>
+        </details>
+        <div class="form-row"><label>رابط Google Apps Script (Webhook URL)</label><input id="set-sheets" type="url" placeholder="https://script.google.com/macros/s/.../exec" dir="ltr"></div>
+        <button class="btn-primary" onclick="saveSettings()">حفظ</button>
+      </div>
+      <div class="settings-card">
         <h4>🔐 تغيير كلمة المرور</h4>
         <div class="form-row"><label>كلمة المرور الحالية</label><input id="old-pass" type="password"></div>
         <div class="form-row"><label>كلمة المرور الجديدة</label><input id="new-pass" type="password"></div>
@@ -391,7 +421,7 @@ window.addEventListener('load',()=>{
 // ══════════════════════════════════════════════
 function init(){
   $('topbar-date').textContent = new Date().toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  renderStats(); renderClients(); renderOffers();
+  renderStats(); renderClients(); renderOffers(); loadSettings();
 }
 
 // ══════════════════════════════════════════════
@@ -461,6 +491,28 @@ function openAddClient(){
   $('modal-client').classList.add('open');
   $('modal-client-title').textContent='إضافة عميل جديد';
 }
+function sendToSheets(rec){
+  try{
+    const s=gs('shark_admin_settings')||{};
+    if(!s.sheetsUrl) return;
+    fetch(s.sheetsUrl,{method:'POST',body:JSON.stringify(rec),headers:{'Content-Type':'application/json'}}).catch(()=>{});
+  }catch(e){}
+}
+function saveSettings(){
+  const phone=$('set-phone').value.trim();
+  const sheetsUrl=$('set-sheets').value.trim();
+  const s=gs('shark_admin_settings')||{};
+  if(phone) s.phone=phone;
+  if(sheetsUrl) s.sheetsUrl=sheetsUrl;
+  ss('shark_admin_settings',s);
+  const msg=$('settings-msg'); if(msg){ msg.style.color='#4caf50'; msg.textContent='تم الحفظ ✓'; setTimeout(()=>msg.textContent='',2000); }
+  showToast('تم حفظ الإعدادات ✓');
+}
+function loadSettings(){
+  const s=gs('shark_admin_settings')||{};
+  if(s.phone && $('set-phone')) $('set-phone').value=s.phone;
+  if(s.sheetsUrl && $('set-sheets')) $('set-sheets').value=s.sheetsUrl;
+}
 function saveClient(){
   const name=$('cl-name').value.trim(), phone=$('cl-phone').value.trim();
   if(!name||!phone){ alert('الرجاء إدخال الاسم ورقم الجوال'); return; }
@@ -471,10 +523,13 @@ function saveClient(){
     id:uid(), name, phone, type:$('cl-type').value,
     interest:$('cl-interest').value.trim(), note:$('cl-note').value.trim(),
     offerId: offerId||'', offerName: offer ? (offer.ar||offer.name||'') : '',
-    date:nowAr()
+    offerTitle: offer ? (offer.title||offer.name||'') : '',
+    source:'admin', date:nowAr()
   };
   const arr=getClients(); arr.unshift(rec); saveClients(arr);
+  sendToSheets(rec);
   closeModal('modal-client'); renderStats(); renderClients();
+  showToast('تم حفظ العميل بنجاح ✓');
 }
 function deleteClient(id){
   if(!confirm('هل تريد حذف هذا السجل؟')) return;
@@ -612,6 +667,7 @@ function renderOffers(){
         <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:10px">${o.city||''} ${o.district?'· '+o.district:''} ${o.area?'· '+o.area+' م²':''}</div>
         <div class="oc-acts">
           <button class="btn-edit" onclick="openOfferEditor('${o.id}')">✏️ تعديل</button>
+          <button class="btn-wa" onclick="shareLanding('${o.id}')" style="font-size:11px;padding:6px 10px">🔗 مشاركة</button>
           <button class="btn-del" onclick="deleteOffer('${o.id}')">حذف</button>
         </div>
       </div>
@@ -747,6 +803,12 @@ function saveOffer(){
   closeModal('modal-offer'); renderOffers();
 }
 
+function shareLanding(id){
+  const base = location.origin + location.pathname.replace('admin.html','') + 'landing.html';
+  const url = base + '?id=' + id;
+  if(navigator.share){ navigator.share({title:'عرض شارك العقارية', url}).catch(()=>{}); return; }
+  navigator.clipboard.writeText(url).then(()=>showToast('تم نسخ الرابط ✓')).catch(()=>{ prompt('انسخ الرابط:',url); });
+}
 function deleteOffer(id){
   if(!confirm('هل تريد حذف هذا العرض؟')) return;
   ss(OFFERS_KEY,(gs(OFFERS_KEY)||[]).filter(o=>o.id!==id));
