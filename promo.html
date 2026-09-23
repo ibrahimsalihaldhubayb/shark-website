@@ -2,232 +2,237 @@
 <html dir="rtl" lang="ar">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#0b0b0c">
 <title id="pg-title">سجّل اهتمامك بالعقار — شارك</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{
-  --gold:#c8972e;
-  --gold2:#d4a73a;
-  --text:#f4f3ef;
-  --sub:rgba(244,243,239,.6);
-  --card:rgba(20,18,16,.72);
-  --border:rgba(244,243,239,.14);
-  --input:rgba(30,27,22,.6);
+html,body{
+  height:100%;
+  font-family:'Cairo',Tahoma,Arial,sans-serif;
+  direction:rtl;
+  -webkit-font-smoothing:antialiased;
 }
-html,body{height:100%;font-family:'Cairo',Tahoma,Arial,sans-serif;direction:rtl;-webkit-font-smoothing:antialiased}
 body{
   min-height:100vh;
   background:#0b0b0c;
-  color:var(--text);
-  display:flex;flex-direction:column;align-items:center;
-  position:relative;overflow-x:hidden;
+  color:#f4f3ef;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  position:relative;
+  overflow-x:hidden;
 }
 
-/* ── BACKGROUND ── */
-.bg{
-  position:fixed;inset:0;z-index:0;
-  background:#0e0d0b;
+/* BG */
+.bg{position:fixed;inset:0;z-index:0}
+#bg-img{width:100%;height:100%;object-fit:cover;opacity:.5;display:none}
+.bg-fallback{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 100% 60% at 50% 100%, rgba(160,110,30,.25) 0%, transparent 65%),
+    linear-gradient(160deg,#111009 0%,#0e0c09 45%,#0b0b0c 100%);
 }
-.bg-img{
-  position:absolute;inset:0;width:100%;height:100%;
-  object-fit:cover;opacity:.55;
+.bg-fallback::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(180,145,50,.05) 59px,rgba(180,145,50,.05) 60px),
+    repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(180,145,50,.05) 59px,rgba(180,145,50,.05) 60px);
 }
 .bg-overlay{
   position:absolute;inset:0;
-  background:linear-gradient(to bottom,rgba(10,9,7,.35) 0%,rgba(10,9,7,.55) 50%,rgba(10,9,7,.85) 100%);
-}
-/* fallback pattern when no image */
-.bg-pattern{
-  position:absolute;inset:0;
-  background:
-    radial-gradient(ellipse 90% 55% at 50% 100%,rgba(180,130,40,.22) 0%,transparent 65%),
-    linear-gradient(170deg,#0e0d0b 0%,#110f0c 50%,#0b0b0c 100%);
-}
-.bg-pattern::before{
-  content:'';position:absolute;inset:0;
-  background-image:
-    repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(200,165,70,.04) 59px,rgba(200,165,70,.04) 60px),
-    repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(200,165,70,.04) 59px,rgba(200,165,70,.04) 60px);
+  background:linear-gradient(to bottom,rgba(8,7,5,.4) 0%,rgba(8,7,5,.5) 40%,rgba(8,7,5,.82) 100%);
 }
 
-/* ── LAYOUT ── */
+/* PAGE */
 .page{
   position:relative;z-index:1;
-  width:100%;max-width:480px;
+  width:100%;
+  max-width:440px;
   min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:48px 20px 36px;
+}
+
+/* LOGO */
+.logo-block{
   display:flex;flex-direction:column;align-items:center;
-  padding:52px 20px 40px;
+  gap:12px;margin-bottom:28px;
 }
-
-/* ── LOGO ── */
-.logo-block{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:32px}
-
-.logo-bars{display:flex;align-items:flex-end;gap:5px;height:52px}
-.logo-bars span{
+.logo-bars{display:flex;align-items:flex-end;gap:5px;height:50px}
+.logo-bars b{
   display:block;border-radius:2px 2px 0 0;
-  background:linear-gradient(to bottom,#ffffff 0%,rgba(255,255,255,.0) 100%);
+  background:linear-gradient(to bottom,#fff 0%,rgba(255,255,255,0) 100%);
 }
-
-.logo-arabic{
+.logo-name{
+  font-size:42px;font-weight:900;
+  color:#fff;letter-spacing:.08em;
+  line-height:1;position:relative;
   font-family:'Cairo',sans-serif;
-  font-size:38px;font-weight:800;
-  color:#fff;letter-spacing:.05em;
-  line-height:1;
-  /* stylized "شارك" */
 }
-.logo-sub{
+.logo-name::after{
+  content:'';display:block;
+  height:2px;background:linear-gradient(90deg,transparent,rgba(200,151,46,.8),transparent);
+  margin-top:4px;
+}
+.logo-tagline{
   font-size:12px;font-weight:300;
-  color:rgba(244,243,239,.55);
-  letter-spacing:.12em;
+  color:rgba(244,243,239,.5);
+  letter-spacing:.14em;
   margin-top:-4px;
 }
 
-/* ── HEADLINE ── */
+/* HEADLINE */
 .headline{
-  font-size:clamp(28px,7vw,38px);font-weight:800;
-  text-align:center;line-height:1.25;margin-bottom:10px;
+  font-size:32px;font-weight:800;
+  text-align:center;line-height:1.3;
+  margin-bottom:10px;
+  color:#fff;
 }
 .subline{
-  font-size:15px;font-weight:400;
-  color:var(--sub);text-align:center;
-  line-height:1.7;margin-bottom:32px;
+  font-size:14px;font-weight:400;
+  color:rgba(244,243,239,.62);
+  text-align:center;line-height:1.7;
+  margin-bottom:28px;
+  max-width:300px;
 }
 
-/* ── FORM CARD ── */
+/* CARD */
 .card{
   width:100%;
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:28px 22px 24px;
-  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  background:rgba(18,15,11,.78);
+  border:1px solid rgba(244,243,239,.12);
+  border-radius:18px;
+  padding:26px 20px 22px;
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
 }
-.f-group{margin-bottom:16px}
+
 .f-label{
   display:block;text-align:right;
   font-size:14px;font-weight:600;
-  color:var(--text);margin-bottom:8px;
+  color:#f4f3ef;
+  margin-bottom:8px;
 }
-.f-label span{font-weight:400;color:var(--sub);font-size:12px}
+.f-label em{font-style:normal;font-weight:400;font-size:12px;color:rgba(244,243,239,.45)}
 .f-input,.f-textarea{
-  width:100%;padding:14px 16px;
-  background:var(--input);
-  border:1px solid var(--border);
+  width:100%;padding:14px 14px;
+  background:rgba(30,24,16,.65);
+  border:1px solid rgba(244,243,239,.12);
   border-radius:10px;
-  color:var(--text);font-size:15px;font-weight:400;
+  color:#f4f3ef;font-size:15px;font-weight:400;
   font-family:'Cairo',sans-serif;direction:rtl;
-  outline:none;transition:border-color .2s;
+  outline:none;
+  transition:border-color .2s;
   -webkit-appearance:none;
+  margin-bottom:16px;
 }
-.f-input:focus,.f-textarea:focus{border-color:rgba(200,151,46,.6)}
-.f-input::placeholder,.f-textarea::placeholder{color:rgba(244,243,239,.3)}
-.f-textarea{resize:none;height:90px;line-height:1.5}
+.f-input:focus,.f-textarea:focus{
+  border-color:rgba(200,151,46,.55);
+}
+.f-input::placeholder,.f-textarea::placeholder{
+  color:rgba(244,243,239,.28);
+}
+.f-textarea{resize:none;height:88px;line-height:1.55}
 
 .btn-submit{
-  width:100%;margin-top:8px;
-  padding:17px;
-  background:linear-gradient(135deg,#c8972e 0%,#d4a73a 50%,#b8851e 100%);
+  width:100%;
+  padding:16px;
+  background:linear-gradient(135deg,#c8972e 0%,#d4a83c 60%,#b8821c 100%);
   color:#0b0b0c;border:none;border-radius:10px;
   font-family:'Cairo',sans-serif;
   font-size:17px;font-weight:700;
-  cursor:pointer;
-  transition:opacity .2s,transform .1s;
-  letter-spacing:.04em;
+  cursor:pointer;letter-spacing:.03em;
+  transition:opacity .18s,transform .1s;
+  margin-top:4px;
 }
-.btn-submit:hover{opacity:.92}
-.btn-submit:active{transform:scale(.98)}
-.btn-submit:disabled{opacity:.6;cursor:not-allowed}
+.btn-submit:active{transform:scale(.98);opacity:.88}
+.btn-submit:disabled{opacity:.55;cursor:not-allowed}
 
-/* ── PRIVACY ── */
+/* PRIVACY */
 .privacy{
-  margin-top:20px;text-align:center;
-  font-size:12px;font-weight:300;
-  color:rgba(244,243,239,.4);
-  line-height:1.7;max-width:340px;
+  margin-top:18px;
+  font-size:11.5px;font-weight:300;
+  color:rgba(244,243,239,.38);
+  text-align:center;line-height:1.8;
+  max-width:320px;
 }
 
-/* ── SUCCESS ── */
-.success-box{display:none;text-align:center;padding:16px 0}
-.success-icon{font-size:48px;margin-bottom:16px}
-.success-box h2{font-size:24px;font-weight:700;margin-bottom:10px}
-.success-box p{font-size:14px;font-weight:300;color:var(--sub);line-height:1.8;margin-bottom:24px}
+/* SUCCESS */
+.success-box{display:none;text-align:center;padding:12px 0}
+.success-check{
+  width:56px;height:56px;border-radius:50%;
+  background:rgba(200,151,46,.15);border:1px solid rgba(200,151,46,.4);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;font-size:22px;color:#c8972e;
+}
+.success-box h2{font-size:22px;font-weight:700;margin-bottom:10px}
+.success-box p{font-size:13px;font-weight:300;color:rgba(244,243,239,.55);line-height:1.8;margin-bottom:22px}
 .btn-wa{
   display:inline-flex;align-items:center;gap:10px;
-  padding:14px 28px;
+  padding:13px 24px;border-radius:10px;
   background:transparent;
-  border:1px solid rgba(37,211,102,.4);
-  border-radius:10px;
-  color:rgba(37,211,102,.9);
+  border:1px solid rgba(37,211,102,.35);
+  color:rgba(37,211,102,.85);
   font-family:'Cairo',sans-serif;font-size:14px;font-weight:500;
   cursor:pointer;transition:background .2s;
 }
-.btn-wa:hover{background:rgba(37,211,102,.08)}
+.btn-wa:hover{background:rgba(37,211,102,.07)}
 
-/* ── SOCIAL ── */
+/* SOCIAL */
 .social{
-  display:flex;gap:20px;align-items:center;
-  margin-top:32px;opacity:.45;
+  display:flex;gap:22px;align-items:center;
+  margin-top:28px;
 }
-.social a{color:var(--text);text-decoration:none;font-size:18px;transition:opacity .2s}
-.social a:hover{opacity:.7}
-
-@media(max-width:380px){
-  .page{padding:40px 16px 32px}
-  .card{padding:22px 16px 20px}
-}
+.social a{color:rgba(244,243,239,.35);text-decoration:none;transition:color .2s}
+.social a:hover{color:rgba(244,243,239,.7)}
 </style>
 </head>
 <body>
 
 <div class="bg">
-  <div class="bg-pattern" id="bg-pattern"></div>
-  <img id="bg-img" class="bg-img" src="" alt="" style="display:none">
+  <div class="bg-fallback" id="bg-fallback"></div>
+  <img id="bg-img" alt="">
   <div class="bg-overlay"></div>
 </div>
 
 <div class="page">
 
-  <!-- LOGO -->
   <div class="logo-block">
     <div class="logo-bars">
-      <span style="width:7px;height:22px"></span>
-      <span style="width:7px;height:34px"></span>
-      <span style="width:7px;height:46px"></span>
-      <span style="width:7px;height:34px"></span>
-      <span style="width:7px;height:22px"></span>
+      <b style="width:7px;height:20px"></b>
+      <b style="width:7px;height:32px"></b>
+      <b style="width:7px;height:44px"></b>
+      <b style="width:7px;height:32px"></b>
+      <b style="width:7px;height:20px"></b>
     </div>
-    <div class="logo-arabic" id="logo-arabic">شـارك</div>
-    <div class="logo-sub">شركة ركن شارك العقارية</div>
+    <div class="logo-name">شـارك</div>
+    <div class="logo-tagline">شركة ركن شارك العقارية</div>
   </div>
 
-  <!-- HEADLINE -->
   <h1 class="headline" id="main-headline">سجّل اهتمامك بالعقار</h1>
   <p class="subline" id="main-subline">اترك بياناتك وسيتواصل معك فريقنا بأقرب فرصة</p>
 
-  <!-- CARD -->
   <div class="card">
     <div id="form-wrap">
-      <div class="f-group">
-        <label class="f-label">الاسم الكامل</label>
-        <input type="text" class="f-input" id="f-name" placeholder="مثال: عبدالله المطيري" autocomplete="name">
-      </div>
-      <div class="f-group">
-        <label class="f-label">رقم الجوال</label>
-        <input type="tel" class="f-input" id="f-phone" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right" autocomplete="tel">
-      </div>
-      <div class="f-group">
-        <label class="f-label">ملاحظة <span>(اختياري)</span></label>
-        <textarea class="f-textarea" id="f-note" placeholder="اكتب ملاحظتك هنا"></textarea>
-      </div>
+      <label class="f-label">الاسم الكامل</label>
+      <input type="text" class="f-input" id="f-name" placeholder="مثال: عبدالله المطيري" autocomplete="name">
+
+      <label class="f-label">رقم الجوال</label>
+      <input type="tel" class="f-input" id="f-phone" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right" autocomplete="tel">
+
+      <label class="f-label">ملاحظة <em>(اختياري)</em></label>
+      <textarea class="f-textarea" id="f-note" placeholder="اكتب ملاحظتك هنا"></textarea>
+
       <button class="btn-submit" id="btn-submit" onclick="doSubmit()">سجّل اهتمامك</button>
     </div>
+
     <div class="success-box" id="success-box">
-      <div class="success-icon">✓</div>
+      <div class="success-check">✓</div>
       <h2>تم استلام طلبك</h2>
       <p>شكراً لتواصلك مع شارك العقارية<br>سيتصل بك أحد مستشارينا قريباً</p>
       <button class="btn-wa" onclick="goWa()">
@@ -271,7 +276,6 @@ body{
     }catch(e){}
   }
 
-  /* apply promo customisation */
   if(promo){
     if(promo.headline){
       document.getElementById('main-headline').textContent = promo.headline;
@@ -282,7 +286,7 @@ body{
       var img = document.getElementById('bg-img');
       img.src = promo.coverImg;
       img.style.display = 'block';
-      document.getElementById('bg-pattern').style.display = 'none';
+      document.getElementById('bg-fallback').style.display = 'none';
     }
   }
 
@@ -290,30 +294,26 @@ body{
     if(!PHONE){ alert('لم يتم ضبط رقم الواتساب — يرجى ضبطه من لوحة التحكم'); return; }
     var name = (document.getElementById('f-name').value||'').trim();
     var title = promo ? (promo.headline||'شارك العقارية') : 'شارك العقارية';
-    var msg = 'السلام عليكم، تواصلت عبر إعلان "' + title + '"' + (name?' — '+name:'') + '\n' + location.href;
+    var msg = 'السلام عليكم، تواصلت عبر إعلان "'+title+'"'+(name?' — '+name:'')+'\n'+location.href;
     window.open('https://wa.me/'+PHONE+'?text='+encodeURIComponent(msg),'_blank');
   };
 
   window.doSubmit = function(){
-    var name = document.getElementById('f-name').value.trim();
+    var name  = document.getElementById('f-name').value.trim();
     var phone = document.getElementById('f-phone').value.trim();
-    var note = document.getElementById('f-note').value.trim();
-    if(!name){ alert('الرجاء إدخال الاسم الكريم'); return; }
+    var note  = document.getElementById('f-note').value.trim();
+    if(!name) { alert('الرجاء إدخال الاسم الكريم'); return; }
     if(!phone){ alert('الرجاء إدخال رقم الجوال'); return; }
 
     var btn = document.getElementById('btn-submit');
-    btn.disabled = true;
-    btn.textContent = 'جارٍ الإرسال...';
+    btn.disabled = true; btn.textContent = 'جارٍ الإرسال...';
 
     var date = new Date().toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'});
     var rec = {
-      id: 'SK-'+(Date.now()%100000),
-      name: name, phone: phone, note: note,
-      type: 'إعلان مروّج',
-      promoId: key||'',
-      promoTitle: promo ? (promo.headline||'') : '',
-      source: 'promo',
-      date: date
+      id:'SK-'+(Date.now()%100000), name:name, phone:phone, note:note,
+      type:'إعلان مروّج', promoId:key||'',
+      promoTitle:promo?(promo.headline||''):'',
+      source:'promo', date:date
     };
 
     /* save locally */
@@ -323,16 +323,12 @@ body{
       localStorage.setItem('shark_admin_clients', JSON.stringify(arr));
     }catch(e){}
 
-    /* send to sheets — only name, date, note */
+    /* send to sheets — no-cors to avoid preflight block */
     try{
       var c = JSON.parse(localStorage.getItem('shark_admin_settings')||'{}');
       if(c.sheetsUrl){
-        var sheetsRec = { name: name, phone: phone, date: date, note: note };
-        fetch(c.sheetsUrl,{
-          method:'POST',
-          body: JSON.stringify(sheetsRec),
-          headers:{'Content-Type':'application/json'}
-        }).catch(function(){});
+        var payload = JSON.stringify({date:date, name:name, phone:phone, note:note});
+        fetch(c.sheetsUrl,{method:'POST', mode:'no-cors', body:payload});
       }
     }catch(e){}
 
