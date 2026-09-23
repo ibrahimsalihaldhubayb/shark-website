@@ -143,6 +143,10 @@ body{
   var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyHVwZPpmNrCOrXjbzlrrkz1tYcA1v7MXvDfwlPFYKUMzV3ICTmpYsNP22HH6dsF7k/exec';
   var PHONE = '966539997060';
 
+  var params = new URLSearchParams(location.search);
+  var bgUrl = params.get('bg');
+  if(bgUrl) document.querySelector('.bg img').src = bgUrl;
+
   window.goWa = function(){
     var name = (document.getElementById('f-name').value||'').trim();
     var msg = 'السلام عليكم، أود الاستفسار عن العقار'+(name?' — '+name:'')+'\n'+location.href;

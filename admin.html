@@ -914,15 +914,15 @@ function openPromoEditor(id){
   _promoGallery=[];
   $('promo-modal-title').textContent = id ? 'تعديل الإعلان' : 'إنشاء إعلان جديد';
   $('promo-edit-id').value = id||'';
-  ['pr-headline','pr-subline','pr-body','pr-points','pr-btnlabel','pr-ctatitle','pr-icon','pr-cover-b64'].forEach(i=>$(i).value='');
-  $('pr-cover-preview').style.display='none'; $('pr-gall-preview').innerHTML=''; $('pr-showtrust').checked=false;
+  ['pr-headline','pr-subline','pr-body','pr-points','pr-btnlabel','pr-ctatitle','pr-icon','pr-bg-url'].forEach(i=>$(i).value='');
+  $('pr-gall-preview').innerHTML=''; $('pr-showtrust').checked=false;
   if(id){
     var p=getPromos().find(x=>x.id===id); if(!p) return;
     $('pr-headline').value=p.headline||''; $('pr-subline').value=p.subline||'';
     $('pr-body').value=p.body||''; $('pr-points').value=(p.points||[]).join('\n');
     $('pr-btnlabel').value=p.btnLabel||''; $('pr-ctatitle').value=p.ctaTitle||'';
     $('pr-icon').value=p.icon||''; $('pr-showtrust').checked=!!p.showTrust;
-    if(p.coverImg){ $('pr-cover-b64').value=p.coverImg; $('pr-cover-preview').src=p.coverImg; $('pr-cover-preview').style.display='block'; }
+    if(p.bgUrl) $('pr-bg-url').value=p.bgUrl;
     _promoGallery=p.gallery||[];
     var prev=$('pr-gall-preview'); prev.innerHTML='';
     _promoGallery.forEach(function(src){ var im=document.createElement('img'); im.src=src; im.style.cssText='width:70px;height:60px;object-fit:cover;border-radius:8px;border:1px solid var(--border)'; prev.appendChild(im); });
@@ -941,7 +941,7 @@ function savePromo(){
     btnLabel:$('pr-btnlabel').value.trim(), ctaTitle:$('pr-ctatitle').value.trim(),
     icon:$('pr-icon').value.trim()||'🏠',
     showTrust:$('pr-showtrust').checked,
-    coverImg:$('pr-cover-b64').value||'',
+    bgUrl:$('pr-bg-url').value.trim()||'',
     gallery:_promoGallery.filter(Boolean),
     created:nowAr()
   };
@@ -980,7 +980,9 @@ function renderPromos(){
 
 function sharePromo(id){
   var base=location.origin+location.pathname.replace('admin.html','')+'promo.html';
+  var promos=getPromos(); var p=promos.find(function(x){return x.id===id;})||{};
   var url=base+'?k='+id;
+  if(p.bgUrl) url+='&bg='+encodeURIComponent(p.bgUrl);
   if(navigator.share){ navigator.share({title:'إعلان شارك العقارية', url}).catch(function(){}); return; }
   navigator.clipboard.writeText(url).then(function(){ showToast('تم نسخ الرابط ✓'); }).catch(function(){ prompt('رابط الإعلان:',url); });
 }
@@ -1017,13 +1019,11 @@ document.querySelectorAll('.modal-bg').forEach(m=>{
     </div>
     <div class="form-row"><label>أيقونة الهيرو (إيموجي)</label><input id="pr-icon" type="text" placeholder="🏠" style="width:80px;display:inline-block"></div>
 
-    <!-- Cover photo -->
+    <!-- Cover photo URL -->
     <div class="form-row" style="margin-top:8px">
-      <label>صورة الغلاف (اختياري)</label>
-      <input type="file" id="pr-cover-pick" accept="image/*" style="display:none" onchange="handlePromoCover(this)">
-      <img id="pr-cover-preview" style="display:none;max-width:100%;max-height:140px;border-radius:10px;margin-top:8px;object-fit:cover">
-      <input type="hidden" id="pr-cover-b64">
-      <button class="upload-btn" type="button" onclick="document.getElementById('pr-cover-pick').click()">رفع صورة الغلاف</button>
+      <label>رابط صورة الخلفية</label>
+      <input id="pr-bg-url" type="url" placeholder="https://..." style="direction:ltr;text-align:left">
+      <small style="color:var(--sub);font-size:11px;margin-top:4px;display:block">ارفع الصورة على أي موقع (Google Drive، Imgur، إلخ) والصق الرابط هنا</small>
     </div>
 
     <!-- Gallery -->
