@@ -327,7 +327,7 @@ body{
     try{
       var c = JSON.parse(localStorage.getItem('shark_admin_settings')||'{}');
       if(c.sheetsUrl){
-        var sheetsRec = { name: name, date: date, note: note };
+        var sheetsRec = { name: name, phone: phone, date: date, note: note };
         fetch(c.sheetsUrl,{
           method:'POST',
           body: JSON.stringify(sheetsRec),
