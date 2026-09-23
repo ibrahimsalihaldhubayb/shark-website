@@ -260,14 +260,12 @@ body{
 
 <script>
 (function(){
+  var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyHVwZPpmNrCOrXjbzlrrkz1tYcA1v7MXvDfwlPFYKUMzV3ICTmpYsNP22HH6dsF7k/exec';
+  var PHONE = '966539997060';
+
   var params = new URLSearchParams(location.search);
   var key = params.get('k');
-  var promo = null, PHONE = '';
-
-  try{
-    var cfg = JSON.parse(localStorage.getItem('shark_admin_settings')||'{}');
-    PHONE = (cfg.phone||'').replace(/\D/g,'');
-  }catch(e){}
+  var promo = null;
 
   if(key){
     try{
@@ -323,13 +321,10 @@ body{
       localStorage.setItem('shark_admin_clients', JSON.stringify(arr));
     }catch(e){}
 
-    /* send to sheets — no-cors to avoid preflight block */
+    /* send to sheets */
     try{
-      var c = JSON.parse(localStorage.getItem('shark_admin_settings')||'{}');
-      if(c.sheetsUrl){
-        var payload = JSON.stringify({date:date, name:name, phone:phone, note:note});
-        fetch(c.sheetsUrl,{method:'POST', mode:'no-cors', body:payload});
-      }
+      var payload = JSON.stringify({date:date, name:name, phone:phone, note:note});
+      fetch(SHEETS_URL,{method:'POST', mode:'no-cors', body:payload});
     }catch(e){}
 
     document.getElementById('form-wrap').style.display = 'none';
