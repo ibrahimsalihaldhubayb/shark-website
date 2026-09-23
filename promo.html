@@ -12,33 +12,28 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;font-family:'Cairo',Tahoma,Arial,sans-serif;direction:rtl;-webkit-font-smoothing:antialiased}
 body{
-  min-height:100vh;
   background:#0b0b0c;
   color:#f4f3ef;
   display:flex;
   flex-direction:column;
   align-items:center;
-  justify-content:flex-end;
-  position:relative;
   overflow-x:hidden;
-  padding-top:130vh;
 }
 
 .bg{
-  position:fixed;inset:0;z-index:0;
+  width:100%;
+  max-width:460px;
 }
 .bg img{
-  width:100%;height:100%;
-  object-fit:cover;
-  object-position:top center;
+  width:100%;
   display:block;
 }
 
 .page{
-  position:relative;z-index:1;
   width:100%;
   max-width:460px;
   padding:0 18px 36px;
+  background:#0b0b0c;
 }
 
 .card{
