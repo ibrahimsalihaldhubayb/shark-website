@@ -136,6 +136,7 @@ tr:hover td{background:rgba(255,255,255,.025)}
   <div class="tabs">
     <div class="tab active" onclick="showTab('clients')">👥 العملاء</div>
     <div class="tab" onclick="showTab('offers')">🏠 العروض</div>
+    <div class="tab" onclick="showTab('promos')">📢 الإعلانات</div>
     <div class="tab" onclick="showTab('export')">📊 التقارير</div>
     <div class="tab" onclick="showTab('settings')">⚙️ الإعدادات</div>
   </div>
@@ -170,6 +171,15 @@ tr:hover td{background:rgba(255,255,255,.025)}
         <button class="btn-primary" onclick="openOfferEditor(null)">+ إضافة عرض</button>
       </div>
       <div class="offers-grid" id="offers-grid"></div>
+    </div>
+
+    <!-- ── PROMOS ── -->
+    <div class="section" id="sec-promos">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h3 style="font-size:18px;font-weight:700">📢 صفحات الهبوط الإعلانية</h3>
+        <button class="btn-primary" onclick="openPromoEditor(null)">+ إنشاء إعلان</button>
+      </div>
+      <div id="promos-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px"></div>
     </div>
 
     <!-- ── EXPORT ── -->
@@ -423,7 +433,7 @@ window.addEventListener('load',()=>{
 // ══════════════════════════════════════════════
 function init(){
   $('topbar-date').textContent = new Date().toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  renderStats(); renderClients(); renderOffers(); loadSettings();
+  renderStats(); renderClients(); renderOffers(); renderPromos(); loadSettings();
 }
 
 // ══════════════════════════════════════════════
@@ -432,7 +442,7 @@ function init(){
 function showTab(name){
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.remove('active'));
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  const tabs=['clients','offers','export','settings'];
+  const tabs=['clients','offers','promos','export','settings'];
   const idx=tabs.indexOf(name);
   document.querySelectorAll('.tab')[idx].classList.add('active');
   $('sec-'+name).classList.add('active');
@@ -859,6 +869,123 @@ function doExcelOffers(){
 }
 
 // ══════════════════════════════════════════════
+//  PROMOS
+// ══════════════════════════════════════════════
+const PROMOS_KEY = 'shark_promos';
+var _promoGallery = [];
+
+function getPromos(){ return gs(PROMOS_KEY)||[]; }
+
+function compressPromoImg(file, maxPx, q, cb){
+  var r=new FileReader(); r.onload=function(e){ var img=new Image(); img.onload=function(){
+    var w=img.width,h=img.height;
+    if(w>maxPx||h>maxPx){ if(w>h){h=Math.round(h*maxPx/w);w=maxPx;}else{w=Math.round(w*maxPx/h);h=maxPx;} }
+    var c=document.createElement('canvas'); c.width=w; c.height=h;
+    c.getContext('2d').drawImage(img,0,0,w,h); cb(c.toDataURL('image/jpeg',q));
+  }; img.src=e.target.result; }; r.readAsDataURL(file);
+}
+
+function handlePromoCover(inp){
+  if(!inp.files[0]) return;
+  compressPromoImg(inp.files[0],1400,.78,function(b64){
+    $('pr-cover-b64').value=b64; $('pr-cover-preview').src=b64; $('pr-cover-preview').style.display='block';
+  });
+}
+function handlePromoGall(inp){
+  var files=Array.from(inp.files); if(!files.length) return;
+  var prev=$('pr-gall-preview'); prev.innerHTML='';
+  _promoGallery=[];
+  files.forEach(function(f,i){
+    compressPromoImg(f,1200,.75,function(b64){
+      _promoGallery[i]=b64;
+      var im=document.createElement('img'); im.src=b64;
+      im.style.cssText='width:70px;height:60px;object-fit:cover;border-radius:8px;border:1px solid var(--border)';
+      prev.appendChild(im);
+    });
+  });
+}
+
+function openPromoEditor(id){
+  _promoGallery=[];
+  $('promo-modal-title').textContent = id ? 'تعديل الإعلان' : 'إنشاء إعلان جديد';
+  $('promo-edit-id').value = id||'';
+  ['pr-headline','pr-subline','pr-body','pr-points','pr-btnlabel','pr-ctatitle','pr-icon','pr-cover-b64'].forEach(i=>$(i).value='');
+  $('pr-cover-preview').style.display='none'; $('pr-gall-preview').innerHTML=''; $('pr-showtrust').checked=false;
+  if(id){
+    var p=getPromos().find(x=>x.id===id); if(!p) return;
+    $('pr-headline').value=p.headline||''; $('pr-subline').value=p.subline||'';
+    $('pr-body').value=p.body||''; $('pr-points').value=(p.points||[]).join('\n');
+    $('pr-btnlabel').value=p.btnLabel||''; $('pr-ctatitle').value=p.ctaTitle||'';
+    $('pr-icon').value=p.icon||''; $('pr-showtrust').checked=!!p.showTrust;
+    if(p.coverImg){ $('pr-cover-b64').value=p.coverImg; $('pr-cover-preview').src=p.coverImg; $('pr-cover-preview').style.display='block'; }
+    _promoGallery=p.gallery||[];
+    var prev=$('pr-gall-preview'); prev.innerHTML='';
+    _promoGallery.forEach(function(src){ var im=document.createElement('img'); im.src=src; im.style.cssText='width:70px;height:60px;object-fit:cover;border-radius:8px;border:1px solid var(--border)'; prev.appendChild(im); });
+  }
+  $('modal-promo').classList.add('open');
+}
+
+function savePromo(){
+  const headline=$('pr-headline').value.trim(); if(!headline){ alert('الرجاء إدخال عنوان الإعلان'); return; }
+  const editId=$('promo-edit-id').value;
+  const pts=$('pr-points').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const promo={
+    id: editId||('PR-'+Date.now().toString(36).toUpperCase()),
+    headline, subline:$('pr-subline').value.trim(),
+    body:$('pr-body').value.trim(), points:pts,
+    btnLabel:$('pr-btnlabel').value.trim(), ctaTitle:$('pr-ctatitle').value.trim(),
+    icon:$('pr-icon').value.trim()||'🏠',
+    showTrust:$('pr-showtrust').checked,
+    coverImg:$('pr-cover-b64').value||'',
+    gallery:_promoGallery.filter(Boolean),
+    created:nowAr()
+  };
+  var arr=getPromos();
+  if(editId){ var idx=arr.findIndex(x=>x.id===editId); if(idx>=0) arr[idx]=promo; else arr.unshift(promo); }
+  else arr.unshift(promo);
+  ss(PROMOS_KEY,arr);
+  closeModal('modal-promo'); renderPromos();
+  showToast('تم حفظ الإعلان ✓');
+  /* auto-show link */
+  setTimeout(function(){ sharePromo(promo.id); }, 400);
+}
+
+function renderPromos(){
+  var arr=getPromos();
+  var g=$('promos-grid');
+  if(!arr.length){ g.innerHTML='<div style="color:rgba(255,255,255,.3);font-size:14px;padding:20px">لا توجد إعلانات بعد — اضغط "+ إنشاء إعلان"</div>'; return; }
+  g.innerHTML=arr.map(function(p){
+    var base=location.origin+location.pathname.replace('admin.html','')+'promo.html';
+    var url=base+'?k='+p.id;
+    return `<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+      ${p.coverImg?`<img src="${p.coverImg}" style="width:100%;height:130px;object-fit:cover">`:`<div style="width:100%;height:80px;background:linear-gradient(135deg,#1a1a1f,#1e1a0e);display:flex;align-items:center;justify-content:center;font-size:36px">${p.icon||'🏠'}</div>`}
+      <div style="padding:14px">
+        <div style="font-weight:700;font-size:15px;margin-bottom:4px">${p.headline}</div>
+        ${p.subline?`<div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:10px">${p.subline}</div>`:''}
+        <div style="font-size:11px;color:rgba(255,255,255,.3);margin-bottom:12px">${p.created||''}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-wa" style="font-size:11px;padding:6px 10px" onclick="sharePromo('${p.id}')">🔗 مشاركة الرابط</button>
+          <button class="btn-edit" onclick="openPromoEditor('${p.id}')">✏️ تعديل</button>
+          <button class="btn-del" onclick="deletePromo('${p.id}')">حذف</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function sharePromo(id){
+  var base=location.origin+location.pathname.replace('admin.html','')+'promo.html';
+  var url=base+'?k='+id;
+  if(navigator.share){ navigator.share({title:'إعلان شارك العقارية', url}).catch(function(){}); return; }
+  navigator.clipboard.writeText(url).then(function(){ showToast('تم نسخ الرابط ✓'); }).catch(function(){ prompt('رابط الإعلان:',url); });
+}
+
+function deletePromo(id){
+  if(!confirm('هل تريد حذف هذا الإعلان؟')) return;
+  ss(PROMOS_KEY,getPromos().filter(p=>p.id!==id)); renderPromos();
+}
+
+// ══════════════════════════════════════════════
 //  UTILS
 // ══════════════════════════════════════════════
 function closeModal(id){ $(id).classList.remove('open'); }
@@ -866,5 +993,53 @@ document.querySelectorAll('.modal-bg').forEach(m=>{
   m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); });
 });
 </script>
+<!-- ══ MODAL: Promo Editor ══ -->
+<div class="modal-bg" id="modal-promo">
+  <div class="modal" style="max-width:640px">
+    <button class="modal-close" onclick="closeModal('modal-promo')">×</button>
+    <h3 id="promo-modal-title">إنشاء إعلان جديد</h3>
+    <input type="hidden" id="promo-edit-id">
+
+    <div class="form-2col">
+      <div class="form-row"><label>عنوان الإعلان *</label><input id="pr-headline" type="text" placeholder="عروض حصرية في الرياض"></div>
+      <div class="form-row"><label>السطر الثاني</label><input id="pr-subline" type="text" placeholder="لا تفوّت الفرصة..."></div>
+    </div>
+    <div class="form-row"><label>النص التفصيلي</label><textarea id="pr-body" rows="3" placeholder="وصف تفصيلي للإعلان..."></textarea></div>
+    <div class="form-row"><label>النقاط (كل نقطة في سطر)</label><textarea id="pr-points" rows="3" placeholder="خبرة أكثر من 10 سنوات&#10;أفضل الأسعار في السوق&#10;خدمة متكاملة"></textarea></div>
+    <div class="form-2col">
+      <div class="form-row"><label>نص زر الـ CTA</label><input id="pr-btnlabel" type="text" placeholder="أرسل طلبي الآن"></div>
+      <div class="form-row"><label>عنوان نموذج التسجيل</label><input id="pr-ctatitle" type="text" placeholder="سجّل اهتمامك"></div>
+    </div>
+    <div class="form-row"><label>أيقونة الهيرو (إيموجي)</label><input id="pr-icon" type="text" placeholder="🏠" style="width:80px;display:inline-block"></div>
+
+    <!-- Cover photo -->
+    <div class="form-row" style="margin-top:8px">
+      <label>صورة الغلاف (اختياري)</label>
+      <input type="file" id="pr-cover-pick" accept="image/*" style="display:none" onchange="handlePromoCover(this)">
+      <img id="pr-cover-preview" style="display:none;max-width:100%;max-height:140px;border-radius:10px;margin-top:8px;object-fit:cover">
+      <input type="hidden" id="pr-cover-b64">
+      <button class="upload-btn" type="button" onclick="document.getElementById('pr-cover-pick').click()">📷 رفع صورة الغلاف</button>
+    </div>
+
+    <!-- Gallery -->
+    <div class="form-row">
+      <label>صور إضافية (اختياري)</label>
+      <input type="file" id="pr-gall-pick" accept="image/*" multiple style="display:none" onchange="handlePromoGall(this)">
+      <div id="pr-gall-preview" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+      <button class="upload-btn" type="button" onclick="document.getElementById('pr-gall-pick').click()">🖼️ رفع صور إضافية</button>
+    </div>
+
+    <div class="form-row" style="display:flex;align-items:center;gap:10px">
+      <input type="checkbox" id="pr-showtrust" style="width:auto;margin:0">
+      <label style="margin:0;font-size:13px;color:var(--gold)">إظهار شريط الإحصائيات (500+ صفقة، 10 سنوات، 1000+ عميل)</label>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-promo')">إلغاء</button>
+      <button class="btn-primary" onclick="savePromo()">حفظ وإنشاء الرابط</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
