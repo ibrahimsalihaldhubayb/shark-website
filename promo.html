@@ -34,19 +34,25 @@ body{
 /* ─── HEADER ─── */
 header{
   position:fixed;top:0;left:0;right:0;z-index:200;
-  height:60px;display:flex;align-items:center;justify-content:space-between;
+  height:64px;display:flex;align-items:center;justify-content:space-between;
   padding:0 28px;
-  background:rgba(11,11,12,.82);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  background:rgba(11,11,12,.88);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
   border-bottom:1px solid var(--border);
 }
-.logo-wrap{display:flex;flex-direction:column;gap:1px}
+.logo-wrap{display:flex;align-items:center;gap:14px}
+.logo-icon{display:flex;align-items:flex-end;gap:3px;height:32px}
+.logo-icon span{
+  display:block;width:4px;border-radius:1px 1px 0 0;
+  background:linear-gradient(to bottom,#f4f3ef 0%,rgba(244,243,239,0) 100%);
+}
+.logo-text{display:flex;flex-direction:column;gap:2px}
 .logo-en{
   font-family:'Cormorant Garamond',Georgia,serif;
-  font-size:20px;font-weight:500;letter-spacing:.26em;
+  font-size:17px;font-weight:500;letter-spacing:.32em;
   color:var(--paper);line-height:1;text-transform:uppercase;
 }
-.logo-ar{font-size:10px;font-weight:300;letter-spacing:.18em;color:var(--sub);line-height:1}
+.logo-ar{font-family:'Cairo',sans-serif;font-size:11px;font-weight:400;letter-spacing:.1em;color:var(--sub);line-height:1}
 .hdr-btn{
   background:transparent;border:1px solid var(--border2);
   color:var(--paper);border-radius:2px;
@@ -57,14 +63,24 @@ header{
 .hdr-btn:hover{background:rgba(244,243,239,.06);border-color:rgba(244,243,239,.28)}
 
 /* ─── HERO ─── */
-.hero{position:relative;margin-top:60px;min-height:72vh;max-height:700px;overflow:hidden;background:#080809;display:flex;align-items:flex-end}
+.hero{position:relative;margin-top:64px;min-height:72vh;max-height:700px;overflow:hidden;background:#080809;display:flex;align-items:flex-end}
 .hero-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
 .hero-gradient{position:absolute;inset:0;background:linear-gradient(to top,rgba(11,11,12,1) 0%,rgba(11,11,12,.6) 45%,rgba(11,11,12,.1) 100%)}
-.hero-no-img{position:absolute;inset:0;background:linear-gradient(135deg,#0e0e10 0%,#141210 55%,#0b0b0c 100%)}
+.hero-no-img{position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 100%,rgba(200,169,110,.18) 0%,rgba(180,130,60,.06) 45%,transparent 70%),
+    radial-gradient(ellipse 50% 40% at 30% 80%,rgba(200,160,80,.1) 0%,transparent 60%),
+    linear-gradient(175deg,#0c0c0d 0%,#100f0d 40%,#0e0c0a 70%,#0b0b0c 100%);
+}
 .hero-no-img::before{
   content:'';position:absolute;inset:0;
-  background-image:repeating-linear-gradient(0deg,transparent,transparent 79px,rgba(244,243,239,.025) 79px,rgba(244,243,239,.025) 80px),
-    repeating-linear-gradient(90deg,transparent,transparent 79px,rgba(244,243,239,.025) 79px,rgba(244,243,239,.025) 80px);
+  background-image:
+    repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(200,169,110,.04) 59px,rgba(200,169,110,.04) 60px),
+    repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(200,169,110,.04) 59px,rgba(200,169,110,.04) 60px);
+}
+.hero-no-img::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 120% 50% at 50% 110%,rgba(200,169,110,.12) 0%,transparent 55%);
 }
 .hero-inner{position:relative;z-index:2;padding:0 28px 52px;width:100%;max-width:760px}
 .hero-label{
@@ -195,8 +211,17 @@ footer{padding:40px 28px;display:flex;align-items:center;justify-content:space-b
 
 <header>
   <div class="logo-wrap">
-    <span class="logo-en">Shark</span>
-    <span class="logo-ar">شارك العقارية</span>
+    <div class="logo-icon">
+      <span style="height:14px"></span>
+      <span style="height:22px"></span>
+      <span style="height:30px"></span>
+      <span style="height:22px"></span>
+      <span style="height:14px"></span>
+    </div>
+    <div class="logo-text">
+      <span class="logo-en">SHARK</span>
+      <span class="logo-ar">شارك العقارية</span>
+    </div>
   </div>
   <button class="hdr-btn" id="hdr-wa" onclick="goWa()" style="display:none">تواصل معنا</button>
 </header>
@@ -278,7 +303,16 @@ footer{padding:40px 28px;display:flex;align-items:center;justify-content:space-b
 </div>
 
 <footer>
-  <span class="ft-logo">SHARK</span>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div style="display:flex;align-items:flex-end;gap:2px;height:20px;opacity:.4">
+      <span style="display:block;width:3px;height:9px;border-radius:1px;background:linear-gradient(to bottom,#f4f3ef,transparent)"></span>
+      <span style="display:block;width:3px;height:14px;border-radius:1px;background:linear-gradient(to bottom,#f4f3ef,transparent)"></span>
+      <span style="display:block;width:3px;height:19px;border-radius:1px;background:linear-gradient(to bottom,#f4f3ef,transparent)"></span>
+      <span style="display:block;width:3px;height:14px;border-radius:1px;background:linear-gradient(to bottom,#f4f3ef,transparent)"></span>
+      <span style="display:block;width:3px;height:9px;border-radius:1px;background:linear-gradient(to bottom,#f4f3ef,transparent)"></span>
+    </div>
+    <span class="ft-logo">SHARK</span>
+  </div>
   <span class="ft-copy">شركة شارك العقارية المحدودة · جميع الحقوق محفوظة</span>
 </footer>
 
@@ -352,7 +386,8 @@ footer{padding:40px 28px;display:flex;align-items:center;justify-content:space-b
     var n=el('f-name')?el('f-name').value.trim():'';
     var t=promo?(promo.headline||'شارك العقارية'):'شارك العقارية';
     var msg='السلام عليكم، تواصلت عبر إعلان "'+t+'"'+(n?' — '+n:'')+'\n'+location.href;
-    window.open('https://wa.me/'+(PHONE||'966500000000')+'?text='+encodeURIComponent(msg),'_blank');
+    if(!PHONE){alert('لم يتم ضبط رقم الواتساب بعد — يرجى ضبطه من لوحة التحكم');return;}
+    window.open('https://wa.me/'+PHONE+'?text='+encodeURIComponent(msg),'_blank');
   };
 
   window.doSubmit=function(){
