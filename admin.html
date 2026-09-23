@@ -3,37 +3,42 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>لوحة تحكم شارك العقارية</title>
+<title>لوحة التحكم — شارك العقارية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+:root{--gold:#c8a96e;--gold2:#b8954f;--dark:#0b0b0c;--card:#16181d;--card2:#1b1b1e;--border:rgba(244,243,239,.08);--border2:rgba(244,243,239,.14);--red:#e05252;--green:#4caf50;--text:#f4f3ef;--sub:#a8a59d}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#0f0f11;color:#e8e6e0;min-height:100vh;direction:rtl}
-:root{--gold:#c8a96e;--gold2:#b8954f;--dark:#0f0f11;--card:#1a1a1f;--border:rgba(255,255,255,.1);--red:#e05252;--green:#4caf50}
+body{font-family:'Cairo',Tahoma,Arial,sans-serif;background:var(--dark);color:var(--text);min-height:100vh;direction:rtl;-webkit-font-smoothing:antialiased}
 
 /* ── Login ── */
-#login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0f0f11 60%,#1a1208)}
-.login-box{background:#1a1a1f;border:1px solid var(--border);border-radius:20px;padding:48px 40px;width:min(380px,90vw);text-align:center}
-.login-box .logo{font-size:32px;font-weight:900;color:var(--gold);letter-spacing:2px;margin-bottom:6px}
-.login-box p{color:rgba(255,255,255,.45);font-size:14px;margin-bottom:32px}
-.login-box input{width:100%;padding:14px 16px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;color:#fff;font-size:16px;font-family:inherit;text-align:center;margin-bottom:14px;direction:ltr}
-.login-box input:focus{outline:none;border-color:var(--gold)}
-.login-box button{width:100%;padding:15px;background:var(--gold);color:#1a1a1f;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}
-.login-box button:hover{background:var(--gold2)}
-.login-err{color:var(--red);font-size:13px;margin-top:10px;min-height:20px}
+#login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--dark);background-image:repeating-linear-gradient(0deg,transparent,transparent 79px,rgba(244,243,239,.018) 79px,rgba(244,243,239,.018) 80px),repeating-linear-gradient(90deg,transparent,transparent 79px,rgba(244,243,239,.018) 79px,rgba(244,243,239,.018) 80px)}
+.login-box{background:var(--card);border:1px solid var(--border2);padding:52px 40px;width:min(380px,92vw);text-align:center}
+.login-box .logo-en{font-family:'Cormorant Garamond',Georgia,serif;font-size:36px;font-weight:400;letter-spacing:.26em;color:var(--text);display:block;margin-bottom:3px}
+.login-box .logo-ar{font-size:11px;font-weight:300;letter-spacing:.18em;color:var(--sub);display:block;margin-bottom:36px}
+.login-box input{width:100%;padding:13px 0;background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--text);font-size:15px;font-family:'Cairo',sans-serif;text-align:center;margin-bottom:24px;direction:ltr;outline:none;transition:border-color .2s;border-radius:0}
+.login-box input:focus{border-bottom-color:var(--gold)}
+.login-box input::placeholder{color:var(--sub);letter-spacing:.1em;font-size:12px}
+.login-box .btn-login{width:100%;padding:14px;background:var(--gold);color:var(--dark);border:none;font-family:'Cairo',sans-serif;font-size:12px;font-weight:600;letter-spacing:.18em;cursor:pointer;transition:background .2s}
+.login-box .btn-login:hover{background:var(--gold2)}
+.login-err{color:var(--red);font-size:12px;margin-top:14px;min-height:18px;letter-spacing:.04em}
 
 /* ── Dashboard ── */
 #dashboard{display:none;min-height:100vh}
-.topbar{background:#141416;border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100}
-.topbar .brand{font-size:18px;font-weight:900;color:var(--gold)}
-.topbar-actions{display:flex;gap:12px;align-items:center}
-.topbar-actions span{color:rgba(255,255,255,.4);font-size:13px}
-.btn-sm{padding:8px 16px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s}
-.btn-logout{background:rgba(255,255,255,.08);color:#fff}.btn-logout:hover{background:rgba(255,255,255,.14)}
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100}
+.topbar .brand-en{font-family:'Cormorant Garamond',Georgia,serif;font-size:19px;font-weight:400;letter-spacing:.26em;color:var(--text)}
+.topbar .brand-ar{font-size:10px;font-weight:300;letter-spacing:.16em;color:var(--sub);margin-top:1px}
+.topbar-actions{display:flex;gap:14px;align-items:center}
+.topbar-actions span{color:var(--sub);font-size:12px;font-weight:300;letter-spacing:.04em}
+.btn-sm{padding:7px 16px;border:none;font-size:11px;font-weight:400;letter-spacing:.12em;cursor:pointer;font-family:'Cairo',sans-serif;transition:.2s}
+.btn-logout{background:transparent;border:1px solid var(--border2);color:var(--sub)}.btn-logout:hover{color:var(--text);border-color:var(--border2)}
 
 /* ── Tabs ── */
-.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:#141416;padding:0 24px;overflow-x:auto}
-.tab{padding:16px 22px;font-size:14px;font-weight:600;color:rgba(255,255,255,.4);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:.2s}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);background:var(--card);padding:0 24px;overflow-x:auto}
+.tab{padding:15px 20px;font-size:11px;font-weight:400;letter-spacing:.14em;color:var(--sub);cursor:pointer;border-bottom:1px solid transparent;white-space:nowrap;transition:.2s}
 .tab.active{color:var(--gold);border-bottom-color:var(--gold)}
-.tab:hover:not(.active){color:rgba(255,255,255,.7)}
+.tab:hover:not(.active){color:var(--text)}
 
 /* ── Content ── */
 .content{padding:28px 24px;max-width:1200px;margin:0 auto}
@@ -114,10 +119,10 @@ tr:hover td{background:rgba(255,255,255,.025)}
 <!-- ══ LOGIN ══ -->
 <div id="login">
   <div class="login-box">
-    <div class="logo">SHARK</div>
-    <p>شارك العقارية — لوحة التحكم</p>
+    <span class="logo-en">Shark</span>
+    <span class="logo-ar">لوحة التحكم</span>
     <input id="pass-input" type="password" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')doLogin()">
-    <button onclick="doLogin()">دخول</button>
+    <button class="btn-login" onclick="doLogin()">دخول</button>
     <div class="login-err" id="login-err"></div>
     <button onclick="resetPass()" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:12px;cursor:pointer;margin-top:10px;font-family:inherit">نسيت كلمة المرور؟ إعادة تعيين</button>
   </div>
@@ -126,7 +131,7 @@ tr:hover td{background:rgba(255,255,255,.025)}
 <!-- ══ DASHBOARD ══ -->
 <div id="dashboard">
   <div class="topbar">
-    <div class="brand">⚡ SHARK — لوحة التحكم</div>
+    <div><div class="brand-en">Shark</div><div class="brand-ar">لوحة التحكم</div></div>
     <div class="topbar-actions">
       <span id="topbar-date"></span>
       <button class="btn-sm btn-logout" onclick="doLogout()">خروج</button>
@@ -134,11 +139,11 @@ tr:hover td{background:rgba(255,255,255,.025)}
   </div>
 
   <div class="tabs">
-    <div class="tab active" onclick="showTab('clients')">👥 العملاء</div>
-    <div class="tab" onclick="showTab('offers')">🏠 العروض</div>
-    <div class="tab" onclick="showTab('promos')">📢 الإعلانات</div>
-    <div class="tab" onclick="showTab('export')">📊 التقارير</div>
-    <div class="tab" onclick="showTab('settings')">⚙️ الإعدادات</div>
+    <div class="tab active" onclick="showTab('clients')">العملاء</div>
+    <div class="tab" onclick="showTab('offers')">العروض</div>
+    <div class="tab" onclick="showTab('promos')">الإعلانات</div>
+    <div class="tab" onclick="showTab('export')">التقارير</div>
+    <div class="tab" onclick="showTab('settings')">الإعدادات</div>
   </div>
 
   <!-- ── CLIENTS ── -->
@@ -176,7 +181,7 @@ tr:hover td{background:rgba(255,255,255,.025)}
     <!-- ── PROMOS ── -->
     <div class="section" id="sec-promos">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-        <h3 style="font-size:18px;font-weight:700">📢 صفحات الهبوط الإعلانية</h3>
+        <h3 style="font-size:18px;font-weight:700">صفحات الهبوط الإعلانية</h3>
         <button class="btn-primary" onclick="openPromoEditor(null)">+ إنشاء إعلان</button>
       </div>
       <div id="promos-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px"></div>
@@ -188,21 +193,21 @@ tr:hover td{background:rgba(255,255,255,.025)}
         <h3 style="font-size:17px;font-weight:700;margin-bottom:8px">تصدير البيانات</h3>
         <p style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:28px">تصدير جميع بيانات العملاء بملف Excel متعدد الأوراق</p>
         <button class="btn-primary" style="width:100%;padding:16px;font-size:15px;margin-bottom:12px" onclick="exportExcel()">📥 تنزيل Excel</button>
-        <button class="btn-outline" style="width:100%;padding:14px;font-size:14px" onclick="exportOffersExcel()">🏠 تصدير العروض</button>
+        <button class="btn-outline" style="width:100%;padding:14px;font-size:14px" onclick="exportOffersExcel()">تصدير العروض</button>
       </div>
     </div>
 
     <!-- ── SETTINGS ── -->
     <div class="section" id="sec-settings">
       <div class="settings-card">
-        <h4>📱 رقم واتساب الشركة</h4>
+        <h4>رقم الواتساب</h4>
         <p style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:14px">يُستخدم في أزرار التواصل وصفحات الهبوط</p>
         <div class="form-row"><label>رقم الجوال (مع مفتاح الدولة بدون +)</label><input id="set-phone" type="tel" placeholder="966500000000" dir="ltr"></div>
         <button class="btn-primary" onclick="saveSettings()">حفظ</button>
         <div id="settings-msg" style="margin-top:10px;font-size:13px"></div>
       </div>
       <div class="settings-card">
-        <h4>📊 تسجيل العملاء في Google Sheets</h4>
+        <h4>ربط Google Sheets</h4>
         <p style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:6px">أنشئ Google Apps Script وأدخل رابط الـ webhook هنا لإرسال بيانات العملاء تلقائياً عند كل تسجيل.</p>
         <details style="margin-bottom:14px">
           <summary style="font-size:12px;color:var(--gold);cursor:pointer;margin-bottom:8px">كيفية الإعداد ←</summary>
@@ -225,7 +230,7 @@ tr:hover td{background:rgba(255,255,255,.025)}
         <button class="btn-primary" onclick="saveSettings()">حفظ</button>
       </div>
       <div class="settings-card">
-        <h4>🔐 تغيير كلمة المرور</h4>
+        <h4>تغيير كلمة المرور</h4>
         <div class="form-row"><label>كلمة المرور الحالية</label><input id="old-pass" type="password"></div>
         <div class="form-row"><label>كلمة المرور الجديدة</label><input id="new-pass" type="password"></div>
         <div class="form-row"><label>تأكيد كلمة المرور الجديدة</label><input id="new-pass2" type="password"></div>
@@ -233,7 +238,7 @@ tr:hover td{background:rgba(255,255,255,.025)}
         <div id="pass-msg" style="margin-top:10px;font-size:13px"></div>
       </div>
       <div class="settings-card">
-        <h4>🗑️ إدارة البيانات</h4>
+        <h4>إدارة البيانات</h4>
         <p style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:16px">حذف سجلات العملاء فقط (العروض لا تتأثر)</p>
         <button class="btn-del" onclick="clearClients()">حذف جميع سجلات العملاء</button>
       </div>
@@ -288,7 +293,7 @@ tr:hover td{background:rgba(255,255,255,.025)}
         <textarea id="wa-msg" rows="4" style="width:100%;background:transparent;border:none;color:#fff;font-size:13px;font-family:inherit;resize:vertical;direction:rtl;outline:none"></textarea>
       </div>
       <button class="btn-pdf" style="padding:15px;font-size:15px;border-radius:10px" onclick="generatePDF()">
-        📄 توليد رسالة شكر PDF
+        توليد رسالة شكر PDF
       </button>
     </div>
   </div>
@@ -333,7 +338,7 @@ tr:hover td{background:rgba(255,255,255,.025)}
       <input type="file" id="of-cover-pick" accept="image/*" style="display:none" onchange="handleCoverPick(this)">
       <img id="of-cover-preview" class="preview-img" style="display:none">
       <input id="of-cover-b64" type="hidden">
-      <button type="button" class="upload-btn" onclick="document.getElementById('of-cover-pick').click()">📷 رفع صورة الغلاف</button>
+      <button type="button" class="upload-btn" onclick="document.getElementById('of-cover-pick').click()">رفع صورة الغلاف</button>
     </div>
 
     <!-- Gallery -->
@@ -341,7 +346,7 @@ tr:hover td{background:rgba(255,255,255,.025)}
       <label>صور المعرض</label>
       <input type="file" id="of-gall-pick" accept="image/*" multiple style="display:none" onchange="handleGalleryPick(this)">
       <div id="of-gall-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px"></div>
-      <button type="button" class="upload-btn" style="background:rgba(45,106,79,.2);color:#4caf50;border-color:rgba(76,175,80,.3)" onclick="document.getElementById('of-gall-pick').click()">🖼️ إضافة صور المعرض</button>
+      <button type="button" class="upload-btn" style="background:rgba(45,106,79,.2);color:#4caf50;border-color:rgba(76,175,80,.3)" onclick="document.getElementById('of-gall-pick').click()">إضافة صور المعرض</button>
     </div>
 
     <!-- Features -->
@@ -487,7 +492,7 @@ function renderClients(){
         <td style="font-size:12px;color:var(--gold)">${r.offerId ? (offerMap[r.offerId]||r.offerId) : '—'}</td>
         <td style="color:rgba(255,255,255,.4);font-size:12px">${r.date||'—'}</td>
         <td><div class="act-btns">
-          <button class="btn-wa" onclick="openClientActions('${r.id}')">واتساب / PDF</button>
+          <button class="btn-wa" onclick="openClientActions('${r.id}')">تواصل / PDF</button>
           <button class="btn-del" onclick="deleteClient('${r.id}')">×</button>
         </div></td>
       </tr>`).join('');
@@ -678,8 +683,8 @@ function renderOffers(){
         <div class="oc-price">${o.price?fmtPrice(o.price):'السعر غير محدد'}</div>
         <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:10px">${o.city||''} ${o.district?'· '+o.district:''} ${o.area?'· '+o.area+' م²':''}</div>
         <div class="oc-acts">
-          <button class="btn-edit" onclick="openOfferEditor('${o.id}')">✏️ تعديل</button>
-          <button class="btn-wa" onclick="shareLanding('${o.id}')" style="font-size:11px;padding:6px 10px">🔗 مشاركة</button>
+          <button class="btn-edit" onclick="openOfferEditor('${o.id}')">تعديل</button>
+          <button class="btn-wa" onclick="shareLanding('${o.id}')" style="font-size:11px;padding:6px 10px">نسخ الرابط</button>
           <button class="btn-del" onclick="deleteOffer('${o.id}')">حذف</button>
         </div>
       </div>
@@ -964,8 +969,8 @@ function renderPromos(){
         ${p.subline?`<div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:10px">${p.subline}</div>`:''}
         <div style="font-size:11px;color:rgba(255,255,255,.3);margin-bottom:12px">${p.created||''}</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn-wa" style="font-size:11px;padding:6px 10px" onclick="sharePromo('${p.id}')">🔗 مشاركة الرابط</button>
-          <button class="btn-edit" onclick="openPromoEditor('${p.id}')">✏️ تعديل</button>
+          <button class="btn-wa" style="font-size:11px;padding:6px 10px" onclick="sharePromo('${p.id}')">نسخ الرابط</button>
+          <button class="btn-edit" onclick="openPromoEditor('${p.id}')">تعديل</button>
           <button class="btn-del" onclick="deletePromo('${p.id}')">حذف</button>
         </div>
       </div>
@@ -1018,7 +1023,7 @@ document.querySelectorAll('.modal-bg').forEach(m=>{
       <input type="file" id="pr-cover-pick" accept="image/*" style="display:none" onchange="handlePromoCover(this)">
       <img id="pr-cover-preview" style="display:none;max-width:100%;max-height:140px;border-radius:10px;margin-top:8px;object-fit:cover">
       <input type="hidden" id="pr-cover-b64">
-      <button class="upload-btn" type="button" onclick="document.getElementById('pr-cover-pick').click()">📷 رفع صورة الغلاف</button>
+      <button class="upload-btn" type="button" onclick="document.getElementById('pr-cover-pick').click()">رفع صورة الغلاف</button>
     </div>
 
     <!-- Gallery -->
@@ -1026,7 +1031,7 @@ document.querySelectorAll('.modal-bg').forEach(m=>{
       <label>صور إضافية (اختياري)</label>
       <input type="file" id="pr-gall-pick" accept="image/*" multiple style="display:none" onchange="handlePromoGall(this)">
       <div id="pr-gall-preview" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
-      <button class="upload-btn" type="button" onclick="document.getElementById('pr-gall-pick').click()">🖼️ رفع صور إضافية</button>
+      <button class="upload-btn" type="button" onclick="document.getElementById('pr-gall-pick').click()">رفع صور إضافية</button>
     </div>
 
     <div class="form-row" style="display:flex;align-items:center;gap:10px">
