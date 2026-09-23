@@ -4,263 +4,113 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#0b0b0c">
-<title id="pg-title">سجّل اهتمامك بالعقار — شارك</title>
+<title>سجّل اهتمامك — شارك</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Lalezar&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{
-  height:100%;
-  font-family:'Cairo',Tahoma,Arial,sans-serif;
-  direction:rtl;
-  -webkit-font-smoothing:antialiased;
-}
+html,body{height:100%;font-family:'Cairo',Tahoma,Arial,sans-serif;direction:rtl;-webkit-font-smoothing:antialiased}
 body{
   min-height:100vh;
+  background:#0b0b0c;
   color:#f4f3ef;
   display:flex;
   flex-direction:column;
   align-items:center;
+  justify-content:flex-end;
   position:relative;
   overflow-x:hidden;
-  background:#0b0b0c;
 }
 
-/* BG */
 .bg{
   position:fixed;inset:0;z-index:0;
-  background:#0b0b0c;
 }
-.bg-img{
-  position:absolute;inset:0;
+.bg img{
   width:100%;height:100%;
   object-fit:cover;
-  opacity:.55;
-}
-.bg-overlay{
-  position:absolute;inset:0;
-  background:linear-gradient(to bottom,
-    rgba(5,4,3,.45) 0%,
-    rgba(5,4,3,.5) 35%,
-    rgba(5,4,3,.78) 75%,
-    rgba(5,4,3,.95) 100%
-  );
+  object-position:top center;
+  display:block;
 }
 
-/* PAGE */
 .page{
   position:relative;z-index:1;
   width:100%;
   max-width:460px;
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  padding:44px 18px 40px;
+  padding:0 18px 36px;
 }
 
-/* LOGO */
-.logo-block{
-  display:flex;flex-direction:column;align-items:center;
-  gap:0;margin-bottom:22px;
-}
-.logo-bars{
-  display:flex;align-items:flex-end;
-  gap:6px;height:58px;margin-bottom:14px;
-}
-.logo-bars span{
-  display:block;
-  border-radius:3px 3px 0 0;
-  background:linear-gradient(to bottom,rgba(255,255,255,.95) 0%,rgba(255,255,255,0) 100%);
-}
-.logo-name{
-  font-family:'Lalezar','Cairo',sans-serif;
-  font-size:46px;
-  font-weight:400;
-  color:#fff;
-  letter-spacing:.12em;
-  line-height:1;
-  text-align:center;
-  position:relative;
-  padding-bottom:6px;
-}
-.logo-name::after{
-  content:'';
-  position:absolute;
-  bottom:0;left:10%;right:10%;
-  height:1.5px;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.5) 30%,rgba(255,255,255,.5) 70%,transparent);
-}
-.logo-tagline{
-  font-size:11px;font-weight:300;
-  color:rgba(244,243,239,.48);
-  letter-spacing:.16em;
-  margin-top:8px;
-  text-align:center;
-}
-
-/* HEADLINE */
-.headline{
-  font-size:34px;font-weight:800;
-  text-align:center;line-height:1.25;
-  color:#fff;
-  margin-bottom:10px;
-  margin-top:4px;
-}
-.subline{
-  font-size:14px;font-weight:400;
-  color:rgba(244,243,239,.6);
-  text-align:center;line-height:1.7;
-  margin-bottom:26px;
-  max-width:310px;
-}
-
-/* CARD */
 .card{
   width:100%;
-  background:rgba(22,18,14,.76);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:14px;
-  padding:22px 18px 20px;
-  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  background:rgba(18,14,10,.82);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:16px;
+  padding:24px 18px 20px;
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
 }
 
 .f-label{
-  display:block;
-  text-align:right;
+  display:block;text-align:right;
   font-size:14px;font-weight:700;
-  color:#f4f3ef;
-  margin-bottom:7px;
+  color:#f4f3ef;margin-bottom:7px;
 }
-.f-label em{
-  font-style:normal;font-weight:400;
-  font-size:13px;color:rgba(244,243,239,.5);
-}
+.f-label em{font-style:normal;font-weight:400;font-size:13px;color:rgba(244,243,239,.45)}
 .f-input,.f-textarea{
-  width:100%;
-  padding:14px 14px;
-  background:rgba(35,28,20,.7);
+  width:100%;padding:14px;
+  background:rgba(40,30,18,.7);
   border:1px solid rgba(255,255,255,.1);
   border-radius:10px;
-  color:#f4f3ef;
-  font-size:15px;font-weight:400;
-  font-family:'Cairo',sans-serif;
-  direction:rtl;
-  outline:none;
-  transition:border-color .2s;
-  -webkit-appearance:none;
-  margin-bottom:14px;
-  display:block;
+  color:#f4f3ef;font-size:15px;font-weight:400;
+  font-family:'Cairo',sans-serif;direction:rtl;
+  outline:none;transition:border-color .2s;
+  -webkit-appearance:none;margin-bottom:14px;display:block;
 }
-.f-input:focus,.f-textarea:focus{
-  border-color:rgba(200,151,46,.5);
-}
-.f-input::placeholder,.f-textarea::placeholder{
-  color:rgba(244,243,239,.3);
-}
-.f-textarea{
-  resize:none;
-  height:86px;
-  line-height:1.55;
-}
+.f-input:focus,.f-textarea:focus{border-color:rgba(200,151,46,.55)}
+.f-input::placeholder,.f-textarea::placeholder{color:rgba(244,243,239,.28)}
+.f-textarea{resize:none;height:86px;line-height:1.55}
 
 .btn-submit{
-  width:100%;
-  padding:16px;
+  width:100%;padding:16px;
   background:linear-gradient(135deg,#c8972e 0%,#d4a83c 55%,#ba8420 100%);
-  color:#1a1000;
-  border:none;border-radius:10px;
-  font-family:'Cairo',sans-serif;
-  font-size:17px;font-weight:800;
-  cursor:pointer;
-  letter-spacing:.02em;
+  color:#1a1000;border:none;border-radius:10px;
+  font-family:'Cairo',sans-serif;font-size:17px;font-weight:800;
+  cursor:pointer;letter-spacing:.02em;
   transition:opacity .18s,transform .1s;
-  margin-top:2px;
-  display:block;width:100%;
+  display:block;width:100%;margin-top:2px;
 }
 .btn-submit:active{transform:scale(.98);opacity:.88}
 .btn-submit:disabled{opacity:.55;cursor:not-allowed}
 
-/* PRIVACY */
 .privacy{
-  margin-top:16px;
-  font-size:11.5px;font-weight:300;
-  color:rgba(244,243,239,.36);
-  text-align:center;
-  line-height:1.85;
-  max-width:320px;
-  padding:0 4px;
+  margin-top:14px;font-size:11px;font-weight:300;
+  color:rgba(244,243,239,.32);text-align:center;
+  line-height:1.85;padding:0 4px;
 }
 
-/* SUCCESS */
-.success-box{
-  display:none;text-align:center;padding:10px 0;
-}
+.success-box{display:none;text-align:center;padding:10px 0}
 .success-check{
   width:54px;height:54px;border-radius:50%;
-  background:rgba(200,151,46,.12);
-  border:1px solid rgba(200,151,46,.35);
+  background:rgba(200,151,46,.12);border:1px solid rgba(200,151,46,.35);
   display:flex;align-items:center;justify-content:center;
-  margin:0 auto 18px;
-  font-size:22px;color:#c8972e;
+  margin:0 auto 16px;font-size:22px;color:#c8972e;
 }
 .success-box h2{font-size:22px;font-weight:700;margin-bottom:10px}
-.success-box p{
-  font-size:13px;font-weight:300;
-  color:rgba(244,243,239,.55);
-  line-height:1.8;margin-bottom:22px;
-}
+.success-box p{font-size:13px;font-weight:300;color:rgba(244,243,239,.55);line-height:1.8;margin-bottom:20px}
 .btn-wa{
-  display:inline-flex;align-items:center;gap:10px;
-  padding:13px 24px;border-radius:10px;
-  background:transparent;
-  border:1px solid rgba(37,211,102,.35);
-  color:rgba(37,211,102,.85);
-  font-family:'Cairo',sans-serif;
-  font-size:14px;font-weight:500;
-  cursor:pointer;transition:background .2s;
+  display:inline-flex;align-items:center;gap:10px;padding:13px 24px;
+  border-radius:10px;background:transparent;
+  border:1px solid rgba(37,211,102,.35);color:rgba(37,211,102,.85);
+  font-family:'Cairo',sans-serif;font-size:14px;font-weight:500;cursor:pointer;
 }
-.btn-wa:hover{background:rgba(37,211,102,.07)}
-
-/* SOCIAL */
-.social{
-  display:flex;gap:22px;align-items:center;
-  margin-top:30px;
-}
-.social a{
-  color:rgba(244,243,239,.3);
-  text-decoration:none;
-  transition:color .2s;
-  display:flex;
-}
-.social a:hover{color:rgba(244,243,239,.65)}
 </style>
 </head>
 <body>
 
 <div class="bg">
-  <img class="bg-img" src="bg-promo.webp" alt="">
-  <div class="bg-overlay"></div>
+  <img src="bg-promo.webp" alt="">
 </div>
 
 <div class="page">
-
-  <div class="logo-block">
-    <div class="logo-bars">
-      <span style="width:8px;height:22px"></span>
-      <span style="width:8px;height:35px"></span>
-      <span style="width:8px;height:50px"></span>
-      <span style="width:8px;height:35px"></span>
-      <span style="width:8px;height:22px"></span>
-    </div>
-    <div class="logo-name">شـارك</div>
-    <div class="logo-tagline">شركة ركن شارك العقارية</div>
-  </div>
-
-  <h1 class="headline" id="main-headline">سجّل اهتمامك بالعقار</h1>
-  <p class="subline" id="main-subline">اترك بياناتك وسيتواصل معك فريقنا بأقرب فرصة</p>
-
   <div class="card">
     <div id="form-wrap">
       <label class="f-label">الاسم الكامل</label>
@@ -286,20 +136,7 @@ body{
     </div>
   </div>
 
-  <p class="privacy">نحترم خصوصيتك: رقم جوالك يُعامَل بسرية تامة ولا تتم مشاركته مع أي جهة أخرى، ويكون التواصل فقط بخصوص اهتمامك بالعقار.</p>
-
-  <div class="social">
-    <a href="#" aria-label="Instagram">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-    </a>
-    <a href="#" aria-label="X">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-    </a>
-    <a href="#" aria-label="Snapchat">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12.065.001c1.778-.004 3.519.47 4.96 1.421 1.44.95 2.477 2.3 2.977 3.85.25.78.375 1.59.375 2.41v.74c0 .42.02.83.06 1.23.04.4.28 1.66 1.35 2.36.22.14.27.42.13.64l-.01.01c-.14.22-.88 1.07-2.87 1.07-.29 0-.59-.02-.91-.07-.27-.04-.53-.04-.8.02-.35.07-.67.26-.92.52-.6.63-.91 1.68-.91 2.85 0 .07 0 .14-.01.2-.06.55-.36.78-.68.78-.2 0-.45-.09-.76-.25a6.11 6.11 0 00-2.46-.53c-.85 0-1.69.18-2.46.53-.32.17-.57.25-.76.25-.32 0-.62-.23-.68-.78-.01-.06-.01-.13-.01-.2 0-1.17-.31-2.22-.91-2.85a1.86 1.86 0 00-.92-.52c-.27-.06-.53-.06-.8-.02-.32.05-.62.07-.91.07-1.99 0-2.73-.85-2.87-1.07l-.01-.01a.47.47 0 01.13-.64c1.07-.7 1.31-1.96 1.35-2.36.04-.4.06-.81.06-1.23v-.74c0-.82.125-1.63.375-2.41.5-1.55 1.537-2.9 2.977-3.85C8.546.47 10.287-.003 12.065.001z"/></svg>
-    </a>
-  </div>
-
+  <p class="privacy">نحترم خصوصيتك: رقم جوالك يُعامَل بسرية تامة ولا تتم مشاركته مع أي جهة أخرى</p>
 </div>
 
 <script>
@@ -307,29 +144,9 @@ body{
   var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyHVwZPpmNrCOrXjbzlrrkz1tYcA1v7MXvDfwlPFYKUMzV3ICTmpYsNP22HH6dsF7k/exec';
   var PHONE = '966539997060';
 
-  var params = new URLSearchParams(location.search);
-  var key = params.get('k');
-  var promo = null;
-
-  if(key){
-    try{
-      var ps = JSON.parse(localStorage.getItem('shark_promos')||'[]');
-      promo = ps.find(function(p){return p.id===key;})||null;
-    }catch(e){}
-  }
-
-  if(promo){
-    if(promo.headline){
-      document.getElementById('main-headline').textContent = promo.headline;
-      document.title = promo.headline + ' — شارك';
-    }
-    if(promo.subline) document.getElementById('main-subline').textContent = promo.subline;
-  }
-
   window.goWa = function(){
     var name = (document.getElementById('f-name').value||'').trim();
-    var title = promo ? (promo.headline||'شارك العقارية') : 'شارك العقارية';
-    var msg = 'السلام عليكم، تواصلت عبر إعلان "'+title+'"'+(name?' — '+name:'')+'\n'+location.href;
+    var msg = 'السلام عليكم، أود الاستفسار عن العقار'+(name?' — '+name:'')+'\n'+location.href;
     window.open('https://wa.me/'+PHONE+'?text='+encodeURIComponent(msg),'_blank');
   };
 
@@ -344,27 +161,20 @@ body{
     btn.disabled = true; btn.textContent = 'جارٍ الإرسال...';
 
     var date = new Date().toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'});
-    var rec = {
-      id:'SK-'+(Date.now()%100000), name:name, phone:phone, note:note,
-      type:'إعلان مروّج', promoId:key||'',
-      promoTitle:promo?(promo.headline||''):'',
-      source:'promo', date:date
-    };
+    var rec = {id:'SK-'+(Date.now()%100000),name:name,phone:phone,note:note,source:'promo',date:date};
 
     try{
       var arr = JSON.parse(localStorage.getItem('shark_admin_clients')||'[]');
-      arr.unshift(rec);
-      localStorage.setItem('shark_admin_clients', JSON.stringify(arr));
+      arr.unshift(rec); localStorage.setItem('shark_admin_clients',JSON.stringify(arr));
     }catch(e){}
 
     try{
       fetch(SHEETS_URL,{method:'POST',mode:'no-cors',body:JSON.stringify({date:date,name:name,phone:phone,note:note})});
     }catch(e){}
 
-    document.getElementById('form-wrap').style.display = 'none';
-    document.getElementById('success-box').style.display = 'block';
+    document.getElementById('form-wrap').style.display='none';
+    document.getElementById('success-box').style.display='block';
   };
-
 })();
 </script>
 </body>
