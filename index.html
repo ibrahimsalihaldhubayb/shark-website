@@ -29,11 +29,16 @@
       localStorage.setItem(key, JSON.stringify(arr));
     } catch(e){}
   }
+  var SHARK_SHEETS='https://script.google.com/macros/s/AKfycbyHVwZPpmNrCOrXjbzlrrkz1tYcA1v7MXvDfwlPFYKUMzV3ICTmpYsNP22HH6dsF7k/exec';
+  function sendSheets(rec){ try{ fetch(SHARK_SHEETS,{method:'POST',mode:'no-cors',body:JSON.stringify(rec)}); }catch(e){} }
   window.sharkSubmitInv = function() {
     var n=document.getElementById('si-name').value.trim(), p=document.getElementById('si-phone').value.trim(),
         t=document.getElementById('si-type').value, nt=document.getElementById('si-note').value.trim();
     if(!n||!p){alert('الرجاء إدخال الاسم ورقم الجوال');return;}
-    saveLocal('shark_admin_clients', {name:n,phone:p,type:'رغبة استثمار',interest:t,note:nt});
+    var date=new Date().toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'});
+    var rec={name:n,phone:p,type:'رغبة استثمار',interest:t,note:nt,source:'invest',date:date,id:'SK-'+(Date.now()%100000)};
+    saveLocal('shark_admin_clients', rec);
+    sendSheets(rec);
     window.sharkClose('sm-inv');
     ['si-name','si-phone','si-type','si-note'].forEach(function(id){document.getElementById(id).value='';});
     alert('تم إرسال طلبك بنجاح!');
@@ -42,7 +47,10 @@
     var n=document.getElementById('sm-name').value.trim(), p=document.getElementById('sm-phone').value.trim(),
         t=document.getElementById('sm-kind').value, nt=document.getElementById('sm-note').value.trim();
     if(!n||!p){alert('الرجاء إدخال الاسم ورقم الجوال');return;}
-    saveLocal('shark_admin_clients', {name:n,phone:p,type:'عرض عقار',interest:t,note:nt});
+    var date=new Date().toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'});
+    var rec={name:n,phone:p,type:'عرض عقار',interest:t,note:nt,source:'marketing',date:date,id:'SK-'+(Date.now()%100000)};
+    saveLocal('shark_admin_clients', rec);
+    sendSheets(rec);
     window.sharkClose('sm-mkt');
     ['sm-name','sm-phone','sm-kind','sm-note'].forEach(function(id){document.getElementById(id).value='';});
     alert('تم إرسال طلبك بنجاح!');

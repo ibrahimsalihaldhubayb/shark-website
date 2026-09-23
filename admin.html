@@ -508,12 +508,9 @@ function openAddClient(){
   $('modal-client').classList.add('open');
   $('modal-client-title').textContent='إضافة عميل جديد';
 }
+var SHEETS_URL='https://script.google.com/macros/s/AKfycbyHVwZPpmNrCOrXjbzlrrkz1tYcA1v7MXvDfwlPFYKUMzV3ICTmpYsNP22HH6dsF7k/exec';
 function sendToSheets(rec){
-  try{
-    const s=gs('shark_admin_settings')||{};
-    if(!s.sheetsUrl) return;
-    fetch(s.sheetsUrl,{method:'POST',body:JSON.stringify(rec),headers:{'Content-Type':'application/json'}}).catch(()=>{});
-  }catch(e){}
+  try{ fetch(SHEETS_URL,{method:'POST',mode:'no-cors',body:JSON.stringify(rec)}); }catch(e){}
 }
 function saveSettings(){
   const phone=$('set-phone').value.trim();
@@ -541,7 +538,7 @@ function saveClient(){
     interest:$('cl-interest').value.trim(), note:$('cl-note').value.trim(),
     offerId: offerId||'', offerName: offer ? (offer.ar||offer.name||'') : '',
     offerTitle: offer ? (offer.title||offer.name||'') : '',
-    source:'admin', date:nowAr()
+    source:$('cl-type').value==='تسويق عقار'?'marketing':'client', date:nowAr()
   };
   const arr=getClients(); arr.unshift(rec); saveClients(arr);
   sendToSheets(rec);
