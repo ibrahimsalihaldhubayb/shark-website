@@ -357,7 +357,11 @@ tr:hover td{background:rgba(255,255,255,.025)}
       <div class="form-row"><label>الحي</label><input id="of-district" type="text" placeholder="حي الشمالية"></div>
     </div>
     <div class="form-row"><label>الوصف</label><textarea id="of-desc" rows="3" placeholder="وصف تفصيلي للعقار..."></textarea></div>
-    <input type="hidden" id="of-lat"><input type="hidden" id="of-lng">
+    <div class="form-2col" style="margin-top:4px">
+      <div class="form-row"><label>خط العرض (Lat) — اختياري</label><input id="of-lat" type="text" placeholder="مثال: 24.7136" style="direction:ltr"></div>
+      <div class="form-row"><label>خط الطول (Lng) — اختياري</label><input id="of-lng" type="text" placeholder="مثال: 46.6753" style="direction:ltr"></div>
+    </div>
+    <div style="font-size:11px;color:#888;margin:-4px 0 12px;direction:rtl">للحصول على الإحداثيات الدقيقة: <a href="https://maps.google.com" target="_blank" style="color:#c8a96e;text-decoration:none">افتح Google Maps ←</a> ثم اضغط مطوّلاً على الموقع وانسخ الأرقام</div>
 
     <!-- Cover photo -->
     <div class="form-row">
