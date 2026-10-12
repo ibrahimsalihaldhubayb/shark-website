@@ -8,7 +8,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--gold:#c8a96e;--gold2:#f0d080;--dark:#0b0b0c;--card:#16181d;--border:rgba(244,243,239,.1);--border2:rgba(244,243,239,.18);--text:#f4f3ef;--sub:#a8a59d}
@@ -25,12 +24,14 @@ body{background:var(--dark);color:var(--text)}
 .nav-logo-text{font-family:'Cairo',sans-serif;font-size:24px;font-weight:900;color:var(--text);letter-spacing:-.01em;line-height:1}
 .nav-wa{display:flex;align-items:center;gap:6px;padding:9px 18px;background:#25d366;color:#fff;border:none;border-radius:22px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;cursor:pointer}
 
-/* ═══ HERO MAP ═══ */
-.hero-map{position:relative;width:100%;height:100svh;height:100vh;min-height:560px}
-#hero-leafmap{width:100%;height:100%;background:#0d1117}
+/* ═══ HERO ═══ */
+.hero-map{position:relative;width:100%;height:100vh;min-height:560px;overflow:hidden;background:#080a0d}
+/* Saudi Arabia SVG map */
+#sa-map{position:absolute;inset:0;width:100%;height:100%;opacity:.22}
+.hero-vignette{position:absolute;inset:0;background:radial-gradient(ellipse at 60% 45%,transparent 25%,rgba(8,10,13,.7) 80%)}
 
-/* project cards strip — floating over map */
-.proj-strip-wrap{position:absolute;top:70px;left:0;right:0;z-index:400;padding:0 12px}
+/* project cards strip */
+.proj-strip-wrap{position:absolute;top:72px;left:0;right:0;z-index:400;padding:0 12px}
 .proj-strip{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:2px 4px}
 .proj-strip::-webkit-scrollbar{display:none}
 .proj-card{flex-shrink:0;width:190px;background:rgba(16,14,11,.82);border:1px solid rgba(200,169,110,.22);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .2s;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
@@ -42,14 +43,19 @@ body{background:var(--dark);color:var(--text)}
 .proj-card-loc{font-size:11px;color:var(--sub)}
 .proj-card-price{font-size:11px;color:var(--gold);font-weight:700;margin-top:4px}
 
-/* hero bottom info */
-.hero-bottom{position:absolute;bottom:0;left:0;right:0;z-index:400;padding:20px 20px 92px;background:linear-gradient(to top,rgba(11,11,12,.92) 0%,transparent 100%)}
-.hero-tagline{font-size:clamp(18px,4vw,28px);font-weight:800;line-height:1.3;margin-bottom:14px}
+/* hero bottom */
+.hero-bottom{position:absolute;bottom:0;left:0;right:0;z-index:400;padding:20px 20px 96px;background:linear-gradient(to top,rgba(8,10,13,.96) 0%,transparent 100%)}
+.hero-tagline{font-size:clamp(20px,4.5vw,32px);font-weight:800;line-height:1.3;margin-bottom:16px}
 .hero-tagline span{color:var(--gold)}
-.hero-stats{display:flex;gap:20px;flex-wrap:wrap}
+.hero-stats{display:flex;gap:24px;flex-wrap:wrap}
 .hstat{text-align:right}
-.hstat-n{font-size:clamp(20px,4vw,28px);font-weight:900;color:var(--gold);line-height:1}
+.hstat-n{font-size:clamp(22px,4vw,30px);font-weight:900;color:var(--gold);line-height:1}
 .hstat-l{font-size:11px;color:var(--sub);margin-top:2px}
+/* scroll hint */
+.scroll-hint{position:absolute;bottom:100px;left:50%;transform:translateX(-50%);z-index:400;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;opacity:.6;animation:bob 2s ease-in-out infinite}
+.scroll-hint span{font-size:11px;color:var(--sub);white-space:nowrap}
+.scroll-hint svg{color:var(--gold)}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(5px)}}
 
 /* ═══ SECTIONS ═══ */
 .section{padding:64px 20px}
@@ -197,40 +203,90 @@ body{background:var(--dark);color:var(--text)}
 
 <!-- NAV -->
 <nav class="nav">
-  <div class="nav-logo">
-    <div class="nav-logo-bars">
-      <span style="height:10px;opacity:.28"></span>
-      <span style="height:16px;opacity:.4"></span>
-      <span style="height:24px;opacity:.56"></span>
-      <span style="height:32px;opacity:.72"></span>
-      <span style="height:38px;opacity:.88"></span>
-      <span style="height:30px;opacity:1"></span>
-    </div>
-    <div class="nav-logo-text">شارك</div>
-  </div>
+  <img src="logo.png" alt="شارك العقارية" style="height:36px;filter:brightness(0) invert(1);object-fit:contain">
   <button class="nav-wa" onclick="openWA()">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.533 5.847L.054 23.272a.5.5 0 0 0 .625.613l5.563-1.46A11.952 11.952 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.9 0-3.68-.528-5.195-1.443l-.371-.22-3.844 1.009 1.03-3.74-.243-.386A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
     واتساب
   </button>
 </nav>
 
-<!-- HERO MAP -->
-<div class="hero-map">
-  <div id="hero-leafmap"></div>
+<!-- HERO -->
+<div class="hero-map" id="hero">
 
-  <!-- project cards on map -->
+  <!-- Saudi Arabia SVG map background -->
+  <svg id="sa-map" viewBox="0 0 800 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="mglow" cx="55%" cy="45%" r="50%">
+        <stop offset="0%" stop-color="#c8a96e" stop-opacity=".18"/>
+        <stop offset="100%" stop-color="#c8a96e" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <!-- Saudi Arabia outline (simplified path) -->
+    <path d="M 155 80 L 190 72 L 230 68 L 265 60 L 295 55 L 330 52 L 365 54 L 395 58 L 420 65 L 448 74 L 468 88 L 478 105 L 488 125 L 498 148 L 508 168 L 520 185 L 538 200 L 558 215 L 572 228 L 585 242 L 596 258 L 608 272 L 622 285 L 635 296 L 645 305 L 648 318 L 644 332 L 636 345 L 628 358 L 622 372 L 618 388 L 614 404 L 610 420 L 606 436 L 598 450 L 586 462 L 570 472 L 555 480 L 540 486 L 526 490 L 512 492 L 498 492 L 485 490 L 472 486 L 460 480 L 450 472 L 440 465 L 428 460 L 415 458 L 402 458 L 390 460 L 378 464 L 368 470 L 360 478 L 354 488 L 350 500 L 346 512 L 340 524 L 330 534 L 318 540 L 304 544 L 290 546 L 276 546 L 262 544 L 248 540 L 235 534 L 222 526 L 210 518 L 198 510 L 186 502 L 175 492 L 165 482 L 155 470 L 146 458 L 138 444 L 132 430 L 126 415 L 120 400 L 116 384 L 112 368 L 108 352 L 106 336 L 104 320 L 104 304 L 104 288 L 106 272 L 108 256 L 112 240 L 116 224 L 120 208 L 126 192 L 132 177 L 138 162 L 146 148 L 152 134 L 155 120 L 155 106 Z" fill="none" stroke="#c8a96e" stroke-width="1.5" opacity=".55"/>
+    <!-- Interior glow -->
+    <path d="M 155 80 L 190 72 L 230 68 L 265 60 L 295 55 L 330 52 L 365 54 L 395 58 L 420 65 L 448 74 L 468 88 L 478 105 L 488 125 L 498 148 L 508 168 L 520 185 L 538 200 L 558 215 L 572 228 L 585 242 L 596 258 L 608 272 L 622 285 L 635 296 L 645 305 L 648 318 L 644 332 L 636 345 L 628 358 L 622 372 L 618 388 L 614 404 L 610 420 L 606 436 L 598 450 L 586 462 L 570 472 L 555 480 L 540 486 L 526 490 L 512 492 L 498 492 L 485 490 L 472 486 L 460 480 L 450 472 L 440 465 L 428 460 L 415 458 L 402 458 L 390 460 L 378 464 L 368 470 L 360 478 L 354 488 L 350 500 L 346 512 L 340 524 L 330 534 L 318 540 L 304 544 L 290 546 L 276 546 L 262 544 L 248 540 L 235 534 L 222 526 L 210 518 L 198 510 L 186 502 L 175 492 L 165 482 L 155 470 L 146 458 L 138 444 L 132 430 L 126 415 L 120 400 L 116 384 L 112 368 L 108 352 L 106 336 L 104 320 L 104 304 L 104 288 L 106 272 L 108 256 L 112 240 L 116 224 L 120 208 L 126 192 L 132 177 L 138 162 L 146 148 L 152 134 L 155 120 L 155 106 Z" fill="url(#mglow)"/>
+    <!-- City dots -->
+    <g fill="#c8a96e">
+      <!-- Riyadh ~center-right -->
+      <circle cx="430" cy="290" r="5" opacity=".9"/><circle cx="430" cy="290" r="12" opacity=".15"/>
+      <!-- Jeddah left side -->
+      <circle cx="195" cy="340" r="4" opacity=".8"/><circle cx="195" cy="340" r="10" opacity=".12"/>
+      <!-- Mecca -->
+      <circle cx="185" cy="360" r="3" opacity=".7"/>
+      <!-- Dammam far right -->
+      <circle cx="570" cy="250" r="4" opacity=".8"/><circle cx="570" cy="250" r="10" opacity=".12"/>
+      <!-- Tabuk upper left -->
+      <circle cx="195" cy="155" r="3" opacity=".65"/>
+      <!-- Buraidah center -->
+      <circle cx="365" cy="215" r="3.5" opacity=".75"/>
+      <!-- Abha lower left -->
+      <circle cx="210" cy="455" r="3" opacity=".6"/>
+      <!-- Najran lower -->
+      <circle cx="318" cy="498" r="3" opacity=".6"/>
+      <!-- Hail -->
+      <circle cx="320" cy="190" r="3" opacity=".65"/>
+      <!-- Medina -->
+      <circle cx="222" cy="235" r="3.5" opacity=".7"/>
+    </g>
+    <!-- City labels -->
+    <g font-family="Cairo,Arial,sans-serif" fill="#c8a96e" font-size="11" opacity=".7" text-anchor="middle">
+      <text x="430" y="280">الرياض</text>
+      <text x="185" y="330">جدة</text>
+      <text x="580" y="244">الدمام</text>
+      <text x="190" y="148">تبوك</text>
+      <text x="365" y="208">بريدة</text>
+    </g>
+    <!-- Grid lines subtle -->
+    <g stroke="#c8a96e" stroke-width=".3" opacity=".08">
+      <line x1="0" y1="175" x2="800" y2="175"/>
+      <line x1="0" y1="350" x2="800" y2="350"/>
+      <line x1="0" y1="525" x2="800" y2="525"/>
+      <line x1="200" y1="0" x2="200" y2="700"/>
+      <line x1="400" y1="0" x2="400" y2="700"/>
+      <line x1="600" y1="0" x2="600" y2="700"/>
+    </g>
+  </svg>
+  <div class="hero-vignette"></div>
+
+  <!-- project cards -->
   <div class="proj-strip-wrap">
     <div class="proj-strip" id="proj-strip"></div>
   </div>
 
-  <!-- tagline + stats bottom -->
+  <!-- tagline + stats -->
   <div class="hero-bottom">
-    <div class="hero-tagline">عقارات <span>شارك</span> في كل مكان</div>
+    <div class="hero-tagline">عقارات <span>شارك</span><br>في كل مكان</div>
     <div class="hero-stats">
       <div class="hstat"><div class="hstat-n">+20</div><div class="hstat-l">مدينة في المملكة</div></div>
       <div class="hstat"><div class="hstat-n">+10M</div><div class="hstat-l">قيمة الصفقات</div></div>
       <div class="hstat"><div class="hstat-n">+500</div><div class="hstat-l">عميل راضٍ</div></div>
     </div>
+  </div>
+
+  <!-- scroll hint -->
+  <div class="scroll-hint" onclick="document.getElementById('services').scrollIntoView({behavior:'smooth'})">
+    <span>تصفّح الأقسام</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
   </div>
 </div>
 
@@ -356,16 +412,7 @@ body{background:var(--dark);color:var(--text)}
 <footer class="footer">
   <div class="footer-inner">
     <div>
-      <div style="display:flex;align-items:center;direction:ltr;margin-bottom:10px">
-        <div style="display:flex;align-items:flex-end;gap:3px;margin-right:8px">
-          <span style="display:block;width:2px;height:8px;background:var(--gold);border-radius:2px;opacity:.3"></span>
-          <span style="display:block;width:2px;height:12px;background:var(--gold);border-radius:2px;opacity:.45"></span>
-          <span style="display:block;width:2px;height:18px;background:var(--gold);border-radius:2px;opacity:.6"></span>
-          <span style="display:block;width:2px;height:22px;background:var(--gold);border-radius:2px;opacity:.8"></span>
-          <span style="display:block;width:2px;height:26px;background:var(--gold);border-radius:2px;opacity:1"></span>
-        </div>
-        <div class="f-logo-en" style="margin-bottom:0">شارك</div>
-      </div>
+      <img src="logo.png" alt="شارك" style="height:32px;filter:brightness(0) saturate(100%) invert(72%) sepia(30%) saturate(600%) hue-rotate(5deg) brightness(95%);margin-bottom:10px;display:block">
       <div class="f-logo-ar">شارك العقارية</div>
       <p class="f-desc">شريكك الموثوق في سوق العقارات السعودي — نحوّل طموحاتك إلى واقع ملموس.</p>
     </div>
@@ -459,7 +506,6 @@ body{background:var(--dark);color:var(--text)}
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 (function(){
   var SHEETS='https://script.google.com/macros/s/AKfycbyHVwZPpmNrCOrXjbzlrrkz1tYcA1v7MXvDfwlPFYKUMzV3ICTmpYsNP22HH6dsF7k/exec';
@@ -503,7 +549,6 @@ body{background:var(--dark);color:var(--text)}
     _offers=gs('shark_offers')||[];
     renderOffers('all');
     buildProjStrip();
-    buildMap();
   }
   window.filterOffers=function(type,btn){
     document.querySelectorAll('.f-btn').forEach(function(b){b.classList.remove('active');});
@@ -551,14 +596,11 @@ body{background:var(--dark);color:var(--text)}
   };
   window.waOffer=function(t){window.open('https://wa.me/'+PHONE+'?text='+encodeURIComponent('السلام عليكم، أنا مهتم بالعقار: '+t),'_blank');};
 
-  /* ── MAP ── */
-  var _map=null, _markers={};
   function buildProjStrip(){
     var strip=document.getElementById('proj-strip');
-    var mapped=_offers.filter(function(o){return (o.lat&&o.lng)||(o.city&&CC[o.city]);});
-    if(!mapped.length){strip.parentElement.style.display='none';return;}
-    strip.innerHTML=mapped.map(function(o){
-      return '<div class="proj-card" id="pc-'+esc(o.id)+'" onclick="focusOffer(\''+esc(o.id)+'\')"><div>'
+    if(!_offers.length){strip.parentElement.style.display='none';return;}
+    strip.innerHTML=_offers.map(function(o){
+      return '<div class="proj-card" onclick="showOffer(\''+esc(o.id)+'\')"><div>'
         +(o.coverImg?'<img src="'+esc(o.coverImg)+'" loading="lazy">':'<div class="proj-no-img">🏠</div>')
         +'</div><div class="proj-card-body">'
         +'<div class="proj-card-title">'+esc(o.ar||o.name||'')+'</div>'
@@ -567,32 +609,6 @@ body{background:var(--dark);color:var(--text)}
         +'</div></div>';
     }).join('');
   }
-  function buildMap(){
-    if(!window.L){setTimeout(buildMap,300);return;}
-    var div=document.getElementById('hero-leafmap');
-    var map=L.map(div,{zoomControl:false,attributionControl:false}).setView([23.8859,45.0792],5);
-    _map=map;
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(map);
-    L.control.zoom({position:'bottomleft'}).addTo(map);
-    var icon=L.divIcon({className:'',html:'<div style="width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:linear-gradient(135deg,#c8a96e,#f0d080);border:2px solid rgba(255,255,255,.35);box-shadow:0 2px 10px rgba(200,169,110,.6)"></div>',iconSize:[26,26],iconAnchor:[13,26]});
-    var hasM=false;
-    _offers.forEach(function(o){
-      var lat=parseFloat(o.lat),lng=parseFloat(o.lng);
-      if((!lat||!lng)&&o.city&&CC[o.city]){lat=CC[o.city][0];lng=CC[o.city][1];}
-      if(!lat||!lng) return;
-      hasM=true;
-      var m=L.marker([lat,lng],{icon:icon}).addTo(map);
-      m.bindPopup('<div dir="rtl" style="font-family:Cairo,Arial,sans-serif;min-width:150px;padding:2px"><b style="color:#c8a96e;font-size:14px">'+esc(o.ar||o.name||'')+'</b><br><span style="color:#888;font-size:12px">'+esc(o.city||'')+'</span>'+(o.price?'<br><b style="font-size:13px">'+fmt(o.price)+'</b>':'')+'<br><button onclick="showOffer(\''+esc(o.id)+'\')" style="margin-top:7px;background:#c8a96e;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;width:100%;font-family:inherit">عرض التفاصيل</button></div>');
-      _markers[o.id]=m;
-    });
-    if(hasM){try{var g=L.featureGroup(Object.values(_markers));map.fitBounds(g.getBounds().pad(0.3));}catch(e){}}
-  }
-  window.focusOffer=function(id){
-    document.querySelectorAll('.proj-card').forEach(function(c){c.classList.remove('active');});
-    var c=document.getElementById('pc-'+id);
-    if(c){c.classList.add('active');c.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});}
-    if(_markers[id]&&_map){_map.setView(_markers[id].getLatLng(),14,{animate:true});setTimeout(function(){_markers[id].openPopup();},400);}
-  };
 
   loadOffers();
 })();
