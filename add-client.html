@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0b0b0c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="شارك — عميل">
+<title>إضافة عميل — شارك العقارية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--gold:#c8a96e;--dark:#0b0b0c;--card:#16181d;--border:rgba(244,243,239,.1);--border2:rgba(244,243,239,.18);--text:#f4f3ef;--sub:#a8a59d;--red:#e05252;--green:#4caf50}
+html,body{height:100%;font-family:'Cairo',Tahoma,Arial,sans-serif;direction:rtl;-webkit-font-smoothing:antialiased}
+body{background:var(--dark);color:var(--text);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100%;padding:0 0 40px}
+
+/* header */
+.header{width:100%;background:rgba(22,24,29,.95);border-bottom:1px solid var(--border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;backdrop-filter:blur(10px)}
+.header-logo{font-family:'Cormorant Garamond',Georgia,serif;font-size:20px;font-weight:400;letter-spacing:.22em;color:var(--gold)}
+.header-sub{font-size:10px;font-weight:300;letter-spacing:.14em;color:var(--sub);margin-top:1px}
+.header-hist{font-size:12px;color:var(--sub);cursor:pointer;padding:6px 14px;border:1px solid var(--border2);border-radius:20px;transition:.2s}
+.header-hist:hover{color:var(--text);border-color:var(--gold)}
+
+/* form card */
+.wrap{width:100%;max-width:480px;padding:24px 18px 0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px 20px}
+.card-title{font-size:16px;font-weight:700;color:var(--gold);margin-bottom:20px;display:flex;align-items:center;gap:10px}
+
+/* fields */
+.f-row{margin-bottom:16px}
+.f-label{display:block;font-size:12px;font-weight:600;color:var(--sub);margin-bottom:7px;letter-spacing:.04em}
+.f-input,.f-select,.f-textarea{width:100%;padding:13px 14px;background:rgba(255,255,255,.055);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:15px;font-family:'Cairo',sans-serif;direction:rtl;outline:none;transition:border-color .2s;-webkit-appearance:none}
+.f-input:focus,.f-select:focus,.f-textarea:focus{border-color:rgba(200,169,110,.5)}
+.f-input::placeholder,.f-textarea::placeholder{color:rgba(244,243,239,.25)}
+.f-select option{background:#1a1a22;color:#fff}
+.f-textarea{resize:none;height:80px;line-height:1.6}
+
+/* type chips */
+.type-chips{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px}
+.type-chip{padding:12px 10px;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--sub);font-size:13px;font-weight:600;cursor:pointer;text-align:center;transition:.2s;font-family:'Cairo',sans-serif}
+.type-chip.sel{border-color:var(--gold);background:rgba(200,169,110,.1);color:var(--gold)}
+
+/* submit */
+.btn-save{width:100%;padding:16px;background:linear-gradient(135deg,#c8972e,#d4a83c 55%,#ba8420);color:#1a1000;border:none;border-radius:10px;font-family:'Cairo',sans-serif;font-size:16px;font-weight:800;cursor:pointer;transition:opacity .18s,transform .1s;margin-top:4px;letter-spacing:.02em}
+.btn-save:active{transform:scale(.98);opacity:.88}
+.btn-save:disabled{opacity:.5;cursor:not-allowed}
+
+/* success */
+.success{display:none;text-align:center;padding:12px 0}
+.success-check{width:56px;height:56px;border-radius:50%;background:rgba(76,175,80,.12);border:1px solid rgba(76,175,80,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:24px}
+.success h3{font-size:18px;font-weight:700;margin-bottom:8px}
+.success p{font-size:13px;color:var(--sub);line-height:1.7;margin-bottom:20px}
+.btn-another{padding:12px 28px;border:1px solid var(--border2);border-radius:10px;background:transparent;color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:'Cairo',sans-serif}
+
+/* history */
+.hist-panel{display:none;width:100%;max-width:480px;padding:0 18px}
+.hist-title{font-size:14px;font-weight:700;color:var(--gold);margin:20px 0 12px;display:flex;align-items:center;justify-content:space-between}
+.hist-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+.hist-name{font-size:15px;font-weight:700}
+.hist-meta{font-size:12px;color:var(--sub);margin-top:4px;display:flex;gap:12px;flex-wrap:wrap}
+.hist-badge{display:inline-block;padding:2px 10px;border-radius:14px;font-size:11px;font-weight:700;background:rgba(200,169,110,.12);color:var(--gold);margin-top:6px}
+.hist-empty{text-align:center;padding:28px 0;font-size:13px;color:var(--sub)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-logo">Shark</div>
+    <div class="header-sub">تسجيل عميل</div>
+  </div>
+  <div class="header-hist" onclick="toggleHistory()">السجل اليومي</div>
+</div>
+
+<div class="wrap" id="form-wrap">
+  <div class="card">
+    <div class="card-title">
+      <span style="font-size:20px">📞</span>
+      تسجيل عميل جديد
+    </div>
+
+    <div id="form-inner">
+      <div class="f-row">
+        <label class="f-label">نوع التواصل</label>
+        <div class="type-chips">
+          <button class="type-chip sel" data-val="عميل اتصال" onclick="selType(this)">📞 اتصال وارد</button>
+          <button class="type-chip" data-val="رغبة استثمار" onclick="selType(this)">💰 رغبة استثمار</button>
+          <button class="type-chip" data-val="عرض عقار" onclick="selType(this)">🏠 تسويق عقار</button>
+          <button class="type-chip" data-val="طلب شراء" onclick="selType(this)">🔑 طلب شراء</button>
+        </div>
+        <input type="hidden" id="f-type" value="عميل اتصال">
+      </div>
+
+      <div class="f-row">
+        <label class="f-label">الاسم الكريم *</label>
+        <input type="text" class="f-input" id="f-name" placeholder="محمد عبدالله" autocomplete="name">
+      </div>
+
+      <div class="f-row">
+        <label class="f-label">رقم الجوال *</label>
+        <input type="tel" class="f-input" id="f-phone" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right" autocomplete="tel" inputmode="tel">
+      </div>
+
+      <div class="f-row">
+        <label class="f-label">الاهتمام / نوع العقار <span style="font-weight:300;font-size:11px;color:rgba(168,165,157,.5)">(اختياري)</span></label>
+        <input type="text" class="f-input" id="f-interest" placeholder="مثال: أرض في بريدة، مستودع...">
+      </div>
+
+      <div class="f-row">
+        <label class="f-label">ملاحظة سريعة <span style="font-weight:300;font-size:11px;color:rgba(168,165,157,.5)">(اختياري)</span></label>
+        <textarea class="f-textarea" id="f-note" placeholder="أي تفاصيل مهمة من المكالمة..."></textarea>
+      </div>
+
+      <button class="btn-save" id="btn-save" onclick="saveClient()">حفظ العميل</button>
+    </div>
+
+    <div class="success" id="success-box">
+      <div class="success-check">✓</div>
+      <h3>تم حفظ العميل</h3>
+      <p id="success-msg">تم تسجيل العميل وإرساله لقوقل شيت بنجاح.</p>
+      <button class="btn-another" onclick="resetForm()">تسجيل عميل جديد</button>
+    </div>
+  </div>
+</div>
+
+<div class="hist-panel" id="hist-panel">
+  <div class="hist-title">
+    <span>سجل اليوم</span>
+    <span id="hist-count" style="font-size:12px;color:var(--sub)"></span>
+  </div>
+  <div id="hist-list"></div>
+</div>
+
+<script>
+(function(){
+  var SHEETS_URL='https://script.google.com/macros/s/AKfycbyHVwZPpmNrCOrXjbzlrrkz1tYcA1v7MXvDfwlPFYKUMzV3ICTmpYsNP22HH6dsF7k/exec';
+
+  window.selType=function(btn){
+    document.querySelectorAll('.type-chip').forEach(function(b){b.classList.remove('sel');});
+    btn.classList.add('sel');
+    document.getElementById('f-type').value=btn.dataset.val;
+  };
+
+  window.saveClient=function(){
+    var name=document.getElementById('f-name').value.trim();
+    var phone=document.getElementById('f-phone').value.trim();
+    if(!name){alert('الرجاء إدخال اسم العميل');return;}
+    if(!phone){alert('الرجاء إدخال رقم الجوال');return;}
+
+    var btn=document.getElementById('btn-save');
+    btn.disabled=true; btn.textContent='جارٍ الحفظ...';
+
+    var date=new Date().toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'});
+    var rec={
+      id:'CL-'+(Date.now().toString(36).toUpperCase()),
+      name:name, phone:phone,
+      type:document.getElementById('f-type').value,
+      interest:document.getElementById('f-interest').value.trim(),
+      note:document.getElementById('f-note').value.trim(),
+      source:'employee', date:date
+    };
+
+    /* save locally */
+    try{
+      var arr=JSON.parse(localStorage.getItem('shark_admin_clients')||'[]');
+      arr.unshift(rec);
+      localStorage.setItem('shark_admin_clients',JSON.stringify(arr));
+    }catch(e){}
+
+    /* send to sheets */
+    try{
+      fetch(SHEETS_URL,{method:'POST',mode:'no-cors',body:JSON.stringify(rec)});
+    }catch(e){}
+
+    document.getElementById('success-msg').textContent='تم تسجيل '+name+' وإرساله لقوقل شيت بنجاح.';
+    document.getElementById('form-inner').style.display='none';
+    document.getElementById('success-box').style.display='block';
+    btn.disabled=false; btn.textContent='حفظ العميل';
+  };
+
+  window.resetForm=function(){
+    document.getElementById('form-inner').style.display='block';
+    document.getElementById('success-box').style.display='none';
+    ['f-name','f-phone','f-interest','f-note'].forEach(function(i){document.getElementById(i).value='';});
+    document.querySelectorAll('.type-chip').forEach(function(b){b.classList.remove('sel');});
+    document.querySelector('[data-val="عميل اتصال"]').classList.add('sel');
+    document.getElementById('f-type').value='عميل اتصال';
+    document.getElementById('f-name').focus();
+  };
+
+  var _histShown=false;
+  window.toggleHistory=function(){
+    _histShown=!_histShown;
+    var panel=document.getElementById('hist-panel');
+    panel.style.display=_histShown?'block':'none';
+    if(_histShown) renderHistory();
+  };
+
+  function renderHistory(){
+    var today=new Date().toLocaleDateString('ar-SA',{timeZone:'Asia/Riyadh'});
+    var all=[];
+    try{all=JSON.parse(localStorage.getItem('shark_admin_clients')||'[]');}catch(e){}
+    var todayRecs=all.filter(function(r){return r.source==='employee'&&(r.date||'').includes(today.split('/')[0]);});
+    var list=document.getElementById('hist-list');
+    document.getElementById('hist-count').textContent=todayRecs.length+' عميل اليوم';
+    if(!todayRecs.length){list.innerHTML='<div class="hist-empty">لا يوجد عملاء مسجلين اليوم بعد</div>';return;}
+    list.innerHTML=todayRecs.map(function(r){
+      return '<div class="hist-item">'
+        +'<div class="hist-name">'+escHtml(r.name)+'</div>'
+        +'<div class="hist-meta"><span>📱 '+escHtml(r.phone)+'</span>'+(r.interest?'<span>'+escHtml(r.interest)+'</span>':'')+'</div>'
+        +'<div class="hist-badge">'+escHtml(r.type)+'</div>'
+        +'</div>';
+    }).join('');
+  }
+
+  function escHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+  /* auto-focus phone on mobile if name already typed */
+  document.getElementById('f-name').addEventListener('keydown',function(e){
+    if(e.key==='Enter') document.getElementById('f-phone').focus();
+  });
+  document.getElementById('f-phone').addEventListener('keydown',function(e){
+    if(e.key==='Enter') saveClient();
+  });
+
+  /* focus name on load */
+  setTimeout(function(){document.getElementById('f-name').focus();},300);
+})();
+</script>
+</body>
+</html>

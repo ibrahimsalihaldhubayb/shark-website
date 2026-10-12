@@ -4,703 +4,494 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#0b0b0c">
-<title>شارك العقارية — عقارات المملكة</title>
+<title>شارك العقارية</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-/* ══ RESET & BASE ══ */
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{
-  --gold:#c8a96e;--gold2:#f0d080;--gold3:#8b6914;
-  --dark:#0b0b0c;--dark2:#111114;--dark3:#16181d;
-  --card:#1b1c20;--border:rgba(200,169,110,.14);--border2:rgba(200,169,110,.28);
-  --text:#f4f3ef;--sub:rgba(244,243,239,.55);--sub2:rgba(244,243,239,.35);
-}
-html{scroll-behavior:smooth}
-body{font-family:'Cairo',Tahoma,Arial,sans-serif;background:var(--dark);color:var(--text);direction:rtl;overflow-x:hidden;-webkit-font-smoothing:antialiased}
-img{display:block;max-width:100%}
-button,input,select,textarea{font-family:inherit}
-a{text-decoration:none;color:inherit}
+:root{--gold:#c8a96e;--gold2:#f0d080;--dark:#0b0b0c;--card:#16181d;--border:rgba(244,243,239,.1);--border2:rgba(244,243,239,.18);--text:#f4f3ef;--sub:#a8a59d}
+html,body{height:100%;font-family:'Cairo',Tahoma,Arial,sans-serif;direction:rtl;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body{background:var(--dark);color:var(--text)}
 
-/* ══ NAV ══ */
-.nav{position:fixed;top:0;left:0;right:0;z-index:1000;transition:background .3s,box-shadow .3s}
-.nav.scrolled{background:rgba(11,11,12,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 1px 0 var(--border)}
-.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between}
-.nav-logo{display:flex;flex-direction:column;align-items:flex-start}
-.nav-logo-en{font-size:22px;font-weight:900;letter-spacing:3px;color:var(--gold);line-height:1}
-.nav-logo-ar{font-size:10px;font-weight:300;letter-spacing:.16em;color:var(--sub);margin-top:2px}
-.nav-links{display:flex;gap:28px;align-items:center}
-.nav-links a{font-size:13px;font-weight:600;color:var(--sub);transition:color .2s}
-.nav-links a:hover{color:var(--text)}
-.nav-wa{display:flex;align-items:center;gap:8px;padding:9px 18px;background:#25d366;color:#fff;border:none;border-radius:24px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap}
-.nav-wa svg{flex-shrink:0}
-@media(max-width:700px){.nav-links{display:none}}
+/* ═══ NAV ═══ */
+.nav{position:fixed;top:0;left:0;right:0;z-index:1000;height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:linear-gradient(to bottom,rgba(11,11,12,.85),transparent);pointer-events:none}
+.nav>*{pointer-events:all}
+.nav-brand .en{font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;font-weight:400;letter-spacing:.26em;color:var(--text);line-height:1}
+.nav-brand .ar{font-size:9px;font-weight:300;letter-spacing:.16em;color:var(--sub);margin-top:2px}
+.nav-wa{display:flex;align-items:center;gap:6px;padding:8px 16px;background:#25d366;color:#fff;border:none;border-radius:22px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;cursor:pointer}
 
-/* ══ HERO ══ */
-.hero{position:relative;min-height:100svh;display:flex;align-items:flex-end;overflow:hidden}
-.hero-bg{position:absolute;inset:0;background:linear-gradient(135deg,#0b0b0c 0%,#1a1208 40%,#0e0c08 100%)}
-.hero-bg::after{content:'';position:absolute;inset:0;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60"><rect width="60" height="60" fill="none"/><path d="M0 30h60M30 0v60" stroke="rgba(200,169,110,.04)" stroke-width="1"/></svg>')}
-.hero-glow{position:absolute;top:20%;right:10%;width:500px;height:500px;background:radial-gradient(circle,rgba(200,169,110,.12) 0%,transparent 70%);pointer-events:none}
-.hero-glow2{position:absolute;bottom:10%;left:5%;width:300px;height:300px;background:radial-gradient(circle,rgba(200,169,110,.07) 0%,transparent 70%);pointer-events:none}
-.hero-content{position:relative;z-index:1;width:100%;max-width:1200px;margin:0 auto;padding:0 24px 80px}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border:1px solid var(--border2);border-radius:30px;font-size:12px;font-weight:600;color:var(--gold);margin-bottom:24px;backdrop-filter:blur(8px)}
-.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
-.hero-title{font-size:clamp(32px,6vw,72px);font-weight:900;line-height:1.1;margin-bottom:20px}
-.hero-title span{background:linear-gradient(90deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.hero-sub{font-size:clamp(14px,2vw,18px);font-weight:400;color:var(--sub);line-height:1.8;max-width:520px;margin-bottom:40px}
-.hero-btns{display:flex;gap:14px;flex-wrap:wrap}
-.btn-hero-primary{padding:16px 32px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1200;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;letter-spacing:.3px;transition:transform .15s,box-shadow .15s}
-.btn-hero-primary:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(200,169,110,.35)}
-.btn-hero-outline{padding:16px 32px;background:transparent;color:var(--text);border:1px solid var(--border2);border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:border-color .2s,background .2s}
-.btn-hero-outline:hover{border-color:var(--gold);background:rgba(200,169,110,.06)}
-.hero-scroll{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--sub2);font-size:11px;z-index:1}
-.hero-scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,var(--gold),transparent);animation:scrolldown 1.8s ease-in-out infinite}
-@keyframes scrolldown{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform:scaleY(1);transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+/* ═══ HERO MAP ═══ */
+.hero-map{position:relative;width:100%;height:100svh;min-height:600px}
+#hero-leafmap{width:100%;height:100%}
 
-/* ══ STATS BAR ══ */
-.stats-bar{background:var(--dark2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-.stats-inner{max-width:1200px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:repeat(4,1fr)}
-.stat-item{padding:28px 16px;text-align:center;border-left:1px solid var(--border)}
-.stat-item:last-child{border-left:none}
-.stat-num{font-size:clamp(26px,4vw,40px);font-weight:900;background:linear-gradient(90deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
-.stat-label{font-size:12px;font-weight:400;color:var(--sub);margin-top:6px}
-@media(max-width:600px){.stats-inner{grid-template-columns:repeat(2,1fr)}.stat-item:nth-child(2){border-left:none}.stat-item:nth-child(3){border-top:1px solid var(--border)}.stat-item:nth-child(4){border-top:1px solid var(--border);border-left:none}}
+/* project cards strip — floating over map */
+.proj-strip-wrap{position:absolute;top:70px;left:0;right:0;z-index:400;padding:0 12px}
+.proj-strip{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:2px 4px}
+.proj-strip::-webkit-scrollbar{display:none}
+.proj-card{flex-shrink:0;width:190px;background:rgba(16,14,11,.82);border:1px solid rgba(200,169,110,.22);border-radius:12px;overflow:hidden;cursor:pointer;transition:border-color .2s;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.proj-card:hover,.proj-card.active{border-color:var(--gold)}
+.proj-card img,.proj-card .proj-no-img{width:100%;height:88px;object-fit:cover}
+.proj-card .proj-no-img{background:linear-gradient(135deg,#1a1a1f,#1e1a0e);display:flex;align-items:center;justify-content:center;font-size:26px}
+.proj-card-body{padding:8px 10px 10px}
+.proj-card-title{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.proj-card-loc{font-size:11px;color:var(--sub)}
+.proj-card-price{font-size:11px;color:var(--gold);font-weight:700;margin-top:4px}
 
-/* ══ SECTIONS ══ */
-.section{padding:80px 24px}
-.section-inner{max-width:1200px;margin:0 auto}
-.section-tag{font-size:11px;font-weight:700;letter-spacing:.18em;color:var(--gold);text-transform:uppercase;margin-bottom:12px}
-.section-title{font-size:clamp(24px,4vw,40px);font-weight:800;line-height:1.2;margin-bottom:14px}
-.section-sub{font-size:15px;color:var(--sub);line-height:1.8;max-width:540px}
-.section-head{margin-bottom:48px}
+/* hero bottom info */
+.hero-bottom{position:absolute;bottom:0;left:0;right:0;z-index:400;padding:20px 20px 84px;background:linear-gradient(to top,rgba(11,11,12,.92) 0%,transparent 100%)}
+.hero-tagline{font-size:clamp(18px,4vw,28px);font-weight:800;line-height:1.3;margin-bottom:14px}
+.hero-tagline span{color:var(--gold)}
+.hero-stats{display:flex;gap:20px;flex-wrap:wrap}
+.hstat{text-align:right}
+.hstat-n{font-size:clamp(20px,4vw,28px);font-weight:900;color:var(--gold);line-height:1}
+.hstat-l{font-size:11px;color:var(--sub);margin-top:2px}
 
-/* ══ SERVICES ══ */
-.services-bg{background:var(--dark2)}
-.services-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
-.srv-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px 24px;transition:border-color .2s,transform .2s;cursor:default}
-.srv-card:hover{border-color:var(--border2);transform:translateY(-4px)}
-.srv-icon{width:52px;height:52px;border-radius:14px;background:rgba(200,169,110,.1);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:18px}
-.srv-title{font-size:16px;font-weight:700;margin-bottom:8px}
-.srv-desc{font-size:13px;color:var(--sub);line-height:1.75}
+/* ═══ SECTIONS ═══ */
+.section{padding:64px 20px}
+.section-inner{max-width:1100px;margin:0 auto}
+.s-tag{font-size:11px;font-weight:700;letter-spacing:.16em;color:var(--gold);text-transform:uppercase;margin-bottom:10px}
+.s-title{font-size:clamp(22px,4vw,36px);font-weight:800;line-height:1.25;margin-bottom:12px}
+.s-sub{font-size:14px;color:var(--sub);line-height:1.8;max-width:500px}
+.s-head{margin-bottom:40px}
 
-/* ══ OFFERS ══ */
-.offers-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px}
-.offers-filter{display:flex;gap:8px;flex-wrap:wrap}
-.filter-btn{padding:8px 18px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--sub);font-size:13px;font-weight:600;cursor:pointer;transition:.2s}
-.filter-btn.active,
-.filter-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(200,169,110,.06)}
-.offers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
-.offer-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:transform .2s,box-shadow .2s;cursor:pointer}
-.offer-card:hover{transform:translateY(-5px);box-shadow:0 12px 40px rgba(0,0,0,.5)}
-.offer-card-img{width:100%;height:200px;object-fit:cover;background:#1a1a20}
-.offer-card-no-img{width:100%;height:200px;background:linear-gradient(135deg,#1a1a20,#1e1a0e);display:flex;align-items:center;justify-content:center;font-size:40px;color:rgba(200,169,110,.2)}
-.offer-card-body{padding:18px}
-.offer-card-type{font-size:10px;font-weight:700;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;margin-bottom:8px}
-.offer-card-title{font-size:16px;font-weight:700;margin-bottom:6px;line-height:1.35}
-.offer-card-loc{font-size:12px;color:var(--sub);display:flex;align-items:center;gap:5px;margin-bottom:14px}
-.offer-card-price{font-size:18px;font-weight:900;background:linear-gradient(90deg,var(--gold),var(--gold2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.offer-card-meta{display:flex;gap:14px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
-.offer-meta-item{font-size:12px;color:var(--sub);display:flex;align-items:center;gap:4px}
-.offers-empty{text-align:center;padding:60px 20px;color:var(--sub);font-size:14px}
+/* ═══ SERVICES ═══ */
+.srv-bg{background:#0e0e10;border-top:1px solid var(--border)}
+.srv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.srv-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px 20px;transition:border-color .2s}
+.srv-card:hover{border-color:rgba(200,169,110,.28)}
+.srv-icon{width:46px;height:46px;border-radius:12px;background:rgba(200,169,110,.09);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:14px}
+.srv-name{font-size:15px;font-weight:700;margin-bottom:7px}
+.srv-desc{font-size:13px;color:var(--sub);line-height:1.7}
 
-/* ══ MAP SECTION ══ */
-.map-section{background:var(--dark2);padding:80px 0 0}
-.map-section .section-inner{padding:0 24px;max-width:1200px;margin:0 auto}
-.map-projects-scroll{display:flex;gap:14px;overflow-x:auto;padding:0 0 24px;scrollbar-width:none;margin:32px 0 0}
-.map-projects-scroll::-webkit-scrollbar{display:none}
-.map-proj-card{flex-shrink:0;width:220px;background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:border-color .2s}
-.map-proj-card:hover,.map-proj-card.active{border-color:var(--gold)}
-.map-proj-card img{width:100%;height:100px;object-fit:cover}
-.map-proj-card .no-img{width:100%;height:100px;background:linear-gradient(135deg,#1a1a20,#1e1a0e);display:flex;align-items:center;justify-content:center;font-size:28px}
-.map-proj-body{padding:10px 12px}
-.map-proj-title{font-size:13px;font-weight:700;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.map-proj-loc{font-size:11px;color:var(--sub)}
-.map-wrap{width:100%;height:500px;margin-top:0;position:relative}
-#main-map{width:100%;height:100%}
-@media(max-width:600px){.map-wrap{height:360px}}
+/* ═══ OFFERS ═══ */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.f-btn{padding:7px 16px;border-radius:18px;border:1px solid var(--border);background:transparent;color:var(--sub);font-size:13px;font-weight:600;cursor:pointer;font-family:'Cairo',sans-serif;transition:.2s}
+.f-btn.active,.f-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(200,169,110,.07)}
+.offers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+.o-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.o-card:hover{transform:translateY(-4px);box-shadow:0 10px 36px rgba(0,0,0,.5)}
+.o-card img,.o-card .o-no-img{width:100%;height:188px;object-fit:cover}
+.o-card .o-no-img{background:linear-gradient(135deg,#1a1a1f,#1e1a0e);display:flex;align-items:center;justify-content:center;font-size:36px;color:rgba(200,169,110,.2)}
+.o-body{padding:16px}
+.o-type{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:6px}
+.o-name{font-size:15px;font-weight:700;margin-bottom:5px;line-height:1.35}
+.o-loc{font-size:12px;color:var(--sub);margin-bottom:12px;display:flex;align-items:center;gap:4px}
+.o-price{font-size:17px;font-weight:900;color:var(--gold)}
+.o-meta{display:flex;gap:12px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--sub)}
+.o-empty{text-align:center;padding:48px 0;color:var(--sub);font-size:14px;grid-column:1/-1}
 
-/* ══ ABOUT ══ */
-.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
-.about-img-wrap{position:relative;border-radius:20px;overflow:hidden}
-.about-img-wrap img{width:100%;border-radius:20px;object-fit:cover;height:440px}
-.about-img-accent{position:absolute;bottom:24px;right:24px;background:rgba(11,11,12,.85);border:1px solid var(--border2);border-radius:14px;padding:16px 20px;backdrop-filter:blur(12px)}
-.about-img-accent .n{font-size:28px;font-weight:900;color:var(--gold);line-height:1}
-.about-img-accent .l{font-size:11px;color:var(--sub);margin-top:4px}
-.about-text .section-title{margin-bottom:20px}
-.about-text p{font-size:14px;color:var(--sub);line-height:1.9;margin-bottom:16px}
-.about-values{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:28px}
-.about-val{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;font-size:13px;display:flex;align-items:center;gap:10px}
-.about-val-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);flex-shrink:0}
-@media(max-width:768px){.about-grid{grid-template-columns:1fr;gap:32px}.about-img-wrap{display:none}}
+/* ═══ ABOUT ═══ */
+.about-bg{background:#0e0e10;border-top:1px solid var(--border)}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.about-img{border-radius:16px;width:100%;height:380px;object-fit:cover}
+.about-vals{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:24px}
+.about-val{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:13px;display:flex;align-items:center;gap:9px}
+.about-dot{width:7px;height:7px;border-radius:50%;background:var(--gold);flex-shrink:0}
+.about-p{font-size:14px;color:var(--sub);line-height:1.9;margin-bottom:14px}
+@media(max-width:720px){.about-grid{grid-template-columns:1fr}.about-img{display:none}}
 
-/* ══ CTA BANNER ══ */
-.cta-banner{background:linear-gradient(135deg,#1a1208 0%,#0e0c08 100%);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:64px 24px;text-align:center}
-.cta-banner .section-title{margin:0 auto 16px;max-width:600px}
-.cta-banner p{color:var(--sub);font-size:15px;margin-bottom:36px}
-.cta-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+/* ═══ CTA ═══ */
+.cta{border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:linear-gradient(135deg,#121008,#0b0b0c);padding:56px 20px;text-align:center}
+.cta .s-title{margin:0 auto 14px}
+.cta .s-sub{margin:0 auto 32px}
+.cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn-gold{padding:14px 28px;background:linear-gradient(135deg,#c8972e,#d4a83c 55%,#ba8420);color:#1a1000;border:none;border-radius:10px;font-family:'Cairo',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:opacity .2s}
+.btn-gold:hover{opacity:.88}
+.btn-out{padding:14px 28px;border:1px solid var(--border2);background:transparent;color:var(--text);border-radius:10px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:.2s}
+.btn-out:hover{border-color:var(--gold);color:var(--gold)}
 
-/* ══ FOOTER ══ */
-.footer{background:#070708;border-top:1px solid var(--border);padding:48px 24px 32px}
-.footer-inner{max-width:1200px;margin:0 auto}
-.footer-top{display:grid;grid-template-columns:2fr 1fr 1fr;gap:48px;margin-bottom:40px}
-.footer-brand .logo-en{font-size:24px;font-weight:900;letter-spacing:3px;color:var(--gold)}
-.footer-brand .logo-ar{font-size:11px;color:var(--sub);margin-top:3px;letter-spacing:.1em}
-.footer-brand p{font-size:13px;color:var(--sub2);line-height:1.8;margin-top:16px;max-width:280px}
-.footer-col h5{font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px}
-.footer-col ul{list-style:none;display:flex;flex-direction:column;gap:8px}
-.footer-col li{font-size:13px;color:var(--sub);cursor:pointer;transition:color .2s}
-.footer-col li:hover{color:var(--gold)}
-.footer-bottom{border-top:1px solid var(--border);padding-top:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
-.footer-bottom p{font-size:12px;color:var(--sub2)}
-@media(max-width:768px){.footer-top{grid-template-columns:1fr}}
+/* ═══ FOOTER ═══ */
+.footer{background:#060607;border-top:1px solid var(--border);padding:40px 20px 28px}
+.footer-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px;margin-bottom:32px}
+.f-logo-en{font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;font-weight:400;letter-spacing:.26em;color:var(--gold)}
+.f-logo-ar{font-size:10px;font-weight:300;letter-spacing:.14em;color:var(--sub);margin-top:3px;margin-bottom:14px}
+.f-desc{font-size:13px;color:rgba(244,243,239,.35);line-height:1.8;max-width:260px}
+.f-col h5{font-size:12px;font-weight:700;color:var(--text);margin-bottom:12px;letter-spacing:.08em}
+.f-col ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.f-col li{font-size:13px;color:var(--sub);cursor:pointer;transition:color .2s}
+.f-col li:hover{color:var(--gold)}
+.f-copy{border-top:1px solid var(--border);padding-top:20px;display:flex;justify-content:space-between;font-size:11px;color:rgba(244,243,239,.25);flex-wrap:wrap;gap:8px;max-width:1100px;margin:0 auto}
+@media(max-width:720px){.footer-inner{grid-template-columns:1fr}}
 
-/* ══ MODALS ══ */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:10000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+/* ═══ MODALS ═══ */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9000;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
 .modal-bg.open{display:flex}
-.modal{background:#1a1a22;border:1px solid var(--border);border-radius:20px;padding:32px 28px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;position:relative}
-.modal h3{font-size:18px;font-weight:800;color:var(--gold);margin-bottom:22px}
-.modal-close{position:absolute;top:14px;left:18px;background:none;border:none;color:var(--sub);font-size:24px;cursor:pointer;line-height:1}
-.form-row{margin-bottom:14px}
-.form-row label{display:block;font-size:12px;color:var(--sub);margin-bottom:6px;font-weight:600}
-.form-row input,.form-row select,.form-row textarea{width:100%;padding:12px 14px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;outline:none;transition:border-color .2s;direction:rtl}
-.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--gold)}
-.form-row select option{background:#1a1a22}
-.form-row input::placeholder,.form-row textarea::placeholder{color:var(--sub2)}
-.btn-modal-submit{width:100%;padding:15px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1200;border:none;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px;transition:opacity .2s}
-.btn-modal-submit:active{opacity:.85}
-.modal-success{display:none;text-align:center;padding:20px 0}
-.modal-success .icon{font-size:52px;margin-bottom:14px}
-.modal-success h4{font-size:18px;font-weight:800;color:var(--gold);margin-bottom:8px}
-.modal-success p{font-size:13px;color:var(--sub);line-height:1.7}
+.modal{background:#1a1a22;border:1px solid var(--border2);border-radius:18px;padding:28px 24px;width:100%;max-width:400px;max-height:90vh;overflow-y:auto;position:relative}
+.modal h3{font-size:17px;font-weight:800;color:var(--gold);margin-bottom:18px}
+.m-close{position:absolute;top:12px;left:16px;background:none;border:none;color:var(--sub);font-size:24px;cursor:pointer;line-height:1}
+.f-row{margin-bottom:13px}
+.f-row label{display:block;font-size:12px;color:var(--sub);margin-bottom:5px;font-weight:600}
+.f-row input,.f-row select,.f-row textarea{width:100%;padding:12px 13px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:14px;font-family:'Cairo',sans-serif;direction:rtl;outline:none;transition:border-color .2s}
+.f-row input:focus,.f-row select:focus,.f-row textarea:focus{border-color:rgba(200,169,110,.45)}
+.f-row select option{background:#1a1a22}
+.f-row input::placeholder,.f-row textarea::placeholder{color:rgba(244,243,239,.22)}
+.btn-sub{width:100%;padding:14px;background:linear-gradient(135deg,#c8972e,#d4a83c 55%,#ba8420);color:#1a1000;border:none;border-radius:9px;font-family:'Cairo',sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px}
+.m-ok{display:none;text-align:center;padding:12px 0}
+.m-ok .ic{font-size:46px;margin-bottom:12px}
+.m-ok h4{font-size:17px;font-weight:800;color:var(--gold);margin-bottom:7px}
+.m-ok p{font-size:13px;color:var(--sub);line-height:1.7}
 
-/* ══ OFFER DETAIL MODAL ══ */
-#modal-offer-detail .modal{max-width:560px}
-.od-img{width:100%;height:240px;object-fit:cover;border-radius:12px;margin-bottom:20px}
-.od-no-img{width:100%;height:180px;background:linear-gradient(135deg,#1a1a20,#1e1a0e);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:20px}
-.od-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
-.od-meta-item{background:rgba(255,255,255,.05);border-radius:10px;padding:12px;text-align:center}
-.od-meta-val{font-size:15px;font-weight:700;color:var(--gold)}
-.od-meta-key{font-size:11px;color:var(--sub);margin-top:3px}
-.od-feats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
-.od-feat{font-size:12px;padding:5px 12px;border-radius:20px;background:rgba(200,169,110,.1);border:1px solid var(--border);color:var(--sub)}
-.btn-wa-offer{width:100%;padding:14px;background:#25d366;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px}
-.btn-interest-offer{width:100%;padding:14px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#1a1200;border:none;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer}
+/* offer detail */
+#mod-offer .modal{max-width:520px}
+.od-img{width:100%;height:220px;object-fit:cover;border-radius:12px;margin-bottom:18px;cursor:pointer}
+.od-noimg{width:100%;height:160px;border-radius:12px;background:linear-gradient(135deg,#1a1a1f,#1e1a0e);display:flex;align-items:center;justify-content:center;font-size:44px;margin-bottom:18px}
+.od-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.od-s{background:rgba(255,255,255,.05);border-radius:9px;padding:10px;text-align:center}
+.od-sv{font-size:14px;font-weight:700;color:var(--gold)}
+.od-sk{font-size:11px;color:var(--sub);margin-top:2px}
+.od-feats{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
+.od-feat{font-size:12px;padding:4px 11px;border-radius:18px;background:rgba(200,169,110,.09);border:1px solid var(--border);color:var(--sub)}
+.od-gall{display:flex;gap:7px;overflow-x:auto;margin:10px 0 16px;scrollbar-width:none}
+.od-gall::-webkit-scrollbar{display:none}
+.od-gall img{height:68px;width:104px;object-fit:cover;border-radius:8px;flex-shrink:0;cursor:pointer;opacity:.75;transition:opacity .2s}
+.od-gall img:hover{opacity:1}
+.btn-wa-od{width:100%;padding:13px;background:#25d366;color:#fff;border:none;border-radius:9px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:9px}
+.btn-int-od{width:100%;padding:13px;background:linear-gradient(135deg,#c8972e,#d4a83c 55%,#ba8420);color:#1a1000;border:none;border-radius:9px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:800;cursor:pointer}
 
-/* ══ FABS ══ */
-#fab-bar{position:fixed;bottom:0;left:0;right:0;z-index:9000;display:flex;justify-content:center;padding:0 0 20px;pointer-events:none}
-#fab-inner{display:flex;gap:10px;background:rgba(10,10,14,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:60px;padding:10px 18px;pointer-events:all;border:1px solid var(--border);box-shadow:0 8px 36px rgba(0,0,0,.6)}
-.fab-btn{border:none;border-radius:50px;padding:11px 18px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:transform .15s;color:#fff;letter-spacing:.2px}
-.fab-btn:hover{transform:translateY(-2px)}
-.fab-gold{background:linear-gradient(135deg,var(--gold3),var(--gold))}
-.fab-green{background:linear-gradient(135deg,#1a5c38,#25a55a)}
-.fab-blue{background:linear-gradient(135deg,#1565c0,#42a5f5)}
+/* FABs */
+#fab{position:fixed;bottom:0;left:0;right:0;z-index:8000;display:flex;justify-content:center;padding:0 0 18px;pointer-events:none}
+#fab-inner{display:flex;gap:9px;background:rgba(10,10,14,.8);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:56px;padding:9px 16px;pointer-events:all;box-shadow:0 6px 30px rgba(0,0,0,.6)}
+.fab-b{border:none;border-radius:46px;padding:11px 17px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Cairo',sans-serif;color:#fff;transition:transform .15s}
+.fab-b:hover{transform:translateY(-2px)}
+.fab-g{background:linear-gradient(135deg,#8b6914,#c8a96e)}
+.fab-gr{background:linear-gradient(135deg,#1a5c38,#25a55a)}
+.fab-bl{background:linear-gradient(135deg,#1565c0,#42a5f5)}
 
-/* ══ SCROLL ANIMATIONS ══ */
-.fade-in{opacity:0;transform:translateY(28px);transition:opacity .6s ease,transform .6s ease}
-.fade-in.visible{opacity:1;transform:none}
-
-/* ══ GALLERY ══ */
-#lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:99999;align-items:center;justify-content:center}
+/* lightbox */
+#lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:99999;align-items:center;justify-content:center}
 #lb img{max-width:96vw;max-height:90vh;border-radius:10px;object-fit:contain}
-#lb-close{position:absolute;top:16px;left:16px;background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:50%;width:40px;height:40px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.gall-scroll{display:flex;gap:8px;overflow-x:auto;margin-top:12px;scrollbar-width:none}
-.gall-scroll::-webkit-scrollbar{display:none}
-.gall-scroll img{height:72px;width:110px;object-fit:cover;border-radius:8px;flex-shrink:0;cursor:pointer;opacity:.7;transition:opacity .2s}
-.gall-scroll img:hover{opacity:1}
+#lb-x{position:absolute;top:14px;left:14px;background:rgba(255,255,255,.14);border:none;color:#fff;border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 </style>
 </head>
 <body>
 
-<!-- ══ NAV ══ -->
-<nav class="nav" id="main-nav">
-  <div class="nav-inner">
-    <div class="nav-logo">
-      <div class="nav-logo-en">SHARK</div>
-      <div class="nav-logo-ar">شارك العقارية</div>
-    </div>
-    <div class="nav-links">
-      <a href="#offers">العروض</a>
-      <a href="#services">خدماتنا</a>
-      <a href="#map">الخريطة</a>
-      <a href="#about">من نحن</a>
-    </div>
-    <button class="nav-wa" onclick="openWA()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.533 5.847L.054 23.272a.5.5 0 0 0 .625.613l5.563-1.46A11.952 11.952 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.9 0-3.68-.528-5.195-1.443l-.371-.22-3.844 1.009 1.03-3.74-.243-.386A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-      واتساب
-    </button>
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">
+    <div class="en">Shark</div>
+    <div class="ar">شارك العقارية</div>
   </div>
+  <button class="nav-wa" onclick="openWA()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.533 5.847L.054 23.272a.5.5 0 0 0 .625.613l5.563-1.46A11.952 11.952 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.9 0-3.68-.528-5.195-1.443l-.371-.22-3.844 1.009 1.03-3.74-.243-.386A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+    واتساب
+  </button>
 </nav>
 
-<!-- ══ HERO ══ -->
-<section class="hero" id="hero">
-  <div class="hero-bg"></div>
-  <div class="hero-glow"></div>
-  <div class="hero-glow2"></div>
-  <div class="hero-content">
-    <div class="hero-badge">
-      <div class="hero-badge-dot"></div>
-      شريكك العقاري الموثوق في المملكة
-    </div>
-    <h1 class="hero-title">
-      نحوّل طموحاتك<br>إلى <span>عقارات حقيقية</span>
-    </h1>
-    <p class="hero-sub">
-      شارك العقارية — خبرة راسخة في بيع وشراء وتسويق العقارات بأرجاء المملكة العربية السعودية، نضع ثقتك في مقدمة أولوياتنا.
-    </p>
-    <div class="hero-btns">
-      <button class="btn-hero-primary" onclick="document.getElementById('offers').scrollIntoView({behavior:'smooth'})">تصفّح العروض</button>
-      <button class="btn-hero-outline" onclick="document.getElementById('modal-inv').classList.add('open')">سجّل اهتمامك</button>
-    </div>
-  </div>
-  <div class="hero-scroll">
-    <div class="hero-scroll-line"></div>
-  </div>
-</section>
+<!-- HERO MAP -->
+<div class="hero-map">
+  <div id="hero-leafmap"></div>
 
-<!-- ══ STATS ══ -->
-<div class="stats-bar">
-  <div class="stats-inner">
-    <div class="stat-item">
-      <div class="stat-num">+10</div>
-      <div class="stat-label">سنوات خبرة</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-num">+500</div>
-      <div class="stat-label">صفقة ناجحة</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-num">+1000</div>
-      <div class="stat-label">عميل راضٍ</div>
-    </div>
-    <div class="stat-item">
-      <div class="stat-num">+20</div>
-      <div class="stat-label">مدينة في المملكة</div>
+  <!-- project cards on map -->
+  <div class="proj-strip-wrap">
+    <div class="proj-strip" id="proj-strip"></div>
+  </div>
+
+  <!-- tagline + stats bottom -->
+  <div class="hero-bottom">
+    <div class="hero-tagline">عقارات <span>شارك</span> في كل مكان</div>
+    <div class="hero-stats">
+      <div class="hstat"><div class="hstat-n">+20</div><div class="hstat-l">مدينة في المملكة</div></div>
+      <div class="hstat"><div class="hstat-n">+10M</div><div class="hstat-l">قيمة الصفقات</div></div>
+      <div class="hstat"><div class="hstat-n">+500</div><div class="hstat-l">عميل راضٍ</div></div>
     </div>
   </div>
 </div>
 
-<!-- ══ SERVICES ══ -->
-<section class="section services-bg" id="services">
+<!-- SERVICES -->
+<section class="section srv-bg" id="services">
   <div class="section-inner">
-    <div class="section-head fade-in">
-      <div class="section-tag">خدماتنا</div>
-      <h2 class="section-title">كل ما تحتاجه في عالم العقار</h2>
-      <p class="section-sub">نقدم حلولاً عقارية متكاملة تناسب أهدافك سواء كنت تبحث عن الاستثمار أو السكن أو التسويق.</p>
+    <div class="s-head">
+      <div class="s-tag">خدماتنا</div>
+      <h2 class="s-title">كل ما تحتاجه في عالم العقار</h2>
+      <p class="s-sub">نقدم حلولاً عقارية متكاملة تناسب جميع احتياجاتك.</p>
     </div>
-    <div class="services-grid">
-      <div class="srv-card fade-in">
-        <div class="srv-icon">🏷️</div>
-        <div class="srv-title">بيع العقارات</div>
-        <div class="srv-desc">نسوّق عقارك بأحدث الأساليب ونضمن الوصول لأكبر شريحة من المشترين المؤهلين.</div>
-      </div>
-      <div class="srv-card fade-in">
-        <div class="srv-icon">🔑</div>
-        <div class="srv-title">شراء وتملّك</div>
-        <div class="srv-desc">نرافقك في رحلة الشراء من أول خطوة حتى استلام المفاتيح، بشفافية تامة وأفضل الأسعار.</div>
-      </div>
-      <div class="srv-card fade-in">
-        <div class="srv-icon">📊</div>
-        <div class="srv-title">الاستشارات العقارية</div>
-        <div class="srv-desc">نحلل السوق ونقدم لك توصيات احترافية لتتخذ قرارات استثمارية مدروسة ومربحة.</div>
-      </div>
-      <div class="srv-card fade-in">
-        <div class="srv-icon">💼</div>
-        <div class="srv-title">إدارة المحافظ</div>
-        <div class="srv-desc">ندير محفظتك العقارية بكفاءة عالية، من التأجير إلى الصيانة وتعظيم العائد الاستثماري.</div>
-      </div>
+    <div class="srv-grid">
+      <div class="srv-card"><div class="srv-icon">🏷️</div><div class="srv-name">بيع العقارات</div><div class="srv-desc">نسوّق عقارك لأوسع شريحة من المشترين بأحدث الأساليب الرقمية.</div></div>
+      <div class="srv-card"><div class="srv-icon">🔑</div><div class="srv-name">شراء وتملّك</div><div class="srv-desc">نرافقك من أول خطوة حتى استلام المفاتيح بشفافية تامة.</div></div>
+      <div class="srv-card"><div class="srv-icon">📊</div><div class="srv-name">استشارات عقارية</div><div class="srv-desc">تحليل دقيق للسوق وتوصيات احترافية لقرارات استثمارية مدروسة.</div></div>
+      <div class="srv-card"><div class="srv-icon">💼</div><div class="srv-name">إدارة المحافظ</div><div class="srv-desc">ندير محفظتك العقارية لتعظيم العائد الاستثماري بكفاءة عالية.</div></div>
     </div>
   </div>
 </section>
 
-<!-- ══ OFFERS ══ -->
+<!-- OFFERS -->
 <section class="section" id="offers">
   <div class="section-inner">
-    <div class="section-head fade-in">
-      <div class="section-tag">العروض المتاحة</div>
-      <h2 class="section-title">أبرز عقاراتنا</h2>
-      <p class="section-sub">اكتشف مجموعة مختارة من أفضل الفرص العقارية في مناطق متعددة من المملكة.</p>
+    <div class="s-head">
+      <div class="s-tag">العروض المتاحة</div>
+      <h2 class="s-title">أبرز عقاراتنا</h2>
     </div>
-    <div class="offers-toolbar">
-      <div class="offers-filter" id="offers-filter">
-        <button class="filter-btn active" data-type="all" onclick="filterOffers('all',this)">الكل</button>
-        <button class="filter-btn" data-type="warehouses" onclick="filterOffers('warehouses',this)">مستودعات</button>
-        <button class="filter-btn" data-type="villa" onclick="filterOffers('villa',this)">فلل</button>
-        <button class="filter-btn" data-type="lands" onclick="filterOffers('lands',this)">أراضي</button>
-        <button class="filter-btn" data-type="commercial" onclick="filterOffers('commercial',this)">تجاري</button>
-        <button class="filter-btn" data-type="apartments" onclick="filterOffers('apartments',this)">شقق</button>
-      </div>
+    <div class="filter-bar" id="filter-bar">
+      <button class="f-btn active" onclick="filterOffers('all',this)">الكل</button>
+      <button class="f-btn" onclick="filterOffers('warehouses',this)">مستودعات</button>
+      <button class="f-btn" onclick="filterOffers('villa',this)">فلل</button>
+      <button class="f-btn" onclick="filterOffers('lands',this)">أراضي</button>
+      <button class="f-btn" onclick="filterOffers('commercial',this)">تجاري</button>
+      <button class="f-btn" onclick="filterOffers('apartments',this)">شقق</button>
     </div>
-    <div class="offers-grid" id="offers-grid">
-      <div class="offers-empty">جارٍ تحميل العروض...</div>
-    </div>
+    <div class="offers-grid" id="offers-grid"></div>
   </div>
 </section>
 
-<!-- ══ MAP ══ -->
-<section class="map-section" id="map">
-  <div class="section-inner">
-    <div class="section-head fade-in">
-      <div class="section-tag">الخريطة التفاعلية</div>
-      <h2 class="section-title">مشاريعنا على الخريطة</h2>
-      <p class="section-sub">تصفّح عروضنا العقارية جغرافياً واكتشف الفرص المتاحة في منطقتك.</p>
-    </div>
-    <div class="map-projects-scroll" id="map-proj-scroll"></div>
-  </div>
-  <div class="map-wrap">
-    <div id="main-map"></div>
-  </div>
-</section>
-
-<!-- ══ ABOUT ══ -->
-<section class="section" id="about" style="background:var(--dark2)">
+<!-- ABOUT -->
+<section class="section about-bg" id="about">
   <div class="section-inner">
     <div class="about-grid">
-      <div class="about-img-wrap fade-in">
-        <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80" alt="شارك العقارية" loading="lazy">
-        <div class="about-img-accent">
-          <div class="n">2014</div>
-          <div class="l">تأسست شارك</div>
-        </div>
+      <div>
+        <img class="about-img" src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=700&q=80" alt="شارك العقارية" loading="lazy">
       </div>
-      <div class="about-text fade-in">
-        <div class="section-tag">من نحن</div>
-        <h2 class="section-title">أكثر من مجرد وساطة عقارية</h2>
-        <p>شارك العقارية شركة سعودية متخصصة في قطاع العقارات، تأسست بهدف تقديم خدمة عقارية راقية تجمع بين الخبرة الميدانية والابتكار في التسويق.</p>
-        <p>نؤمن بأن كل صفقة عقارية هي قرار مصيري لعميلنا، لذلك نوليه كامل الاهتمام ونضعه في قلب كل خطوة نخطوها.</p>
-        <div class="about-values">
-          <div class="about-val"><div class="about-val-dot"></div>الشفافية التامة</div>
-          <div class="about-val"><div class="about-val-dot"></div>الكفاءة والسرعة</div>
-          <div class="about-val"><div class="about-val-dot"></div>خدمة ما بعد البيع</div>
-          <div class="about-val"><div class="about-val-dot"></div>التميز في التسويق</div>
+      <div>
+        <div class="s-tag">من نحن</div>
+        <h2 class="s-title">أكثر من مجرد وساطة عقارية</h2>
+        <p class="about-p">شارك العقارية شركة سعودية متخصصة في قطاع العقارات، تأسست بهدف تقديم خدمة عقارية راقية تجمع بين الخبرة الميدانية والابتكار في التسويق.</p>
+        <p class="about-p">نؤمن بأن كل صفقة عقارية قرار مصيري لعميلنا، لذلك نوليه كامل الاهتمام في كل خطوة.</p>
+        <div class="about-vals">
+          <div class="about-val"><div class="about-dot"></div>الشفافية التامة</div>
+          <div class="about-val"><div class="about-dot"></div>الكفاءة والسرعة</div>
+          <div class="about-val"><div class="about-dot"></div>خدمة ما بعد البيع</div>
+          <div class="about-val"><div class="about-dot"></div>التميز في التسويق</div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ══ CTA BANNER ══ -->
-<div class="cta-banner">
-  <div class="section-tag" style="margin-bottom:16px">تواصل معنا</div>
-  <h2 class="section-title">هل أنت مستعد لخطوتك العقارية القادمة؟</h2>
-  <p>سواء كنت تريد الشراء أو البيع أو الاستثمار — نحن هنا لنساعدك.</p>
-  <div class="cta-btns">
-    <button class="btn-hero-primary" onclick="document.getElementById('modal-inv').classList.add('open')">💰 أريد الاستثمار</button>
-    <button class="btn-hero-outline" onclick="document.getElementById('modal-mkt').classList.add('open')">🏠 أسوّق عقاري</button>
-    <button class="btn-hero-outline" onclick="openWA()">تواصل مباشرة</button>
+<!-- CTA -->
+<div class="cta">
+  <div class="s-tag" style="margin-bottom:12px">تواصل معنا</div>
+  <h2 class="s-title">هل أنت مستعد لخطوتك العقارية القادمة؟</h2>
+  <p class="s-sub">سواء كنت تريد الشراء أو البيع أو الاستثمار</p>
+  <div class="cta-btns" style="margin-top:28px">
+    <button class="btn-gold" onclick="document.getElementById('mod-inv').classList.add('open')">💰 أريد الاستثمار</button>
+    <button class="btn-out" onclick="document.getElementById('mod-mkt').classList.add('open')">🏠 أسوّق عقاري</button>
+    <button class="btn-out" onclick="openWA()">تواصل واتساب</button>
   </div>
 </div>
 
-<!-- ══ FOOTER ══ -->
+<!-- FOOTER -->
 <footer class="footer">
   <div class="footer-inner">
-    <div class="footer-top">
-      <div class="footer-brand">
-        <div class="logo-en">SHARK</div>
-        <div class="logo-ar">شارك العقارية</div>
-        <p>شريكك الموثوق في سوق العقارات السعودي — نحوّل طموحاتك إلى واقع ملموس بخبرة تزيد على عقد من الزمن.</p>
-      </div>
-      <div class="footer-col">
-        <h5>روابط سريعة</h5>
-        <ul>
-          <li onclick="document.getElementById('offers').scrollIntoView({behavior:'smooth'})">العروض</li>
-          <li onclick="document.getElementById('services').scrollIntoView({behavior:'smooth'})">خدماتنا</li>
-          <li onclick="document.getElementById('map').scrollIntoView({behavior:'smooth'})">الخريطة</li>
-          <li onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})">من نحن</li>
-        </ul>
-      </div>
-      <div class="footer-col">
-        <h5>تواصل معنا</h5>
-        <ul>
-          <li onclick="openWA()">واتساب</li>
-          <li onclick="document.getElementById('modal-inv').classList.add('open')">سجّل اهتمامك</li>
-          <li onclick="document.getElementById('modal-mkt').classList.add('open')">سوّق عقارك</li>
-        </ul>
-      </div>
+    <div>
+      <div class="f-logo-en">Shark</div>
+      <div class="f-logo-ar">شارك العقارية</div>
+      <p class="f-desc">شريكك الموثوق في سوق العقارات السعودي — نحوّل طموحاتك إلى واقع ملموس.</p>
     </div>
-    <div class="footer-bottom">
-      <p>© 2024 شارك العقارية — جميع الحقوق محفوظة</p>
-      <p>sharekre.sa</p>
+    <div class="f-col">
+      <h5>روابط سريعة</h5>
+      <ul>
+        <li onclick="document.getElementById('offers').scrollIntoView({behavior:'smooth'})">العروض</li>
+        <li onclick="document.getElementById('services').scrollIntoView({behavior:'smooth'})">خدماتنا</li>
+        <li onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})">من نحن</li>
+      </ul>
     </div>
+    <div class="f-col">
+      <h5>للتواصل</h5>
+      <ul>
+        <li onclick="openWA()">واتساب</li>
+        <li onclick="document.getElementById('mod-inv').classList.add('open')">سجّل اهتمامك</li>
+        <li onclick="document.getElementById('mod-mkt').classList.add('open')">سوّق عقارك</li>
+      </ul>
+    </div>
+  </div>
+  <div class="f-copy">
+    <span>© 2024 شارك العقارية — جميع الحقوق محفوظة</span>
+    <span>sharekre.sa</span>
   </div>
 </footer>
 
-<!-- ══ MODAL: استثمار ══ -->
-<div class="modal-bg" id="modal-inv">
+<!-- MODAL: استثمار -->
+<div class="modal-bg" id="mod-inv">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('modal-inv')">×</button>
+    <button class="m-close" onclick="closeM('mod-inv')">×</button>
     <h3>💰 تسجيل اهتمام استثماري</h3>
-    <div id="inv-form">
-      <div class="form-row"><label>الاسم الكريم *</label><input id="si-name" type="text" placeholder="محمد أحمد"></div>
-      <div class="form-row"><label>رقم الجوال *</label><input id="si-phone" type="tel" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right"></div>
-      <div class="form-row"><label>نوع الاستثمار</label>
-        <select id="si-type">
-          <option value="">اختر النوع</option>
-          <option>أراضي</option><option>فلل</option><option>شقق</option>
-          <option>تجاري</option><option>مستودعات</option>
-        </select>
-      </div>
-      <div class="form-row"><label>ملاحظات (اختياري)</label><textarea id="si-note" rows="3" placeholder="تفاصيل إضافية..."></textarea></div>
-      <button class="btn-modal-submit" onclick="submitInv()">إرسال الطلب</button>
+    <div id="inv-f">
+      <div class="f-row"><label>الاسم *</label><input id="si-name" type="text" placeholder="محمد أحمد"></div>
+      <div class="f-row"><label>الجوال *</label><input id="si-phone" type="tel" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right"></div>
+      <div class="f-row"><label>نوع الاستثمار</label><select id="si-type"><option value="">اختر</option><option>أراضي</option><option>فلل</option><option>شقق</option><option>تجاري</option><option>مستودعات</option></select></div>
+      <div class="f-row"><label>ملاحظات</label><textarea id="si-note" rows="3" placeholder="تفاصيل إضافية..."></textarea></div>
+      <button class="btn-sub" onclick="subInv()">إرسال الطلب</button>
     </div>
-    <div class="modal-success" id="inv-success">
-      <div class="icon">🎉</div>
-      <h4>تم استلام طلبك!</h4>
-      <p>شكراً لاهتمامك، سيتواصل معك أحد مستشارينا قريباً.</p>
-    </div>
+    <div class="m-ok" id="inv-ok"><div class="ic">🎉</div><h4>تم الاستلام!</h4><p>سيتواصل معك مستشارنا قريباً.</p></div>
   </div>
 </div>
 
-<!-- ══ MODAL: تسويق ══ -->
-<div class="modal-bg" id="modal-mkt">
+<!-- MODAL: تسويق -->
+<div class="modal-bg" id="mod-mkt">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal('modal-mkt')">×</button>
+    <button class="m-close" onclick="closeM('mod-mkt')">×</button>
     <h3>🏠 تسويق عقاري</h3>
-    <div id="mkt-form">
-      <div class="form-row"><label>الاسم الكريم *</label><input id="sm-name" type="text" placeholder="محمد أحمد"></div>
-      <div class="form-row"><label>رقم الجوال *</label><input id="sm-phone" type="tel" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right"></div>
-      <div class="form-row"><label>نوع العقار</label>
-        <select id="sm-kind">
-          <option value="">اختر النوع</option>
-          <option>أرض</option><option>فيلا</option><option>شقة</option>
-          <option>عمارة</option><option>تجاري</option><option>مستودع</option>
-        </select>
-      </div>
-      <div class="form-row"><label>وصف العقار</label><textarea id="sm-note" rows="3" placeholder="الموقع، المساحة، السعر المطلوب..."></textarea></div>
-      <button class="btn-modal-submit" onclick="submitMkt()">إرسال الطلب</button>
+    <div id="mkt-f">
+      <div class="f-row"><label>الاسم *</label><input id="sm-name" type="text" placeholder="محمد أحمد"></div>
+      <div class="f-row"><label>الجوال *</label><input id="sm-phone" type="tel" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right"></div>
+      <div class="f-row"><label>نوع العقار</label><select id="sm-kind"><option value="">اختر</option><option>أرض</option><option>فيلا</option><option>شقة</option><option>عمارة</option><option>تجاري</option><option>مستودع</option></select></div>
+      <div class="f-row"><label>وصف العقار</label><textarea id="sm-note" rows="3" placeholder="الموقع والمساحة والسعر..."></textarea></div>
+      <button class="btn-sub" onclick="subMkt()">إرسال الطلب</button>
     </div>
-    <div class="modal-success" id="mkt-success">
-      <div class="icon">✅</div>
-      <h4>تم استلام طلبك!</h4>
-      <p>سنتواصل معك قريباً لبدء تسويق عقارك بأفضل الأساليب.</p>
-    </div>
+    <div class="m-ok" id="mkt-ok"><div class="ic">✅</div><h4>تم الاستلام!</h4><p>سنتواصل معك لبدء تسويق عقارك.</p></div>
   </div>
 </div>
 
-<!-- ══ MODAL: عرض العقار ══ -->
-<div class="modal-bg" id="modal-offer-detail">
-  <div class="modal" style="max-width:560px">
-    <button class="modal-close" onclick="closeModal('modal-offer-detail')">×</button>
-    <div id="od-content"></div>
+<!-- MODAL: offer detail -->
+<div class="modal-bg" id="mod-offer">
+  <div class="modal" style="max-width:520px">
+    <button class="m-close" onclick="closeM('mod-offer')">×</button>
+    <div id="od-body"></div>
   </div>
 </div>
 
-<!-- ══ LIGHTBOX ══ -->
+<!-- LIGHTBOX -->
 <div id="lb" onclick="closeLb()">
-  <button id="lb-close" onclick="closeLb()">✕</button>
+  <button id="lb-x" onclick="closeLb()">✕</button>
   <img id="lb-img" src="" alt="">
 </div>
 
-<!-- ══ FAB BAR ══ -->
-<div id="fab-bar">
+<!-- FABs -->
+<div id="fab">
   <div id="fab-inner">
-    <button class="fab-btn fab-gold" onclick="document.getElementById('modal-inv').classList.add('open')">💰 مهتم بالاستثمار</button>
-    <button class="fab-btn fab-green" onclick="document.getElementById('modal-mkt').classList.add('open')">🏠 أسوّق عقاري</button>
-    <button class="fab-btn fab-blue" onclick="document.getElementById('map').scrollIntoView({behavior:'smooth'})">🗺️ الخريطة</button>
+    <button class="fab-b fab-g" onclick="document.getElementById('mod-inv').classList.add('open')">💰 مهتم بالاستثمار</button>
+    <button class="fab-b fab-gr" onclick="document.getElementById('mod-mkt').classList.add('open')">🏠 أسوّق عقاري</button>
+    <button class="fab-b fab-bl" onclick="scrollTo({top:document.getElementById('offers').offsetTop,behavior:'smooth'})">🏠 العروض</button>
   </div>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 (function(){
-  var SHEETS_URL='https://script.google.com/macros/s/AKfycbyHVwZPpmNrCOrXjbzlrrkz1tYcA1v7MXvDfwlPFYKUMzV3ICTmpYsNP22HH6dsF7k/exec';
+  var SHEETS='https://script.google.com/macros/s/AKfycbyHVwZPpmNrCOrXjbzlrrkz1tYcA1v7MXvDfwlPFYKUMzV3ICTmpYsNP22HH6dsF7k/exec';
   var PHONE='966539997060';
-  var TYPE_LABELS={warehouses:'مستودع',commercial:'تجاري',residential:'سكني',villas:'فيلا',villa:'فيلا',apartments:'شقة',lands:'أرض',agricultural:'زراعي',rest:'استراحة',chalets:'شاليه',land:'أرض',apartment:'شقة'};
-  var CITY_COORDS={'الرياض':[24.7136,46.6753],'جدة':[21.4858,39.1925],'مكة المكرمة':[21.3891,39.8579],'المدينة المنورة':[24.5247,39.5692],'الدمام':[26.4207,50.0888],'الخبر':[26.2172,50.1971],'الأحساء':[25.3814,49.5875],'تبوك':[28.3998,36.5700],'أبها':[18.2164,42.5053],'بريدة':[26.3292,43.9749],'حائل':[27.5219,41.7087],'نجران':[17.5656,44.2289],'جازان':[16.8892,42.5511],'ينبع':[24.0895,38.0618],'خميس مشيط':[18.3000,42.7333],'الجبيل':[27.0025,49.6603]};
+  var TL={warehouses:'مستودع',commercial:'تجاري',residential:'سكني',villas:'فيلا',villa:'فيلا',apartments:'شقة',apartment:'شقة',lands:'أرض',land:'أرض',agricultural:'زراعي',rest:'استراحة',chalets:'شاليه'};
+  var CC={'الرياض':[24.7136,46.6753],'جدة':[21.4858,39.1925],'مكة المكرمة':[21.3891,39.8579],'المدينة المنورة':[24.5247,39.5692],'الدمام':[26.4207,50.0888],'الخبر':[26.2172,50.1971],'الأحساء':[25.3814,49.5875],'تبوك':[28.3998,36.5700],'أبها':[18.2164,42.5053],'بريدة':[26.3292,43.9749],'حائل':[27.5219,41.7087],'نجران':[17.5656,44.2289],'جازان':[16.8892,42.5511],'ينبع':[24.0895,38.0618],'خميس مشيط':[18.3000,42.7333],'الجبيل':[27.0025,49.6603]};
 
-  /* ── helpers ── */
   function gs(k){try{return JSON.parse(localStorage.getItem(k)||'null');}catch(e){return null;}}
-  function sendSheets(rec){try{fetch(SHEETS_URL,{method:'POST',mode:'no-cors',body:JSON.stringify(rec)});}catch(e){}}
-  function saveLocal(rec){try{var a=gs('shark_admin_clients')||[];a.unshift(rec);localStorage.setItem('shark_admin_clients',JSON.stringify(a));}catch(e){}}
-  function nowAr(){return new Date().toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'});}
-  function fmtPrice(n){if(!n)return'—';var v=Number(String(n).replace(/,/g,''));if(!v)return n;if(v>=1000000)return(v/1000000).toLocaleString('ar',{maximumFractionDigits:2})+' مليون ريال';return v.toLocaleString('ar-SA')+' ريال';}
+  function send(r){try{fetch(SHEETS,{method:'POST',mode:'no-cors',body:JSON.stringify(r)});}catch(e){}}
+  function save(r){try{var a=gs('shark_admin_clients')||[];a.unshift(r);localStorage.setItem('shark_admin_clients',JSON.stringify(a));}catch(e){}}
+  function now(){return new Date().toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'});}
+  function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function fmt(n){if(!n)return'—';var v=Number(String(n).replace(/,/g,''));if(!v)return n;if(v>=1000000)return(v/1000000).toLocaleString('ar',{maximumFractionDigits:2})+' مليون ريال';return v.toLocaleString('ar-SA')+' ريال';}
 
-  /* ── nav scroll ── */
-  window.addEventListener('scroll',function(){
-    document.getElementById('main-nav').classList.toggle('scrolled',window.scrollY>40);
-  });
-
-  /* ── wa ── */
   window.openWA=function(){window.open('https://wa.me/'+PHONE+'?text='+encodeURIComponent('السلام عليكم، أود الاستفسار عن العقارات'),'_blank');};
-
-  /* ── modals ── */
-  window.closeModal=function(id){document.getElementById(id).classList.remove('open');};
-  document.querySelectorAll('.modal-bg').forEach(function(m){
-    m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});
-  });
-
-  /* ── submit invest ── */
-  window.submitInv=function(){
-    var n=document.getElementById('si-name').value.trim(), p=document.getElementById('si-phone').value.trim();
-    if(!n||!p){alert('الرجاء إدخال الاسم ورقم الجوال');return;}
-    var rec={name:n,phone:p,type:'رغبة استثمار',interest:document.getElementById('si-type').value,note:document.getElementById('si-note').value.trim(),source:'invest',date:nowAr(),id:'SK-'+(Date.now()%100000)};
-    saveLocal(rec); sendSheets(rec);
-    document.getElementById('inv-form').style.display='none';
-    document.getElementById('inv-success').style.display='block';
-    setTimeout(function(){closeModal('modal-inv');document.getElementById('inv-form').style.display='block';document.getElementById('inv-success').style.display='none';['si-name','si-phone','si-note'].forEach(function(i){document.getElementById(i).value='';});},3000);
-  };
-
-  /* ── submit marketing ── */
-  window.submitMkt=function(){
-    var n=document.getElementById('sm-name').value.trim(), p=document.getElementById('sm-phone').value.trim();
-    if(!n||!p){alert('الرجاء إدخال الاسم ورقم الجوال');return;}
-    var rec={name:n,phone:p,type:'عرض عقار',interest:document.getElementById('sm-kind').value,note:document.getElementById('sm-note').value.trim(),source:'marketing',date:nowAr(),id:'SK-'+(Date.now()%100000)};
-    saveLocal(rec); sendSheets(rec);
-    document.getElementById('mkt-form').style.display='none';
-    document.getElementById('mkt-success').style.display='block';
-    setTimeout(function(){closeModal('modal-mkt');document.getElementById('mkt-form').style.display='block';document.getElementById('mkt-success').style.display='none';['sm-name','sm-phone','sm-note'].forEach(function(i){document.getElementById(i).value='';});},3000);
-  };
-
-  /* ── lightbox ── */
-  window.openLb=function(src){document.getElementById('lb-img').src=src;document.getElementById('lb').style.display='flex';document.body.style.overflow='hidden';};
+  window.closeM=function(id){document.getElementById(id).classList.remove('open');};
+  document.querySelectorAll('.modal-bg').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});});
+  window.openLb=function(s){document.getElementById('lb-img').src=s;document.getElementById('lb').style.display='flex';document.body.style.overflow='hidden';};
   window.closeLb=function(){document.getElementById('lb').style.display='none';document.body.style.overflow='';};
 
-  /* ── offers ── */
-  var _allOffers=[];
+  window.subInv=function(){
+    var n=document.getElementById('si-name').value.trim(),p=document.getElementById('si-phone').value.trim();
+    if(!n||!p){alert('الرجاء إدخال الاسم ورقم الجوال');return;}
+    var r={name:n,phone:p,type:'رغبة استثمار',interest:document.getElementById('si-type').value,note:document.getElementById('si-note').value.trim(),source:'invest',date:now(),id:'SK-'+(Date.now()%100000)};
+    save(r);send(r);
+    document.getElementById('inv-f').style.display='none';document.getElementById('inv-ok').style.display='block';
+    setTimeout(function(){closeM('mod-inv');document.getElementById('inv-f').style.display='block';document.getElementById('inv-ok').style.display='none';['si-name','si-phone','si-note'].forEach(function(i){document.getElementById(i).value='';});},3000);
+  };
+  window.subMkt=function(){
+    var n=document.getElementById('sm-name').value.trim(),p=document.getElementById('sm-phone').value.trim();
+    if(!n||!p){alert('الرجاء إدخال الاسم ورقم الجوال');return;}
+    var r={name:n,phone:p,type:'عرض عقار',interest:document.getElementById('sm-kind').value,note:document.getElementById('sm-note').value.trim(),source:'marketing',date:now(),id:'SK-'+(Date.now()%100000)};
+    save(r);send(r);
+    document.getElementById('mkt-f').style.display='none';document.getElementById('mkt-ok').style.display='block';
+    setTimeout(function(){closeM('mod-mkt');document.getElementById('mkt-f').style.display='block';document.getElementById('mkt-ok').style.display='none';['sm-name','sm-phone','sm-note'].forEach(function(i){document.getElementById(i).value='';});},3000);
+  };
+
+  /* ── OFFERS ── */
+  var _offers=[];
   function loadOffers(){
-    _allOffers=gs('shark_offers')||[];
+    _offers=gs('shark_offers')||[];
     renderOffers('all');
-    renderMapProjects();
-    initMap();
+    buildProjStrip();
+    buildMap();
   }
-  var _activeFilter='all';
   window.filterOffers=function(type,btn){
-    _activeFilter=type;
-    document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
+    document.querySelectorAll('.f-btn').forEach(function(b){b.classList.remove('active');});
     btn.classList.add('active');
     renderOffers(type);
   };
   function renderOffers(type){
-    var grid=document.getElementById('offers-grid');
-    var list=type==='all'?_allOffers:_allOffers.filter(function(o){return o.type===type;});
-    if(!list.length){
-      grid.innerHTML='<div class="offers-empty" style="grid-column:1/-1">لا توجد عروض '+(type==='all'?'':' في هذه الفئة')+' بعد</div>';
-      return;
-    }
-    grid.innerHTML=list.map(function(o){
-      var img=o.coverImg?'<img class="offer-card-img" src="'+o.coverImg+'" alt="'+escHtml(o.ar||'')+'" loading="lazy">':'<div class="offer-card-no-img">🏠</div>';
-      return '<div class="offer-card fade-in" onclick="openOfferDetail(\''+o.id+'\')">'
-        +img
-        +'<div class="offer-card-body">'
-        +'<div class="offer-card-type">'+(TYPE_LABELS[o.type]||o.type||'عقار')+'</div>'
-        +'<div class="offer-card-title">'+escHtml(o.ar||o.name||'عرض عقاري')+'</div>'
-        +'<div class="offer-card-loc"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>'
-        +escHtml((o.city||'')+(o.district?' · '+o.district:''))+'</div>'
-        +'<div class="offer-card-price">'+fmtPrice(o.price)+'</div>'
-        +(o.area||o.beds?'<div class="offer-card-meta">'
-          +(o.area?'<div class="offer-meta-item">📐 '+o.area+' م²</div>':'')
-          +(o.beds?'<div class="offer-meta-item">🛏 '+o.beds+' غرف</div>':'')
-          +'</div>':'')
+    var g=document.getElementById('offers-grid');
+    var list=type==='all'?_offers:_offers.filter(function(o){return o.type===type;});
+    if(!list.length){g.innerHTML='<div class="o-empty">لا توجد عروض '+(type==='all'?'بعد':'في هذه الفئة')+'</div>';return;}
+    g.innerHTML=list.map(function(o){
+      return '<div class="o-card" onclick="showOffer(\''+esc(o.id)+'\')"><div>'
+        +(o.coverImg?'<img src="'+esc(o.coverImg)+'" loading="lazy">':'<div class="o-no-img">🏠</div>')
+        +'</div><div class="o-body">'
+        +'<div class="o-type">'+(TL[o.type]||o.type||'عقار')+'</div>'
+        +'<div class="o-name">'+esc(o.ar||o.name||'عرض عقاري')+'</div>'
+        +'<div class="o-loc"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>'+esc((o.city||'')+(o.district?' · '+o.district:''))+'</div>'
+        +'<div class="o-price">'+fmt(o.price)+'</div>'
+        +((o.area||o.beds)?'<div class="o-meta">'+(o.area?'<span>📐 '+o.area+' م²</span>':'')+(o.beds?'<span>🛏 '+o.beds+'</span>':'')+'</div>':'')
         +'</div></div>';
     }).join('');
-    observeFade();
   }
 
-  /* ── offer detail ── */
-  window.openOfferDetail=function(id){
-    var o=_allOffers.find(function(x){return x.id===id;}); if(!o) return;
+  window.showOffer=function(id){
+    var o=_offers.find(function(x){return x.id===id;}); if(!o) return;
     var imgs=o.gallery?o.gallery.split('\n').filter(Boolean):[];
-    var gallHtml=imgs.length?'<div class="gall-scroll">'+imgs.map(function(s){return'<img src="'+s+'" onclick="openLb(\''+s+'\')">';}).join('')+'</div>':'';
-    var feats=(o.features||[]).length?'<div class="od-feats">'+o.features.map(function(f){return'<div class="od-feat">'+escHtml(f)+'</div>';}).join('')+'</div>':'';
-    document.getElementById('od-content').innerHTML=
-      (o.coverImg?'<img class="od-img" src="'+o.coverImg+'" alt="" onclick="openLb(\''+o.coverImg+'\')" style="cursor:pointer">':'<div class="od-no-img">🏠</div>')
-      +'<div class="offer-card-type" style="margin-bottom:8px">'+(TYPE_LABELS[o.type]||o.type||'عقار')+'</div>'
-      +'<h3 style="font-size:18px;font-weight:800;margin-bottom:8px;color:var(--text)">'+escHtml(o.ar||o.name||'')+'</h3>'
-      +'<div style="color:var(--gold);font-size:13px;margin-bottom:16px">📍 '+escHtml((o.city||'')+(o.district?' — '+o.district:''))+'</div>'
-      +'<div class="od-meta">'
-      +(o.price?'<div class="od-meta-item"><div class="od-meta-val">'+fmtPrice(o.price)+'</div><div class="od-meta-key">السعر</div></div>':'')
-      +(o.area?'<div class="od-meta-item"><div class="od-meta-val">'+o.area+' م²</div><div class="od-meta-key">المساحة</div></div>':'')
-      +(o.beds?'<div class="od-meta-item"><div class="od-meta-val">'+o.beds+'</div><div class="od-meta-key">غرف</div></div>':'')
+    document.getElementById('od-body').innerHTML=
+      (o.coverImg?'<img class="od-img" src="'+esc(o.coverImg)+'" onclick="openLb(\''+esc(o.coverImg)+'\')">':'<div class="od-noimg">🏠</div>')
+      +'<div class="o-type" style="margin-bottom:6px">'+(TL[o.type]||o.type||'عقار')+'</div>'
+      +'<div style="font-size:17px;font-weight:800;margin-bottom:6px">'+esc(o.ar||o.name||'')+'</div>'
+      +'<div style="font-size:13px;color:var(--gold);margin-bottom:14px">📍 '+esc((o.city||'')+(o.district?' — '+o.district:''))+'</div>'
+      +'<div class="od-stats">'
+      +(o.price?'<div class="od-s"><div class="od-sv">'+fmt(o.price)+'</div><div class="od-sk">السعر</div></div>':'')
+      +(o.area?'<div class="od-s"><div class="od-sv">'+o.area+' م²</div><div class="od-sk">المساحة</div></div>':'')
+      +(o.beds?'<div class="od-s"><div class="od-sv">'+o.beds+'</div><div class="od-sk">غرف</div></div>':'')
       +'</div>'
-      +(o.desc?'<p style="font-size:13px;color:var(--sub);line-height:1.8;margin-bottom:16px">'+escHtml(o.desc)+'</p>':'')
-      +feats+gallHtml
-      +'<div style="margin-top:20px;display:flex;flex-direction:column;gap:10px">'
-      +'<button class="btn-wa-offer" onclick="waOffer(\''+escHtml(o.ar||o.name||'')+'\')">'
-      +'<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.533 5.847L.054 23.272a.5.5 0 0 0 .625.613l5.563-1.46A11.952 11.952 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.9 0-3.68-.528-5.195-1.443l-.371-.22-3.844 1.009 1.03-3.74-.243-.386A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>'
+      +(o.desc?'<p style="font-size:13px;color:var(--sub);line-height:1.8;margin-bottom:14px">'+esc(o.desc)+'</p>':'')
+      +((o.features||[]).length?'<div class="od-feats">'+o.features.map(function(f){return'<div class="od-feat">'+esc(f)+'</div>';}).join('')+'</div>':'')
+      +(imgs.length?'<div class="od-gall">'+imgs.map(function(s){return'<img src="'+esc(s)+'" onclick="openLb(\''+esc(s)+'\')">';}).join('')+'</div>':'')
+      +'<button class="btn-wa-od" onclick="waOffer(\''+esc(o.ar||o.name||'')+'\')">'
+      +'<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.533 5.847L.054 23.272a.5.5 0 0 0 .625.613l5.563-1.46A11.952 11.952 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>'
       +'تواصل عبر واتساب</button>'
-      +'<button class="btn-interest-offer" onclick="closeModal(\'modal-offer-detail\');document.getElementById(\'modal-inv\').classList.add(\'open\')">سجّل اهتمامك بهذا العرض</button>'
-      +'</div>';
-    document.getElementById('modal-offer-detail').classList.add('open');
+      +'<button class="btn-int-od" onclick="closeM(\'mod-offer\');document.getElementById(\'mod-inv\').classList.add(\'open\')">سجّل اهتمامك بهذا العرض</button>';
+    document.getElementById('mod-offer').classList.add('open');
   };
-  window.waOffer=function(title){
-    window.open('https://wa.me/'+PHONE+'?text='+encodeURIComponent('السلام عليكم، أنا مهتم بالعقار: '+title),'_blank');
-  };
+  window.waOffer=function(t){window.open('https://wa.me/'+PHONE+'?text='+encodeURIComponent('السلام عليكم، أنا مهتم بالعقار: '+t),'_blank');};
 
-  /* ── map ── */
-  function renderMapProjects(){
-    var scroll=document.getElementById('map-proj-scroll');
-    var offers=_allOffers.filter(function(o){
-      if(o.lat&&o.lng) return true;
-      return o.city&&CITY_COORDS[o.city];
-    });
-    if(!offers.length){scroll.style.display='none';return;}
-    scroll.innerHTML=offers.map(function(o){
-      return '<div class="map-proj-card" id="mpc-'+o.id+'" onclick="focusMapOffer(\''+o.id+'\')">'
-        +(o.coverImg?'<img src="'+o.coverImg+'" alt="" loading="lazy">':'<div class="no-img">🏠</div>')
-        +'<div class="map-proj-body">'
-        +'<div class="map-proj-title">'+escHtml(o.ar||o.name||'عرض')+'</div>'
-        +'<div class="map-proj-loc">'+escHtml(o.city||'')+'</div>'
+  /* ── MAP ── */
+  var _map=null, _markers={};
+  function buildProjStrip(){
+    var strip=document.getElementById('proj-strip');
+    var mapped=_offers.filter(function(o){return (o.lat&&o.lng)||(o.city&&CC[o.city]);});
+    if(!mapped.length){strip.parentElement.style.display='none';return;}
+    strip.innerHTML=mapped.map(function(o){
+      return '<div class="proj-card" id="pc-'+esc(o.id)+'" onclick="focusOffer(\''+esc(o.id)+'\')"><div>'
+        +(o.coverImg?'<img src="'+esc(o.coverImg)+'" loading="lazy">':'<div class="proj-no-img">🏠</div>')
+        +'</div><div class="proj-card-body">'
+        +'<div class="proj-card-title">'+esc(o.ar||o.name||'')+'</div>'
+        +'<div class="proj-card-loc">'+esc(o.city||'')+'</div>'
+        +(o.price?'<div class="proj-card-price">'+fmt(o.price)+'</div>':'')
         +'</div></div>';
     }).join('');
-  }
-
-  var _leafMap=null, _markers={};
-  function initMap(){
-    if(!document.getElementById('main-map')) return;
-    var s=document.createElement('script');
-    s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    var l=document.createElement('link');l.rel='stylesheet';l.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    document.head.appendChild(l);
-    document.head.appendChild(s);
-    s.onload=function(){buildMap();};
   }
   function buildMap(){
-    var mapDiv=document.getElementById('main-map');
-    var map=L.map(mapDiv,{zoomControl:true,attributionControl:false}).setView([23.8859,45.0792],5);
-    _leafMap=map;
+    if(!window.L){setTimeout(buildMap,300);return;}
+    var div=document.getElementById('hero-leafmap');
+    var map=L.map(div,{zoomControl:false,attributionControl:false}).setView([23.8859,45.0792],5);
+    _map=map;
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(map);
-    var icon=L.divIcon({className:'',html:'<div style="background:linear-gradient(135deg,#c8a96e,#f0d080);width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid rgba(255,255,255,.4);box-shadow:0 2px 12px rgba(200,169,110,.6)"></div>',iconSize:[30,30],iconAnchor:[15,30]});
+    L.control.zoom({position:'bottomleft'}).addTo(map);
+    var icon=L.divIcon({className:'',html:'<div style="width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:linear-gradient(135deg,#c8a96e,#f0d080);border:2px solid rgba(255,255,255,.35);box-shadow:0 2px 10px rgba(200,169,110,.6)"></div>',iconSize:[26,26],iconAnchor:[13,26]});
     var hasM=false;
-    _allOffers.forEach(function(o){
+    _offers.forEach(function(o){
       var lat=parseFloat(o.lat),lng=parseFloat(o.lng);
-      if((!lat||!lng)&&o.city&&CITY_COORDS[o.city]){lat=CITY_COORDS[o.city][0];lng=CITY_COORDS[o.city][1];}
+      if((!lat||!lng)&&o.city&&CC[o.city]){lat=CC[o.city][0];lng=CC[o.city][1];}
       if(!lat||!lng) return;
       hasM=true;
       var m=L.marker([lat,lng],{icon:icon}).addTo(map);
-      m.bindPopup('<div dir="rtl" style="font-family:Cairo,Arial,sans-serif;min-width:160px;padding:4px"><b style="color:#c8a96e;font-size:14px">'+escHtml(o.ar||o.name||'')+'</b><br><span style="color:#888;font-size:12px">'+escHtml(o.city||'')+'</span>'+(o.price?'<br><b style="color:#333;font-size:13px">'+fmtPrice(o.price)+'</b>':'')+'<br><button onclick="openOfferDetail(\''+o.id+'\')" style="margin-top:8px;background:#c8a96e;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;width:100%">عرض التفاصيل</button></div>');
+      m.bindPopup('<div dir="rtl" style="font-family:Cairo,Arial,sans-serif;min-width:150px;padding:2px"><b style="color:#c8a96e;font-size:14px">'+esc(o.ar||o.name||'')+'</b><br><span style="color:#888;font-size:12px">'+esc(o.city||'')+'</span>'+(o.price?'<br><b style="font-size:13px">'+fmt(o.price)+'</b>':'')+'<br><button onclick="showOffer(\''+esc(o.id)+'\')" style="margin-top:7px;background:#c8a96e;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;width:100%;font-family:inherit">عرض التفاصيل</button></div>');
       _markers[o.id]=m;
     });
     if(hasM){try{var g=L.featureGroup(Object.values(_markers));map.fitBounds(g.getBounds().pad(0.3));}catch(e){}}
   }
-  window.focusMapOffer=function(id){
-    document.querySelectorAll('.map-proj-card').forEach(function(c){c.classList.remove('active');});
-    var card=document.getElementById('mpc-'+id);
-    if(card){card.classList.add('active');card.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});}
-    if(_markers[id]){
-      document.getElementById('map').scrollIntoView({behavior:'smooth'});
-      setTimeout(function(){
-        if(_leafMap){_leafMap.setView(_markers[id].getLatLng(),13,{animate:true});_markers[id].openPopup();}
-      },500);
-    }
+  window.focusOffer=function(id){
+    document.querySelectorAll('.proj-card').forEach(function(c){c.classList.remove('active');});
+    var c=document.getElementById('pc-'+id);
+    if(c){c.classList.add('active');c.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});}
+    if(_markers[id]&&_map){_map.setView(_markers[id].getLatLng(),14,{animate:true});setTimeout(function(){_markers[id].openPopup();},400);}
   };
 
-  /* ── scroll fade ── */
-  function observeFade(){
-    var obs=new IntersectionObserver(function(entries){
-      entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('visible');});
-    },{threshold:.12});
-    document.querySelectorAll('.fade-in:not(.visible)').forEach(function(el){obs.observe(el);});
-  }
-  observeFade();
-
-  function escHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-
-  /* ── init ── */
-  document.addEventListener('DOMContentLoaded',function(){
-    loadOffers();
-    observeFade();
-  });
-  if(document.readyState!=='loading') loadOffers();
+  loadOffers();
 })();
 </script>
 </body>
