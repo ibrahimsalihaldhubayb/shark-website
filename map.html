@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#0b0b0c">
+<title>خريطة العروض — شارك العقارية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--gold:#c8a96e;--dark:#0b0b0c;--card:#16181d;--border:rgba(244,243,239,.1);--text:#f4f3ef;--sub:#a8a59d}
+html,body{height:100%;font-family:'Cairo',Tahoma,Arial,sans-serif;direction:rtl;background:var(--dark);color:var(--text);overflow:hidden}
+
+/* ── TOP BAR ── */
+#topbar{position:fixed;top:0;left:0;right:0;z-index:2000;height:56px;display:flex;align-items:center;gap:10px;padding:0 12px;background:rgba(11,11,13,.95);border-bottom:1px solid rgba(255,255,255,.07);backdrop-filter:blur(16px)}
+#topbar a{display:flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid rgba(255,255,255,.12);border-radius:20px;color:var(--sub);font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap;flex-shrink:0;transition:.2s}
+#topbar a:hover{border-color:var(--gold);color:var(--gold)}
+#search-wrap{flex:1;position:relative;max-width:380px}
+#search-input{width:100%;padding:9px 36px 9px 14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:22px;color:var(--text);font-family:'Cairo',sans-serif;font-size:13px;outline:none;direction:rtl;transition:border-color .2s}
+#search-input:focus{border-color:rgba(200,169,110,.4)}
+#search-input::placeholder{color:rgba(244,243,239,.25)}
+#search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--sub);pointer-events:none}
+#filter-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+#filter-chips::-webkit-scrollbar{display:none}
+.chip{padding:6px 14px;border:1px solid rgba(255,255,255,.1);border-radius:18px;background:transparent;color:var(--sub);font-family:'Cairo',sans-serif;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;transition:.2s}
+.chip.on{border-color:var(--gold);color:var(--gold);background:rgba(200,169,110,.1)}
+
+/* ── MAP ── */
+#map{position:fixed;inset:0;top:56px;z-index:1}
+
+/* ── BOTTOM PANEL ── */
+#panel{position:fixed;bottom:0;left:0;right:0;z-index:2000;transition:transform .35s cubic-bezier(.32,.72,0,1)}
+#panel.collapsed{transform:translateY(calc(100% - 64px))}
+#panel-handle{height:64px;background:rgba(14,14,18,.97);border-top:1px solid rgba(255,255,255,.08);border-radius:18px 18px 0 0;display:flex;align-items:center;justify-content:space-between;padding:0 20px;cursor:pointer;backdrop-filter:blur(16px)}
+#panel-handle-pill{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.18);position:absolute;top:10px;left:50%;transform:translateX(-50%)}
+#panel-count{font-size:13px;font-weight:700;color:var(--text)}
+#panel-count span{color:var(--gold)}
+#panel-toggle{color:var(--sub);font-size:18px;line-height:1;background:none;border:none;cursor:pointer;padding:8px;transition:transform .35s}
+#panel.collapsed #panel-toggle{transform:rotate(180deg)}
+#panel-body{background:rgba(14,14,18,.97);max-height:52vh;overflow-y:auto;padding:0 12px 100px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.12) transparent}
+#panel-body::-webkit-scrollbar{width:4px}
+#panel-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:2px}
+.list-card{display:flex;gap:12px;padding:12px 4px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;transition:background .15s;border-radius:8px}
+.list-card:hover{background:rgba(255,255,255,.04)}
+.list-card-img{width:80px;height:64px;border-radius:9px;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,#1a1a1f,#1e1a0e);display:flex;align-items:center;justify-content:center;font-size:20px;color:rgba(200,169,110,.3)}
+.list-card-img img{width:80px;height:64px;border-radius:9px;object-fit:cover}
+.list-card-info{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:3px}
+.list-card-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-card-loc{font-size:11px;color:var(--sub)}
+.list-card-price{font-size:13px;color:var(--gold);font-weight:700;margin-top:2px}
+.list-card-tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.2);color:var(--gold);margin-bottom:3px}
+
+/* ── POPUP ── */
+.lf-popup .leaflet-popup-content-wrapper{background:#1a1a22;border:1px solid rgba(255,255,255,.12);border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.6);padding:0;overflow:hidden}
+.lf-popup .leaflet-popup-tip-container{display:none}
+.lf-popup .leaflet-popup-content{margin:0;width:230px!important}
+.pop-inner{padding:14px}
+.pop-img{width:100%;height:120px;object-fit:cover}
+.pop-no-img{width:100%;height:80px;background:linear-gradient(135deg,#1a1a1f,#1e1a0e);display:flex;align-items:center;justify-content:center;font-size:32px}
+.pop-tag{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--gold);margin-bottom:4px}
+.pop-name{font-size:14px;font-weight:800;margin-bottom:3px;color:var(--text)}
+.pop-loc{font-size:11px;color:var(--sub);margin-bottom:8px}
+.pop-price{font-size:15px;font-weight:900;color:var(--gold);margin-bottom:10px}
+.pop-btn{width:100%;padding:9px;background:linear-gradient(135deg,#c8972e,#d4a83c 55%,#ba8420);color:#1a1000;border:none;border-radius:8px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:800;cursor:pointer}
+
+/* ── CLUSTER ── */
+.city-cluster{background:rgba(200,169,110,.18);border:2px solid rgba(200,169,110,.55);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--gold);font-family:'Cairo',sans-serif;font-weight:800;cursor:pointer;transition:.2s;backdrop-filter:blur(6px)}
+.city-cluster:hover{background:rgba(200,169,110,.35);border-color:var(--gold);transform:scale(1.1)}
+.city-cluster-inner{display:flex;flex-direction:column;align-items:center;line-height:1.1}
+.city-cluster-num{font-size:16px;font-weight:900}
+.city-cluster-name{font-size:9px;opacity:.8;white-space:nowrap}
+
+/* single pin */
+.pin-dot{width:14px;height:14px;background:var(--gold);border:2px solid #fff;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.5),0 0 0 4px rgba(200,169,110,.2);cursor:pointer;transition:.2s}
+.pin-dot:hover{transform:scale(1.3)}
+
+/* ── EMPTY ── */
+#empty-state{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1500;text-align:center;pointer-events:none;display:none}
+#empty-state h3{font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px}
+#empty-state p{font-size:13px;color:var(--sub)}
+
+/* ── OFFER MODAL ── */
+#mod-offer{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9000;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+#mod-offer.open{display:flex}
+#mod-inner{background:#1a1a22;border:1px solid rgba(244,243,239,.18);border-radius:18px;padding:28px 24px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;position:relative}
+#mod-inner h4{font-size:17px;font-weight:800;color:var(--gold);margin-bottom:16px}
+#mod-close{position:absolute;top:12px;left:16px;background:none;border:none;color:var(--sub);font-size:24px;cursor:pointer}
+.od-img{width:100%;height:200px;object-fit:cover;border-radius:10px;margin-bottom:14px}
+.od-noimg{width:100%;height:140px;border-radius:10px;background:linear-gradient(135deg,#1a1a1f,#1e1a0e);display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:14px}
+.od-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.od-s{background:rgba(255,255,255,.05);border-radius:8px;padding:9px;text-align:center}
+.od-sv{font-size:13px;font-weight:700;color:var(--gold)}
+.od-sk{font-size:10px;color:var(--sub);margin-top:2px}
+.btn-wa-od{width:100%;padding:12px;background:#25d366;color:#fff;border:none;border-radius:8px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px}
+.btn-int-od{width:100%;padding:12px;background:linear-gradient(135deg,#c8972e,#d4a83c 55%,#ba8420);color:#1a1000;border:none;border-radius:8px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:800;cursor:pointer}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <a href="index.html">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    الرئيسية
+  </a>
+  <div id="search-wrap">
+    <input id="search-input" type="text" placeholder="ابحث عن مدينة أو حي..." oninput="onSearch(this.value)">
+    <svg id="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+  </div>
+  <div id="filter-chips">
+    <button class="chip on" onclick="setFilter('all',this)">الكل</button>
+    <button class="chip" onclick="setFilter('lands',this)">أراضي</button>
+    <button class="chip" onclick="setFilter('warehouses',this)">مستودعات</button>
+    <button class="chip" onclick="setFilter('villa',this)">فلل</button>
+    <button class="chip" onclick="setFilter('apartments',this)">شقق</button>
+    <button class="chip" onclick="setFilter('commercial',this)">تجاري</button>
+  </div>
+</div>
+
+<!-- MAP -->
+<div id="map"></div>
+
+<!-- EMPTY STATE -->
+<div id="empty-state">
+  <h3>لا توجد عروض بعد</h3>
+  <p>أضف عروضاً من لوحة الإدارة وستظهر هنا</p>
+</div>
+
+<!-- BOTTOM PANEL -->
+<div id="panel" class="collapsed">
+  <div id="panel-handle" onclick="togglePanel()">
+    <div id="panel-handle-pill"></div>
+    <div id="panel-count">العروض <span id="panel-num">0</span></div>
+    <button id="panel-toggle">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 15l6-6 6 6"/></svg>
+    </button>
+  </div>
+  <div id="panel-body"></div>
+</div>
+
+<!-- OFFER MODAL -->
+<div id="mod-offer" onclick="if(event.target===this)closeMod()">
+  <div id="mod-inner">
+    <button id="mod-close" onclick="closeMod()">×</button>
+    <div id="mod-body"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+(function(){
+  var PHONE='966539997060';
+  var TL={warehouses:'مستودع',commercial:'تجاري',residential:'سكني',villas:'فيلا',villa:'فيلا',apartments:'شقة',apartment:'شقة',lands:'أرض',land:'أرض',agricultural:'زراعي',rest:'استراحة',chalets:'شاليه'};
+
+  /* City lat/lng lookup */
+  var CC={
+    'الرياض':[24.7136,46.6753],'رياض':[24.7136,46.6753],
+    'جدة':[21.4858,39.1925],
+    'مكة المكرمة':[21.3891,39.8579],'مكة':[21.3891,39.8579],
+    'المدينة المنورة':[24.5247,39.5692],'المدينة':[24.5247,39.5692],
+    'الدمام':[26.4207,50.0888],
+    'الخبر':[26.2172,50.1971],
+    'الأحساء':[25.3814,49.5875],'احساء':[25.3814,49.5875],
+    'تبوك':[28.3998,36.5700],
+    'أبها':[18.2164,42.5053],'ابها':[18.2164,42.5053],
+    'بريدة':[26.3292,43.9749],
+    'حائل':[27.5219,41.7087],
+    'نجران':[17.5656,44.2289],
+    'جازان':[16.8892,42.5511],
+    'ينبع':[24.0895,38.0618],
+    'خميس مشيط':[18.3000,42.7333],
+    'الجبيل':[27.0025,49.6603],
+    'القطيف':[26.5597,50.0050],
+    'الطائف':[21.2854,40.4146],'طائف':[21.2854,40.4146],
+    'القصيم':[26.3292,43.9749],
+    'عنيزة':[26.0858,43.9945],
+    'سكاكا':[29.9697,40.2066],
+    'حفر الباطن':[28.4339,46.0572]
+  };
+
+  function gs(k){try{return JSON.parse(localStorage.getItem(k)||'null');}catch(e){return null;}}
+  function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function fmt(n){if(!n)return'—';var v=Number(String(n).replace(/,/g,''));if(!v)return n;if(v>=1000000)return(v/1000000).toLocaleString('ar',{maximumFractionDigits:2})+' مليون ريال';return v.toLocaleString('ar-SA')+' ريال';}
+
+  /* ── MAP INIT ── */
+  var map=L.map('map',{zoomControl:false,attributionControl:false}).setView([24.0,44.5],6);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+    maxZoom:19,subdomains:'abcd'
+  }).addTo(map);
+
+  /* zoom control top-left */
+  L.control.zoom({position:'bottomleft'}).addTo(map);
+
+  /* attribution minimal */
+  L.control.attribution({position:'bottomright',prefix:false})
+    .addAttribution('<a href="https://carto.com" style="color:#555">CARTO</a>').addTo(map);
+
+  /* ── DATA ── */
+  var _allOffers=[];
+  var _filter='all';
+  var _search='';
+  var _markers=[];
+  var _panelOpen=false;
+
+  function filteredOffers(){
+    return _allOffers.filter(function(o){
+      var typeOk=_filter==='all'||o.type===_filter;
+      var q=_search.trim().toLowerCase();
+      var searchOk=!q||(o.ar||o.name||'').toLowerCase().indexOf(q)>=0||(o.city||'').toLowerCase().indexOf(q)>=0||(o.district||'').toLowerCase().indexOf(q)>=0;
+      return typeOk&&searchOk;
+    });
+  }
+
+  function cityCoords(cityName){
+    if(!cityName) return null;
+    var k=Object.keys(CC).find(function(c){
+      return cityName.indexOf(c)>=0||c.indexOf(cityName)>=0;
+    });
+    return k?CC[k]:null;
+  }
+
+  function rebuildMarkers(){
+    /* clear old */
+    _markers.forEach(function(m){map.removeLayer(m);});
+    _markers=[];
+
+    var list=filteredOffers();
+    var withCoords=list.filter(function(o){return o.lat&&o.lng||cityCoords(o.city);});
+    var withoutCoords=list.filter(function(o){return !o.lat&&!o.lng&&!cityCoords(o.city);});
+
+    /* group by city for clustering */
+    var cities={};
+    withCoords.forEach(function(o){
+      var coords=(o.lat&&o.lng)?[parseFloat(o.lat),parseFloat(o.lng)]:cityCoords(o.city);
+      var key=o.city||coords.join(',');
+      if(!cities[key])cities[key]={coords:coords,offers:[]};
+      cities[key].offers.push(o);
+    });
+
+    Object.keys(cities).forEach(function(key){
+      var g=cities[key];
+      var count=g.offers.length;
+      var coords=g.coords;
+
+      if(count===1){
+        /* single pin */
+        var o=g.offers[0];
+        var icon=L.divIcon({
+          className:'',
+          html:'<div class="pin-dot"></div>',
+          iconSize:[14,14],iconAnchor:[7,7]
+        });
+        var m=L.marker(coords,{icon:icon}).addTo(map);
+        m.on('click',function(){showPopup(o,m);});
+        _markers.push(m);
+      } else {
+        /* cluster */
+        var sz=Math.min(70,44+count*4);
+        var icon=L.divIcon({
+          className:'',
+          html:'<div class="city-cluster" style="width:'+sz+'px;height:'+sz+'px"><div class="city-cluster-inner"><span class="city-cluster-num">'+count+'</span><span class="city-cluster-name">'+(g.offers[0].city||'')+'</span></div></div>',
+          iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]
+        });
+        var m=L.marker(coords,{icon:icon}).addTo(map);
+        (function(offers,coord){
+          m.on('click',function(){
+            map.flyTo(coord,13,{duration:.8});
+            openPanel(offers);
+          });
+        })(g.offers,coords);
+        _markers.push(m);
+      }
+    });
+
+    /* update count */
+    document.getElementById('panel-num').textContent=list.length;
+
+    /* empty state */
+    document.getElementById('empty-state').style.display=list.length?'none':'block';
+
+    /* rebuild panel list */
+    rebuildPanelList(list);
+  }
+
+  var _popupLayer=null;
+  function showPopup(o,marker){
+    if(_popupLayer){map.removeLayer(_popupLayer);_popupLayer=null;}
+    var html='<div>'
+      +(o.coverImg?'<img class="pop-img" src="'+esc(o.coverImg)+'">':'<div class="pop-no-img">🏠</div>')
+      +'<div class="pop-inner">'
+      +'<div class="pop-tag">'+(TL[o.type]||o.type||'عقار')+'</div>'
+      +'<div class="pop-name">'+esc(o.ar||o.name||'عرض عقاري')+'</div>'
+      +'<div class="pop-loc">📍 '+esc((o.city||'')+(o.district?' · '+o.district:''))+'</div>'
+      +(o.price?'<div class="pop-price">'+fmt(o.price)+'</div>':'')
+      +'<button class="pop-btn" onclick="showMod(\''+esc(o.id)+'\')">تفاصيل العرض ←</button>'
+      +'</div></div>';
+    var popup=L.popup({className:'lf-popup',closeButton:false,offset:[0,-7],maxWidth:230,autoPan:true})
+      .setLatLng(marker.getLatLng())
+      .setContent(html)
+      .openOn(map);
+    _popupLayer=popup;
+  }
+
+  function rebuildPanelList(list){
+    var el=document.getElementById('panel-body');
+    if(!list.length){
+      el.innerHTML='<div style="text-align:center;padding:32px 12px;color:var(--sub);font-size:13px">لا توجد عروض في هذا التصفية</div>';
+      return;
+    }
+    el.innerHTML=list.map(function(o){
+      return '<div class="list-card" onclick="focusOffer(\''+esc(o.id)+'\')">'
+        +'<div class="list-card-img">'+(o.coverImg?'<img src="'+esc(o.coverImg)+'" loading="lazy">':'🏠')+'</div>'
+        +'<div class="list-card-info">'
+        +'<div class="list-card-tag">'+(TL[o.type]||o.type||'عقار')+'</div>'
+        +'<div class="list-card-name">'+esc(o.ar||o.name||'عرض عقاري')+'</div>'
+        +'<div class="list-card-loc">📍 '+esc((o.city||'')+(o.district?' · '+o.district:''))+'</div>'
+        +(o.price?'<div class="list-card-price">'+fmt(o.price)+'</div>':'')
+        +'</div></div>';
+    }).join('');
+  }
+
+  function openPanel(offers){
+    rebuildPanelList(offers||filteredOffers());
+    document.getElementById('panel-num').textContent=(offers||filteredOffers()).length;
+    document.getElementById('panel').classList.remove('collapsed');
+    _panelOpen=true;
+  }
+
+  window.togglePanel=function(){
+    _panelOpen=!_panelOpen;
+    document.getElementById('panel').classList.toggle('collapsed',!_panelOpen);
+  };
+
+  window.focusOffer=function(id){
+    var o=_allOffers.find(function(x){return x.id===id;});
+    if(!o) return;
+    var coords=(o.lat&&o.lng)?[parseFloat(o.lat),parseFloat(o.lng)]:cityCoords(o.city);
+    if(coords){
+      map.flyTo(coords,14,{duration:.7});
+      setTimeout(function(){showMod(id);},600);
+    } else {
+      showMod(id);
+    }
+  };
+
+  /* ── OFFER MODAL ── */
+  window.showMod=function(id){
+    var o=_allOffers.find(function(x){return x.id===id;}); if(!o) return;
+    var imgs=o.gallery?o.gallery.split('\n').filter(Boolean):[];
+    document.getElementById('mod-body').innerHTML=
+      (o.coverImg?'<img class="od-img" src="'+esc(o.coverImg)+'">':'<div class="od-noimg">🏠</div>')
+      +'<div style="font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--gold);margin-bottom:5px">'+(TL[o.type]||o.type||'عقار')+'</div>'
+      +'<div style="font-size:17px;font-weight:800;margin-bottom:6px">'+esc(o.ar||o.name||'')+'</div>'
+      +'<div style="font-size:13px;color:var(--gold);margin-bottom:14px">📍 '+esc((o.city||'')+(o.district?' — '+o.district:''))+'</div>'
+      +'<div class="od-stats">'
+      +(o.price?'<div class="od-s"><div class="od-sv">'+fmt(o.price)+'</div><div class="od-sk">السعر</div></div>':'')
+      +(o.area?'<div class="od-s"><div class="od-sv">'+o.area+' م²</div><div class="od-sk">المساحة</div></div>':'')
+      +(o.beds?'<div class="od-s"><div class="od-sv">'+o.beds+'</div><div class="od-sk">غرف</div></div>':'')
+      +'</div>'
+      +(o.desc?'<p style="font-size:13px;color:var(--sub);line-height:1.8;margin-bottom:14px">'+esc(o.desc)+'</p>':'')
+      +(imgs.length?'<div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:14px;scrollbar-width:none">'+imgs.map(function(s){return'<img src="'+esc(s)+'" style="height:64px;width:96px;object-fit:cover;border-radius:7px;flex-shrink:0">';}).join('')+'</div>':'')
+      +'<button class="btn-wa-od" onclick="waOffer(\''+esc(o.ar||o.name||'')+'\')">'
+      +'<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" style="margin-left:6px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.533 5.847L.054 23.272a.5.5 0 0 0 .625.613l5.563-1.46A11.952 11.952 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>'
+      +'تواصل عبر واتساب</button>'
+      +'<button class="btn-int-od" onclick="closeMod()">إغلاق</button>';
+    document.getElementById('mod-offer').classList.add('open');
+  };
+  window.closeMod=function(){document.getElementById('mod-offer').classList.remove('open');};
+  window.waOffer=function(t){window.open('https://wa.me/'+PHONE+'?text='+encodeURIComponent('السلام عليكم، أنا مهتم بالعقار: '+t),'_blank');};
+
+  /* ── FILTERS ── */
+  window.setFilter=function(type,btn){
+    _filter=type;
+    document.querySelectorAll('.chip').forEach(function(c){c.classList.remove('on');});
+    btn.classList.add('on');
+    rebuildMarkers();
+    if(map.getPopup())map.closePopup();
+  };
+  window.onSearch=function(v){
+    _search=v;
+    rebuildMarkers();
+  };
+
+  /* ── INIT ── */
+  _allOffers=gs('shark_offers')||[];
+  rebuildMarkers();
+
+  /* open panel if there are offers */
+  if(_allOffers.length){
+    document.getElementById('panel').classList.remove('collapsed');
+    _panelOpen=true;
+  }
+
+  /* close popup on map click */
+  map.on('click',function(){if(_popupLayer){map.removeLayer(_popupLayer);_popupLayer=null;}});
+})();
+</script>
+</body>
+</html>
