@@ -105,6 +105,11 @@ tr:hover td{background:rgba(255,255,255,.025)}
 .settings-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;max-width:400px;margin-bottom:20px}
 .settings-card h4{font-size:15px;font-weight:700;margin-bottom:18px;color:var(--gold)}
 
+/* ── QR Modal ── */
+.qr-modal-inner{text-align:center;padding:8px 0}
+.qr-modal-inner canvas,.qr-modal-inner img{border-radius:10px;background:#fff;padding:12px;display:inline-block}
+.qr-url{font-size:11px;color:rgba(255,255,255,.35);word-break:break-all;margin-top:12px;direction:ltr;text-align:center}
+
 /* ── Print / PDF ── */
 @media print{
   body *{visibility:hidden}
@@ -285,16 +290,38 @@ tr:hover td{background:rgba(255,255,255,.025)}
     <button class="modal-close" onclick="closeModal('modal-actions')">×</button>
     <h3 id="act-client-name">إجراءات العميل</h3>
     <div style="display:flex;flex-direction:column;gap:14px;margin-top:8px">
-      <button class="btn-wa" style="padding:15px;font-size:15px;border-radius:10px" onclick="openWA()">
-        📲 فتح واتساب — إرسال رسالة
-      </button>
+      <div class="form-row">
+        <label>اختر العرض المراد إرساله <span style="color:rgba(255,255,255,.3);font-weight:300">(اختياري)</span></label>
+        <select id="act-offer-sel" onchange="rebuildWaMsg()" style="width:100%;padding:10px 12px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:9px;color:#fff;font-family:inherit;font-size:14px">
+          <option value="">— بدون عرض —</option>
+        </select>
+      </div>
       <div style="background:rgba(255,255,255,.05);border-radius:10px;padding:16px">
         <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:8px">نص الرسالة (قابل للتعديل)</div>
-        <textarea id="wa-msg" rows="4" style="width:100%;background:transparent;border:none;color:#fff;font-size:13px;font-family:inherit;resize:vertical;direction:rtl;outline:none"></textarea>
+        <textarea id="wa-msg" rows="5" style="width:100%;background:transparent;border:none;color:#fff;font-size:13px;font-family:inherit;resize:vertical;direction:rtl;outline:none"></textarea>
       </div>
-      <button class="btn-pdf" style="padding:15px;font-size:15px;border-radius:10px" onclick="generatePDF()">
-        توليد رسالة شكر PDF
+      <button class="btn-wa" style="padding:15px;font-size:15px;border-radius:10px" onclick="openWA()">
+        📲 إرسال عبر واتساب
       </button>
+      <button class="btn-pdf" style="padding:15px;font-size:15px;border-radius:10px" onclick="generatePDF()">
+        📄 تنزيل ملف PDF للعرض
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: QR Code ══ -->
+<div class="modal-bg" id="modal-qr">
+  <div class="modal" style="max-width:360px">
+    <button class="modal-close" onclick="closeModal('modal-qr')">×</button>
+    <h3>باركود العرض</h3>
+    <div class="qr-modal-inner">
+      <div id="qr-canvas-wrap"></div>
+      <div class="qr-url" id="qr-url-text"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button class="btn-primary" style="flex:1" onclick="downloadQR()">تنزيل الباركود</button>
+      <button class="btn-outline" style="flex:1" onclick="copyQRUrl()">نسخ الرابط</button>
     </div>
   </div>
 </div>
@@ -559,29 +586,48 @@ function clearClients(){
 //  WHATSAPP + PDF
 // ══════════════════════════════════════════════
 let _activeClient = null;
+
+function buildWaMsg(client, offer){
+  let msg = `السلام عليكم ${client.name}،\n\n`;
+  if(offer){
+    msg += `شكراً لاهتمامك بالعرض: ${offer.ar||offer.name||''} 🏢\n`;
+    if(offer.city) msg += `📍 الموقع: ${offer.city}${offer.district?' — '+offer.district:''}\n`;
+    if(offer.price) msg += `💰 السعر: ${fmtPrice(offer.price)}\n`;
+    if(offer.area) msg += `📐 المساحة: ${offer.area} م²\n`;
+    const base=location.origin+location.pathname.replace('admin.html','')+'landing.html';
+    msg += `\n🔗 تفاصيل العرض: ${base}?id=${offer.id}\n`;
+  } else if(client.offerName || client.offerId){
+    const offers=gs(OFFERS_KEY)||[];
+    const o=offers.find(x=>x.id===client.offerId);
+    if(o) return buildWaMsg(client, o);
+    msg += `شكراً لتواصلك مع شركة شارك العقارية 🏢\nاهتمامك بالعقار: ${client.offerName||client.offerId}\n`;
+  } else {
+    msg += `شكراً لتواصلك مع شركة شارك العقارية 🏢\n`;
+    if(client.interest) msg += `اهتمامك: ${client.interest}\n`;
+  }
+  msg += `\nيسعدنا خدمتك في أي وقت.\nفريق شارك العقارية`;
+  return msg;
+}
+
 function openClientActions(id){
   const c=getClients().find(r=>r.id===id); if(!c) return;
   _activeClient=c;
   $('act-client-name').textContent='إجراءات: '+c.name;
-  // Build WhatsApp message
-  let msg = `السلام عليكم ${c.name}،\n\nشكراً لتواصلك مع شركة شارك العقارية 🏢\n`;
-  if(c.offerName || c.offerId){
-    msg += `\nاهتمامك بالعقار: ${c.offerName||c.offerId}\n`;
-    // Add offer details
-    const offers=gs(OFFERS_KEY)||[];
-    const offer=offers.find(o=>o.id===c.offerId);
-    if(offer){
-      msg += `📍 الموقع: ${offer.city||''} ${offer.district?'— '+offer.district:''}\n`;
-      if(offer.price) msg += `💰 السعر: ${fmtPrice(offer.price)}\n`;
-      if(offer.area) msg += `📐 المساحة: ${offer.area} م²\n`;
-    }
-  } else if(c.interest){
-    msg += `\nاهتمامك: ${c.interest}\n`;
-  }
-  msg += `\nيسعدنا خدمتك في أي وقت.\nفريق شارك العقارية`;
-  $('wa-msg').value=msg;
+  // Populate offer dropdown
+  const offers=gs(OFFERS_KEY)||[];
+  $('act-offer-sel').innerHTML='<option value="">— بدون عرض —</option>'+offers.map(o=>`<option value="${o.id}"${o.id===c.offerId?' selected':''}>${o.ar||o.name||o.id}</option>`).join('');
+  rebuildWaMsg();
   $('modal-actions').classList.add('open');
 }
+
+function rebuildWaMsg(){
+  const c=_activeClient; if(!c) return;
+  const offerId=$('act-offer-sel').value;
+  const offers=gs(OFFERS_KEY)||[];
+  const offer=offerId ? offers.find(o=>o.id===offerId) : null;
+  $('wa-msg').value=buildWaMsg(c, offer||null);
+}
+
 function openWA(){
   const c=_activeClient; if(!c) return;
   const phone=c.phone.replace(/^0/,'966').replace(/\D/g,'');
@@ -662,6 +708,42 @@ function generatePDF(){
 }
 
 // ══════════════════════════════════════════════
+//  QR CODE
+// ══════════════════════════════════════════════
+var _qrUrl = '';
+function showQR(offerId){
+  const base=location.origin+location.pathname.replace('admin.html','')+'landing.html';
+  _qrUrl=base+'?id='+offerId;
+  $('qr-url-text').textContent=_qrUrl;
+  const wrap=$('qr-canvas-wrap');
+  wrap.innerHTML='';
+  function renderQR(){
+    var QRCode=window.QRCode;
+    new QRCode(wrap,{text:_qrUrl,width:220,height:220,colorDark:'#1a1a1f',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+  }
+  if(window.QRCode){ renderQR(); }
+  else{
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+    s.onload=renderQR;
+    s.onerror=function(){ wrap.innerHTML='<p style="color:var(--red);font-size:13px">تعذّر تحميل مكتبة QR</p>'; };
+    document.head.appendChild(s);
+  }
+  $('modal-qr').classList.add('open');
+}
+function downloadQR(){
+  const canvas=$('qr-canvas-wrap').querySelector('canvas');
+  if(!canvas){ alert('لم يتم توليد الباركود بعد'); return; }
+  const a=document.createElement('a');
+  a.href=canvas.toDataURL('image/png');
+  a.download='offer-qr.png';
+  a.click();
+}
+function copyQRUrl(){
+  navigator.clipboard.writeText(_qrUrl).then(()=>showToast('تم نسخ الرابط ✓')).catch(()=>prompt('رابط العرض:',_qrUrl));
+}
+
+// ══════════════════════════════════════════════
 //  OFFERS
 // ══════════════════════════════════════════════
 var _galleryB64 = [];
@@ -682,6 +764,7 @@ function renderOffers(){
         <div class="oc-acts">
           <button class="btn-edit" onclick="openOfferEditor('${o.id}')">تعديل</button>
           <button class="btn-wa" onclick="shareLanding('${o.id}')" style="font-size:11px;padding:6px 10px">نسخ الرابط</button>
+          <button class="btn-pdf" onclick="showQR('${o.id}')" style="font-size:11px;padding:6px 10px">QR</button>
           <button class="btn-del" onclick="deleteOffer('${o.id}')">حذف</button>
         </div>
       </div>
@@ -992,6 +1075,13 @@ function deletePromo(id){
 // ══════════════════════════════════════════════
 //  UTILS
 // ══════════════════════════════════════════════
+function showToast(msg){
+  var t=document.createElement('div');
+  t.textContent=msg;
+  t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1e1e28;color:#f4f3ef;border:1px solid rgba(200,169,110,.4);border-radius:10px;padding:12px 24px;font-size:14px;font-family:inherit;z-index:9999;pointer-events:none;transition:opacity .4s';
+  document.body.appendChild(t);
+  setTimeout(function(){ t.style.opacity='0'; setTimeout(function(){ t.remove(); },400); },2200);
+}
 function closeModal(id){ $(id).classList.remove('open'); }
 document.querySelectorAll('.modal-bg').forEach(m=>{
   m.addEventListener('click',e=>{ if(e.target===m) m.classList.remove('open'); });
