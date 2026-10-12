@@ -56,6 +56,14 @@ body{background:var(--dark);color:var(--text)}
 .scroll-hint span{font-size:11px;color:var(--sub);white-space:nowrap}
 .scroll-hint svg{color:var(--gold)}
 @keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(5px)}}
+/* map animations */
+@keyframes border-flow{to{stroke-dashoffset:-80}}
+@keyframes city-pulse{0%,100%{r:14;opacity:.08}50%{r:20;opacity:.18}}
+@keyframes city-pulse-sm{0%,100%{r:10;opacity:.06}50%{r:16;opacity:.14}}
+@keyframes map-glow{0%,100%{opacity:.22}50%{opacity:.3}}
+#sa-map{animation:map-glow 4s ease-in-out infinite}
+.city-dot{cursor:pointer}
+.city-dot:hover .pin-core{filter:brightness(1.4)}
 
 /* ═══ SECTIONS ═══ */
 .section{padding:64px 20px}
@@ -95,21 +103,31 @@ body{background:var(--dark);color:var(--text)}
 .hours-wa-num{font-size:clamp(32px,7vw,48px);font-weight:300;color:rgba(255,255,255,.9);font-family:'Cormorant Garamond',Georgia,serif}
 .hours-wa-word{font-size:14px;color:rgba(37,211,102,.5);font-weight:300;letter-spacing:.06em;width:80px;text-align:left}
 
-/* ═══ MARKETING STRIP ═══ */
-.mkt-strip{background:linear-gradient(135deg,#0e0c08,#141008);border-top:1px solid rgba(200,169,110,.15);border-bottom:1px solid rgba(200,169,110,.15);padding:52px 20px}
-.mkt-inner{max-width:960px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
-@media(max-width:700px){.mkt-inner{grid-template-columns:1fr;gap:32px}}
-.mkt-left .s-tag{margin-bottom:8px}
-.mkt-left h2{font-size:clamp(22px,4vw,34px);font-weight:800;line-height:1.25;margin-bottom:6px}
-.mkt-left h2 span{color:var(--gold)}
-.mkt-left p{font-size:13px;color:var(--sub);line-height:1.8;margin-bottom:24px;max-width:380px}
-.mkt-steps{display:flex;flex-direction:column;gap:14px}
-.mkt-step{display:flex;align-items:flex-start;gap:14px}
-.mkt-step-num{width:32px;height:32px;border-radius:50%;border:1px solid rgba(200,169,110,.35);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',Georgia,serif;font-size:15px;color:var(--gold);flex-shrink:0;margin-top:1px}
-.mkt-step-text{font-size:14px;font-weight:700;color:var(--text);line-height:1.4}
-.mkt-step-sub{font-size:12px;color:var(--sub);margin-top:2px;line-height:1.5}
-.btn-mkt-cta{display:inline-flex;align-items:center;gap:8px;margin-top:28px;padding:14px 28px;background:linear-gradient(135deg,#c8972e,#d4a83c 55%,#ba8420);color:#1a1000;border:none;border-radius:10px;font-family:'Cairo',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:opacity .2s}
+/* ═══ MARKETING STRIP — CYCLE ═══ */
+.mkt-strip{background:linear-gradient(160deg,#080806,#0f0d07);border-top:1px solid rgba(200,169,110,.12);border-bottom:1px solid rgba(200,169,110,.12);padding:64px 20px}
+.mkt-wrap{max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr auto;gap:48px;align-items:center}
+@media(max-width:720px){.mkt-wrap{grid-template-columns:1fr;gap:36px}}
+.mkt-head .s-tag{margin-bottom:8px}
+.mkt-head h2{font-size:clamp(22px,4vw,34px);font-weight:800;line-height:1.25;margin-bottom:8px}
+.mkt-head h2 span{color:var(--gold)}
+.mkt-head p{font-size:13px;color:var(--sub);line-height:1.8;max-width:360px;margin-bottom:28px}
+.btn-mkt-cta{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:linear-gradient(135deg,#c8972e,#d4a83c 55%,#ba8420);color:#1a1000;border:none;border-radius:10px;font-family:'Cairo',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:opacity .2s}
 .btn-mkt-cta:hover{opacity:.88}
+/* cycle diagram */
+.mkt-cycle{position:relative;width:280px;height:280px;flex-shrink:0;margin:0 auto}
+@media(max-width:720px){.mkt-cycle{width:260px;height:260px}}
+.cycle-svg{position:absolute;inset:0;width:100%;height:100%}
+.cycle-label{position:absolute;font-family:'Cairo',sans-serif;font-weight:700;font-size:12px;color:var(--text);line-height:1.35;text-align:center;max-width:80px}
+.cycle-label small{display:block;font-size:10px;color:var(--sub);font-weight:400;margin-top:2px}
+/* positions: top=12, right=3, bottom=6, left=9 — centered on 280px circle */
+.c-top{top:0;left:50%;transform:translateX(-50%)}
+.c-right{top:50%;right:-4px;transform:translateY(-50%)}
+.c-bottom{bottom:0;left:50%;transform:translateX(-50%)}
+.c-left{top:50%;left:-4px;transform:translateY(-50%) translateX(-100%)}
+@media(max-width:720px){.c-left{left:0px}.c-right{right:0px}}
+.cycle-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.cycle-center-btn{padding:11px 18px;background:linear-gradient(135deg,#c8972e,#d4a83c 55%,#ba8420);color:#1a1000;border:none;border-radius:22px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 4px 16px rgba(200,169,110,.3)}
+@keyframes spin-dash{to{stroke-dashoffset:-100}}
 
 /* ═══ OFFERS ═══ */
 .filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
@@ -258,42 +276,51 @@ body{background:var(--dark);color:var(--text)}
       </radialGradient>
     </defs>
     <!-- Saudi Arabia outline (simplified path) -->
-    <path d="M 155 80 L 190 72 L 230 68 L 265 60 L 295 55 L 330 52 L 365 54 L 395 58 L 420 65 L 448 74 L 468 88 L 478 105 L 488 125 L 498 148 L 508 168 L 520 185 L 538 200 L 558 215 L 572 228 L 585 242 L 596 258 L 608 272 L 622 285 L 635 296 L 645 305 L 648 318 L 644 332 L 636 345 L 628 358 L 622 372 L 618 388 L 614 404 L 610 420 L 606 436 L 598 450 L 586 462 L 570 472 L 555 480 L 540 486 L 526 490 L 512 492 L 498 492 L 485 490 L 472 486 L 460 480 L 450 472 L 440 465 L 428 460 L 415 458 L 402 458 L 390 460 L 378 464 L 368 470 L 360 478 L 354 488 L 350 500 L 346 512 L 340 524 L 330 534 L 318 540 L 304 544 L 290 546 L 276 546 L 262 544 L 248 540 L 235 534 L 222 526 L 210 518 L 198 510 L 186 502 L 175 492 L 165 482 L 155 470 L 146 458 L 138 444 L 132 430 L 126 415 L 120 400 L 116 384 L 112 368 L 108 352 L 106 336 L 104 320 L 104 304 L 104 288 L 106 272 L 108 256 L 112 240 L 116 224 L 120 208 L 126 192 L 132 177 L 138 162 L 146 148 L 152 134 L 155 120 L 155 106 Z" fill="none" stroke="#ffffff" stroke-width="1.5" opacity=".45"/>
+    <!-- Base white border -->
+    <path id="sa-border" d="M 155 80 L 190 72 L 230 68 L 265 60 L 295 55 L 330 52 L 365 54 L 395 58 L 420 65 L 448 74 L 468 88 L 478 105 L 488 125 L 498 148 L 508 168 L 520 185 L 538 200 L 558 215 L 572 228 L 585 242 L 596 258 L 608 272 L 622 285 L 635 296 L 645 305 L 648 318 L 644 332 L 636 345 L 628 358 L 622 372 L 618 388 L 614 404 L 610 420 L 606 436 L 598 450 L 586 462 L 570 472 L 555 480 L 540 486 L 526 490 L 512 492 L 498 492 L 485 490 L 472 486 L 460 480 L 450 472 L 440 465 L 428 460 L 415 458 L 402 458 L 390 460 L 378 464 L 368 470 L 360 478 L 354 488 L 350 500 L 346 512 L 340 524 L 330 534 L 318 540 L 304 544 L 290 546 L 276 546 L 262 544 L 248 540 L 235 534 L 222 526 L 210 518 L 198 510 L 186 502 L 175 492 L 165 482 L 155 470 L 146 458 L 138 444 L 132 430 L 126 415 L 120 400 L 116 384 L 112 368 L 108 352 L 106 336 L 104 320 L 104 304 L 104 288 L 106 272 L 108 256 L 112 240 L 116 224 L 120 208 L 126 192 L 132 177 L 138 162 L 146 148 L 152 134 L 155 120 L 155 106 Z" fill="none" stroke="#ffffff" stroke-width="1.5" opacity=".4"/>
+    <!-- Animated flowing dash on border -->
+    <path d="M 155 80 L 190 72 L 230 68 L 265 60 L 295 55 L 330 52 L 365 54 L 395 58 L 420 65 L 448 74 L 468 88 L 478 105 L 488 125 L 498 148 L 508 168 L 520 185 L 538 200 L 558 215 L 572 228 L 585 242 L 596 258 L 608 272 L 622 285 L 635 296 L 645 305 L 648 318 L 644 332 L 636 345 L 628 358 L 622 372 L 618 388 L 614 404 L 610 420 L 606 436 L 598 450 L 586 462 L 570 472 L 555 480 L 540 486 L 526 490 L 512 492 L 498 492 L 485 490 L 472 486 L 460 480 L 450 472 L 440 465 L 428 460 L 415 458 L 402 458 L 390 460 L 378 464 L 368 470 L 360 478 L 354 488 L 350 500 L 346 512 L 340 524 L 330 534 L 318 540 L 304 544 L 290 546 L 276 546 L 262 544 L 248 540 L 235 534 L 222 526 L 210 518 L 198 510 L 186 502 L 175 492 L 165 482 L 155 470 L 146 458 L 138 444 L 132 430 L 126 415 L 120 400 L 116 384 L 112 368 L 108 352 L 106 336 L 104 320 L 104 304 L 104 288 L 106 272 L 108 256 L 112 240 L 116 224 L 120 208 L 126 192 L 132 177 L 138 162 L 146 148 L 152 134 L 155 120 L 155 106 Z" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="20 600" opacity=".8" style="animation:border-flow 6s linear infinite"/>
     <!-- Interior glow -->
     <path d="M 155 80 L 190 72 L 230 68 L 265 60 L 295 55 L 330 52 L 365 54 L 395 58 L 420 65 L 448 74 L 468 88 L 478 105 L 488 125 L 498 148 L 508 168 L 520 185 L 538 200 L 558 215 L 572 228 L 585 242 L 596 258 L 608 272 L 622 285 L 635 296 L 645 305 L 648 318 L 644 332 L 636 345 L 628 358 L 622 372 L 618 388 L 614 404 L 610 420 L 606 436 L 598 450 L 586 462 L 570 472 L 555 480 L 540 486 L 526 490 L 512 492 L 498 492 L 485 490 L 472 486 L 460 480 L 450 472 L 440 465 L 428 460 L 415 458 L 402 458 L 390 460 L 378 464 L 368 470 L 360 478 L 354 488 L 350 500 L 346 512 L 340 524 L 330 534 L 318 540 L 304 544 L 290 546 L 276 546 L 262 544 L 248 540 L 235 534 L 222 526 L 210 518 L 198 510 L 186 502 L 175 492 L 165 482 L 155 470 L 146 458 L 138 444 L 132 430 L 126 415 L 120 400 L 116 384 L 112 368 L 108 352 L 106 336 L 104 320 L 104 304 L 104 288 L 106 272 L 108 256 L 112 240 L 116 224 L 120 208 L 126 192 L 132 177 L 138 162 L 146 148 L 152 134 L 155 120 L 155 106 Z" fill="url(#mglow)"/>
-    <!-- City dots — interactive -->
+    <!-- City dots — interactive + animated -->
     <g class="city-dot" onclick="cityClick('الرياض')" fill="#ffffff">
-      <circle cx="430" cy="290" r="5" opacity=".85"/>
-      <circle cx="430" cy="290" r="14" opacity=".1"/>
+      <circle cx="430" cy="290" r="5" opacity=".9" class="pin-core"/>
+      <circle cx="430" cy="290" r="14" opacity=".08" style="animation:city-pulse 3s ease-in-out infinite"/>
+      <circle cx="430" cy="290" r="22" opacity=".04" style="animation:city-pulse 3s ease-in-out infinite .5s"/>
     </g>
     <g class="city-dot" onclick="cityClick('جدة')" fill="#ffffff">
-      <circle cx="195" cy="340" r="4" opacity=".75"/>
-      <circle cx="195" cy="340" r="12" opacity=".08"/>
+      <circle cx="195" cy="340" r="4" opacity=".8" class="pin-core"/>
+      <circle cx="195" cy="340" r="12" opacity=".07" style="animation:city-pulse-sm 3.5s ease-in-out infinite .3s"/>
     </g>
     <g class="city-dot" onclick="cityClick('مكة المكرمة')" fill="#ffffff">
-      <circle cx="185" cy="360" r="3" opacity=".65"/>
+      <circle cx="185" cy="360" r="3" opacity=".65" class="pin-core"/>
+      <circle cx="185" cy="360" r="9" opacity=".05" style="animation:city-pulse-sm 4s ease-in-out infinite .8s"/>
     </g>
     <g class="city-dot" onclick="cityClick('الدمام')" fill="#ffffff">
-      <circle cx="570" cy="250" r="4" opacity=".75"/>
-      <circle cx="570" cy="250" r="12" opacity=".08"/>
+      <circle cx="570" cy="250" r="4" opacity=".8" class="pin-core"/>
+      <circle cx="570" cy="250" r="12" opacity=".07" style="animation:city-pulse-sm 3.2s ease-in-out infinite .6s"/>
     </g>
     <g class="city-dot" onclick="cityClick('تبوك')" fill="#ffffff">
-      <circle cx="195" cy="155" r="3" opacity=".6"/>
+      <circle cx="195" cy="155" r="3" opacity=".6" class="pin-core"/>
+      <circle cx="195" cy="155" r="8" opacity=".05" style="animation:city-pulse-sm 4.5s ease-in-out infinite 1s"/>
     </g>
     <g class="city-dot" onclick="cityClick('بريدة')" fill="#ffffff">
-      <circle cx="365" cy="215" r="3.5" opacity=".7"/>
+      <circle cx="365" cy="215" r="3.5" opacity=".7" class="pin-core"/>
+      <circle cx="365" cy="215" r="10" opacity=".05" style="animation:city-pulse-sm 3.8s ease-in-out infinite .2s"/>
     </g>
     <g class="city-dot" onclick="cityClick('أبها')" fill="#ffffff">
-      <circle cx="210" cy="455" r="3" opacity=".6"/>
+      <circle cx="210" cy="455" r="3" opacity=".6" class="pin-core"/>
+      <circle cx="210" cy="455" r="8" opacity=".05" style="animation:city-pulse-sm 4.2s ease-in-out infinite 1.4s"/>
     </g>
     <g class="city-dot" onclick="cityClick('نجران')" fill="#ffffff">
-      <circle cx="318" cy="498" r="3" opacity=".6"/>
+      <circle cx="318" cy="498" r="3" opacity=".6" class="pin-core"/>
     </g>
     <g class="city-dot" onclick="cityClick('حائل')" fill="#ffffff">
-      <circle cx="320" cy="190" r="3" opacity=".6"/>
+      <circle cx="320" cy="190" r="3" opacity=".6" class="pin-core"/>
     </g>
     <g class="city-dot" onclick="cityClick('المدينة المنورة')" fill="#ffffff">
-      <circle cx="222" cy="235" r="3.5" opacity=".65"/>
+      <circle cx="222" cy="235" r="3.5" opacity=".65" class="pin-core"/>
+      <circle cx="222" cy="235" r="10" opacity=".05" style="animation:city-pulse-sm 3.6s ease-in-out infinite .7s"/>
     </g>
     <!-- City labels -->
     <g font-family="Cairo,Arial,sans-serif" fill="#ffffff" font-size="11" opacity=".55" text-anchor="middle" pointer-events="none">
@@ -337,6 +364,25 @@ body{background:var(--dark);color:var(--text)}
   </div>
 </div>
 
+<!-- OFFERS -->
+<section class="section" id="offers">
+  <div class="section-inner">
+    <div class="s-head">
+      <div class="s-tag">العروض المتاحة</div>
+      <h2 class="s-title">أبرز عقاراتنا</h2>
+    </div>
+    <div class="filter-bar" id="filter-bar">
+      <button class="f-btn active" onclick="filterOffers('all',this)">الكل</button>
+      <button class="f-btn" onclick="filterOffers('warehouses',this)">مستودعات</button>
+      <button class="f-btn" onclick="filterOffers('villa',this)">فلل</button>
+      <button class="f-btn" onclick="filterOffers('lands',this)">أراضي</button>
+      <button class="f-btn" onclick="filterOffers('commercial',this)">تجاري</button>
+      <button class="f-btn" onclick="filterOffers('apartments',this)">شقق</button>
+    </div>
+    <div class="offers-grid" id="offers-grid"></div>
+  </div>
+</section>
+
 <!-- SERVICES -->
 <section class="section srv-bg" id="services">
   <div class="section-inner">
@@ -374,67 +420,51 @@ body{background:var(--dark);color:var(--text)}
   </div>
 </section>
 
-<!-- MARKETING STRIP -->
+<!-- MARKETING STRIP — CYCLE -->
 <section class="mkt-strip" id="mkt-strip">
-  <div class="mkt-inner">
-    <div class="mkt-left">
+  <div class="mkt-wrap">
+    <div class="mkt-head">
       <div class="s-tag">خدمة التسويق</div>
       <h2>نسوّق عقارك<br><span>من الفكرة للصفقة</span></h2>
-      <p>لا تكتفِ بالإعلان التقليدي — نحن نبني لعقارك هوية تسويقية كاملة تصل للمشتري الصح.</p>
+      <p>لا تكتفِ بالإعلان العادي — نبني لعقارك هوية تسويقية كاملة تصل للمشتري الصح.</p>
       <button class="btn-mkt-cta" onclick="document.getElementById('mod-mkt').classList.add('open')">
         اطلب التسويق الآن
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
       </button>
     </div>
-    <div class="mkt-steps">
-      <div class="mkt-step">
-        <div class="mkt-step-num">١</div>
-        <div>
-          <div class="mkt-step-text">نصنع الفكرة</div>
-          <div class="mkt-step-sub">نحلل العقار ونبتكر زاوية تسويقية مميزة تجذب الاهتمام الحقيقي.</div>
-        </div>
-      </div>
-      <div class="mkt-step">
-        <div class="mkt-step-num">٢</div>
-        <div>
-          <div class="mkt-step-text">نصمم المحتوى</div>
-          <div class="mkt-step-sub">تصوير احترافي، تصاميم جذابة، وكتابة إعلانية تُبرز قيمة العقار.</div>
-        </div>
-      </div>
-      <div class="mkt-step">
-        <div class="mkt-step-num">٣</div>
-        <div>
-          <div class="mkt-step-text">نضع الخطة</div>
-          <div class="mkt-step-sub">خطة توزيع ممنهجة عبر المنصات المناسبة مع استهداف المشترين المحتملين.</div>
-        </div>
-      </div>
-      <div class="mkt-step">
-        <div class="mkt-step-num">٤</div>
-        <div>
-          <div class="mkt-step-text">نُتمّ الصفقة</div>
-          <div class="mkt-step-sub">نتابع مع المهتمين حتى إتمام البيع أو الإيجار بأفضل سعر.</div>
-        </div>
+    <!-- Cycle diagram -->
+    <div class="mkt-cycle">
+      <svg class="cycle-svg" viewBox="0 0 280 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Rotating dashed ring -->
+        <circle cx="140" cy="140" r="100" stroke="rgba(200,169,110,.3)" stroke-width="1" stroke-dasharray="8 10"
+          style="animation:spin-dash 18s linear infinite;transform-origin:140px 140px"/>
+        <!-- Static inner ring hint -->
+        <circle cx="140" cy="140" r="100" stroke="rgba(200,169,110,.08)" stroke-width="12"/>
+        <!-- Arrow indicators on path -->
+        <path d="M 140 40 A 100 100 0 0 1 240 140" stroke="rgba(200,169,110,.18)" stroke-width="1.5" fill="none"/>
+        <path d="M 240 140 A 100 100 0 0 1 140 240" stroke="rgba(200,169,110,.18)" stroke-width="1.5" fill="none"/>
+        <path d="M 140 240 A 100 100 0 0 1 40 140" stroke="rgba(200,169,110,.18)" stroke-width="1.5" fill="none"/>
+        <path d="M 40 140 A 100 100 0 0 1 140 40" stroke="rgba(200,169,110,.18)" stroke-width="1.5" fill="none"/>
+        <!-- Node dots — top, right, bottom, left -->
+        <circle cx="140" cy="40" r="7" fill="#c8a96e" opacity=".9"/>
+        <circle cx="140" cy="40" r="14" fill="#c8a96e" opacity=".1"/>
+        <circle cx="240" cy="140" r="7" fill="#c8a96e" opacity=".9"/>
+        <circle cx="240" cy="140" r="14" fill="#c8a96e" opacity=".1"/>
+        <circle cx="140" cy="240" r="7" fill="#c8a96e" opacity=".9"/>
+        <circle cx="140" cy="240" r="14" fill="#c8a96e" opacity=".1"/>
+        <circle cx="40" cy="140" r="7" fill="#c8a96e" opacity=".9"/>
+        <circle cx="40" cy="140" r="14" fill="#c8a96e" opacity=".1"/>
+      </svg>
+      <!-- Labels -->
+      <div class="cycle-label c-top">نصنع الفكرة<small>الرؤية والزاوية</small></div>
+      <div class="cycle-label c-right">نصمم<br>المحتوى<small>تصوير وتصميم</small></div>
+      <div class="cycle-label c-bottom">نُتمّ الصفقة<small>تفاوض وإغلاق</small></div>
+      <div class="cycle-label c-left">نضع<br>الخطة<small>استراتيجية نشر</small></div>
+      <!-- Center -->
+      <div class="cycle-center">
+        <button class="cycle-center-btn" onclick="document.getElementById('mod-mkt').classList.add('open')">اطلب التسويق الآن</button>
       </div>
     </div>
-  </div>
-</section>
-
-<!-- OFFERS -->
-<section class="section" id="offers">
-  <div class="section-inner">
-    <div class="s-head">
-      <div class="s-tag">العروض المتاحة</div>
-      <h2 class="s-title">أبرز عقاراتنا</h2>
-    </div>
-    <div class="filter-bar" id="filter-bar">
-      <button class="f-btn active" onclick="filterOffers('all',this)">الكل</button>
-      <button class="f-btn" onclick="filterOffers('warehouses',this)">مستودعات</button>
-      <button class="f-btn" onclick="filterOffers('villa',this)">فلل</button>
-      <button class="f-btn" onclick="filterOffers('lands',this)">أراضي</button>
-      <button class="f-btn" onclick="filterOffers('commercial',this)">تجاري</button>
-      <button class="f-btn" onclick="filterOffers('apartments',this)">شقق</button>
-    </div>
-    <div class="offers-grid" id="offers-grid"></div>
   </div>
 </section>
 
