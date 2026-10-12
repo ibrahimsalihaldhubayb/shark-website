@@ -95,6 +95,22 @@ body{background:var(--dark);color:var(--text)}
 .hours-wa-num{font-size:clamp(32px,7vw,48px);font-weight:300;color:rgba(255,255,255,.9);font-family:'Cormorant Garamond',Georgia,serif}
 .hours-wa-word{font-size:14px;color:rgba(37,211,102,.5);font-weight:300;letter-spacing:.06em;width:80px;text-align:left}
 
+/* ═══ MARKETING STRIP ═══ */
+.mkt-strip{background:linear-gradient(135deg,#0e0c08,#141008);border-top:1px solid rgba(200,169,110,.15);border-bottom:1px solid rgba(200,169,110,.15);padding:52px 20px}
+.mkt-inner{max-width:960px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+@media(max-width:700px){.mkt-inner{grid-template-columns:1fr;gap:32px}}
+.mkt-left .s-tag{margin-bottom:8px}
+.mkt-left h2{font-size:clamp(22px,4vw,34px);font-weight:800;line-height:1.25;margin-bottom:6px}
+.mkt-left h2 span{color:var(--gold)}
+.mkt-left p{font-size:13px;color:var(--sub);line-height:1.8;margin-bottom:24px;max-width:380px}
+.mkt-steps{display:flex;flex-direction:column;gap:14px}
+.mkt-step{display:flex;align-items:flex-start;gap:14px}
+.mkt-step-num{width:32px;height:32px;border-radius:50%;border:1px solid rgba(200,169,110,.35);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',Georgia,serif;font-size:15px;color:var(--gold);flex-shrink:0;margin-top:1px}
+.mkt-step-text{font-size:14px;font-weight:700;color:var(--text);line-height:1.4}
+.mkt-step-sub{font-size:12px;color:var(--sub);margin-top:2px;line-height:1.5}
+.btn-mkt-cta{display:inline-flex;align-items:center;gap:8px;margin-top:28px;padding:14px 28px;background:linear-gradient(135deg,#c8972e,#d4a83c 55%,#ba8420);color:#1a1000;border:none;border-radius:10px;font-family:'Cairo',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:opacity .2s}
+.btn-mkt-cta:hover{opacity:.88}
+
 /* ═══ OFFERS ═══ */
 .filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
 .f-btn{padding:7px 16px;border-radius:18px;border:1px solid var(--border);background:transparent;color:var(--sub);font-size:13px;font-weight:600;cursor:pointer;font-family:'Cairo',sans-serif;transition:.2s}
@@ -182,16 +198,15 @@ body{background:var(--dark);color:var(--text)}
 
 /* FABs — banner style */
 #fab{position:fixed;bottom:0;left:0;right:0;z-index:8000;pointer-events:none}
-#fab-inner{display:grid;grid-template-columns:repeat(3,1fr);pointer-events:all;border-top:1px solid rgba(255,255,255,.08);background:rgba(8,8,10,.96);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+#fab-inner{display:grid;grid-template-columns:repeat(2,1fr);pointer-events:all;border-top:1px solid rgba(255,255,255,.08);background:rgba(8,8,10,.96);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
 .fab-b{border:none;border-left:1px solid rgba(255,255,255,.07);padding:13px 6px 18px;font-family:'Cairo',sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:background .18s;background:transparent}
 .fab-b:first-child{border-left:none}
 .fab-b:active{background:rgba(255,255,255,.05)}
 .fab-b-icon{font-size:18px;line-height:1}
 .fab-b-label{font-size:11px;font-weight:700;letter-spacing:.01em;line-height:1.2;text-align:center}
 .fab-b-sub{font-size:9.5px;font-weight:300;opacity:.55;text-align:center;line-height:1.2}
-.fab-g{color:#c8a96e}
-.fab-gr{color:#4caf50}
-.fab-bl{color:#64b5f6}
+.fab-map{color:#c8a96e}
+.fab-bl{color:#c8a96e}
 
 /* lightbox */
 #lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:99999;align-items:center;justify-content:center}
@@ -315,12 +330,6 @@ body{background:var(--dark);color:var(--text)}
     </div>
   </div>
 
-  <!-- map link button -->
-  <a href="map.html" style="position:absolute;top:80px;left:20px;z-index:400;display:flex;align-items:center;gap:7px;padding:9px 16px;background:rgba(15,15,18,.85);border:1px solid rgba(255,255,255,.15);border-radius:22px;color:var(--text);font-family:'Cairo',sans-serif;font-size:12px;font-weight:600;text-decoration:none;backdrop-filter:blur(10px);transition:.2s" onmouseover="this.style.borderColor='rgba(200,169,110,.5)'" onmouseout="this.style.borderColor='rgba(255,255,255,.15)'">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-    خريطة العروض
-  </a>
-
   <!-- scroll hint -->
   <div class="scroll-hint" onclick="document.getElementById('services').scrollIntoView({behavior:'smooth'})">
     <span>تصفّح الأقسام</span>
@@ -360,6 +369,51 @@ body{background:var(--dark);color:var(--text)}
           <div class="srv-desc">اطّلع على مشاريعنا القائمة والمتاحة للبيع — مستودعات، أراضي، فلل، وأكثر.</div>
         </div>
         <div class="srv-arr">←</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARKETING STRIP -->
+<section class="mkt-strip" id="mkt-strip">
+  <div class="mkt-inner">
+    <div class="mkt-left">
+      <div class="s-tag">خدمة التسويق</div>
+      <h2>نسوّق عقارك<br><span>من الفكرة للصفقة</span></h2>
+      <p>لا تكتفِ بالإعلان التقليدي — نحن نبني لعقارك هوية تسويقية كاملة تصل للمشتري الصح.</p>
+      <button class="btn-mkt-cta" onclick="document.getElementById('mod-mkt').classList.add('open')">
+        اطلب التسويق الآن
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+    </div>
+    <div class="mkt-steps">
+      <div class="mkt-step">
+        <div class="mkt-step-num">١</div>
+        <div>
+          <div class="mkt-step-text">نصنع الفكرة</div>
+          <div class="mkt-step-sub">نحلل العقار ونبتكر زاوية تسويقية مميزة تجذب الاهتمام الحقيقي.</div>
+        </div>
+      </div>
+      <div class="mkt-step">
+        <div class="mkt-step-num">٢</div>
+        <div>
+          <div class="mkt-step-text">نصمم المحتوى</div>
+          <div class="mkt-step-sub">تصوير احترافي، تصاميم جذابة، وكتابة إعلانية تُبرز قيمة العقار.</div>
+        </div>
+      </div>
+      <div class="mkt-step">
+        <div class="mkt-step-num">٣</div>
+        <div>
+          <div class="mkt-step-text">نضع الخطة</div>
+          <div class="mkt-step-sub">خطة توزيع ممنهجة عبر المنصات المناسبة مع استهداف المشترين المحتملين.</div>
+        </div>
+      </div>
+      <div class="mkt-step">
+        <div class="mkt-step-num">٤</div>
+        <div>
+          <div class="mkt-step-text">نُتمّ الصفقة</div>
+          <div class="mkt-step-sub">نتابع مع المهتمين حتى إتمام البيع أو الإيجار بأفضل سعر.</div>
+        </div>
       </div>
     </div>
   </div>
@@ -413,8 +467,8 @@ body{background:var(--dark);color:var(--text)}
   <h2 class="s-title">هل أنت مستعد لخطوتك العقارية القادمة؟</h2>
   <p class="s-sub">سواء كنت تريد الشراء أو البيع أو الاستثمار</p>
   <div class="cta-btns" style="margin-top:28px">
-    <button class="btn-gold" onclick="document.getElementById('mod-inv').classList.add('open')">💰 أريد الاستثمار</button>
-    <button class="btn-out" onclick="document.getElementById('mod-mkt').classList.add('open')">🏠 أسوّق عقاري</button>
+    <button class="btn-gold" onclick="document.getElementById('mod-inv').classList.add('open')">💰 مهتم بالاستثمار</button>
+    <button class="btn-out" onclick="document.getElementById('mod-mkt').classList.add('open')">🏠 طلب تسويق</button>
     <button class="btn-out" onclick="openWA()">تواصل واتساب</button>
   </div>
 </div>
@@ -540,15 +594,14 @@ body{background:var(--dark);color:var(--text)}
 <!-- FABs — banner -->
 <div id="fab">
   <div id="fab-inner">
-    <button class="fab-b fab-g" onclick="document.getElementById('mod-inv').classList.add('open')">
-      <span class="fab-b-icon">💰</span>
-      <span class="fab-b-label">مهتم بالاستثمار</span>
-      <span class="fab-b-sub">سجّل اهتمامك</span>
-    </button>
-    <button class="fab-b fab-gr" onclick="document.getElementById('mod-mkt').classList.add('open')">
-      <span class="fab-b-icon">🏠</span>
-      <span class="fab-b-label">طلب تسويق</span>
-      <span class="fab-b-sub">سوّق عقارك معنا</span>
+    <button class="fab-b fab-map" onclick="location.href='map.html'">
+      <span class="fab-b-icon">
+        <svg width="22" height="20" viewBox="0 0 500 440" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M95 52 L118 46 L144 43 L166 38 L185 34 L207 33 L228 34 L248 37 L264 41 L281 47 L294 55 L300 66 L307 78 L314 93 L320 106 L328 116 L338 125 L350 134 L358 143 L366 152 L373 163 L381 170 L390 178 L399 186 L404 197 L402 209 L396 218 L390 228 L386 239 L382 251 L379 263 L376 275 L370 284 L361 290 L350 296 L340 300 L330 302 L319 302 L309 300 L298 297 L288 294 L278 291 L268 291 L258 293 L249 297 L241 303 L235 311 L231 321 L228 332 L224 343 L218 352 L209 358 L199 362 L188 363 L177 362 L166 359 L155 354 L144 348 L134 341 L124 334 L114 326 L105 317 L97 308 L90 298 L84 287 L79 275 L75 263 L72 251 L70 238 L69 225 L69 212 L69 199 L70 186 L72 173 L75 160 L79 147 L84 135 L89 123 L93 111 L95 99 L95 87 Z" stroke="currentColor" stroke-width="18" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="fab-b-label">خريطة العروض</span>
+      <span class="fab-b-sub">تصفّح على الخريطة</span>
     </button>
     <button class="fab-b fab-bl" onclick="document.getElementById('offers').scrollIntoView({behavior:'smooth'})">
       <span class="fab-b-icon">🔑</span>
