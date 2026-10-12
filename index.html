@@ -197,6 +197,27 @@ body{background:var(--dark);color:var(--text)}
 #lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:99999;align-items:center;justify-content:center}
 #lb img{max-width:96vw;max-height:90vh;border-radius:10px;object-fit:contain}
 #lb-x{position:absolute;top:14px;left:14px;background:rgba(255,255,255,.14);border:none;color:#fff;border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* city popup */
+#city-pop{display:none;position:fixed;inset:0;z-index:9500;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.65);backdrop-filter:blur(6px)}
+#city-pop.open{display:flex}
+#city-pop-inner{background:#15151c;border:1px solid rgba(255,255,255,.1);border-bottom:none;border-radius:22px 22px 0 0;width:100%;max-width:600px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column}
+#city-pop-head{padding:18px 20px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0}
+#city-pop-title{font-size:17px;font-weight:800;color:var(--text)}
+#city-pop-count{font-size:12px;color:var(--sub);margin-top:3px}
+#city-pop-close{background:none;border:none;color:var(--sub);font-size:22px;cursor:pointer;line-height:1;padding:4px}
+#city-pop-list{overflow-y:auto;padding:14px 14px 28px;display:flex;flex-direction:column;gap:10px}
+.cpop-card{background:var(--card);border:1px solid var(--border);border-radius:12px;display:flex;gap:12px;overflow:hidden;cursor:pointer;transition:border-color .2s}
+.cpop-card:hover{border-color:rgba(200,169,110,.35)}
+.cpop-card img,.cpop-card .cpop-no-img{width:90px;height:72px;object-fit:cover;flex-shrink:0}
+.cpop-card .cpop-no-img{background:linear-gradient(135deg,#1a1a1f,#1e1a0e);display:flex;align-items:center;justify-content:center;font-size:22px}
+.cpop-info{padding:10px 10px 10px 4px;flex:1;min-width:0}
+.cpop-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cpop-loc{font-size:11px;color:var(--sub);margin-top:2px}
+.cpop-price{font-size:13px;color:var(--gold);font-weight:700;margin-top:5px}
+/* city dot hover */
+.city-dot{cursor:pointer;transition:opacity .2s}
+.city-dot:hover circle:first-child{r:7}
 </style>
 </head>
 <body>
@@ -217,39 +238,50 @@ body{background:var(--dark);color:var(--text)}
   <svg id="sa-map" viewBox="0 0 800 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <radialGradient id="mglow" cx="55%" cy="45%" r="50%">
-        <stop offset="0%" stop-color="#c8a96e" stop-opacity=".18"/>
-        <stop offset="100%" stop-color="#c8a96e" stop-opacity="0"/>
+        <stop offset="0%" stop-color="#ffffff" stop-opacity=".08"/>
+        <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
       </radialGradient>
     </defs>
     <!-- Saudi Arabia outline (simplified path) -->
-    <path d="M 155 80 L 190 72 L 230 68 L 265 60 L 295 55 L 330 52 L 365 54 L 395 58 L 420 65 L 448 74 L 468 88 L 478 105 L 488 125 L 498 148 L 508 168 L 520 185 L 538 200 L 558 215 L 572 228 L 585 242 L 596 258 L 608 272 L 622 285 L 635 296 L 645 305 L 648 318 L 644 332 L 636 345 L 628 358 L 622 372 L 618 388 L 614 404 L 610 420 L 606 436 L 598 450 L 586 462 L 570 472 L 555 480 L 540 486 L 526 490 L 512 492 L 498 492 L 485 490 L 472 486 L 460 480 L 450 472 L 440 465 L 428 460 L 415 458 L 402 458 L 390 460 L 378 464 L 368 470 L 360 478 L 354 488 L 350 500 L 346 512 L 340 524 L 330 534 L 318 540 L 304 544 L 290 546 L 276 546 L 262 544 L 248 540 L 235 534 L 222 526 L 210 518 L 198 510 L 186 502 L 175 492 L 165 482 L 155 470 L 146 458 L 138 444 L 132 430 L 126 415 L 120 400 L 116 384 L 112 368 L 108 352 L 106 336 L 104 320 L 104 304 L 104 288 L 106 272 L 108 256 L 112 240 L 116 224 L 120 208 L 126 192 L 132 177 L 138 162 L 146 148 L 152 134 L 155 120 L 155 106 Z" fill="none" stroke="#c8a96e" stroke-width="1.5" opacity=".55"/>
+    <path d="M 155 80 L 190 72 L 230 68 L 265 60 L 295 55 L 330 52 L 365 54 L 395 58 L 420 65 L 448 74 L 468 88 L 478 105 L 488 125 L 498 148 L 508 168 L 520 185 L 538 200 L 558 215 L 572 228 L 585 242 L 596 258 L 608 272 L 622 285 L 635 296 L 645 305 L 648 318 L 644 332 L 636 345 L 628 358 L 622 372 L 618 388 L 614 404 L 610 420 L 606 436 L 598 450 L 586 462 L 570 472 L 555 480 L 540 486 L 526 490 L 512 492 L 498 492 L 485 490 L 472 486 L 460 480 L 450 472 L 440 465 L 428 460 L 415 458 L 402 458 L 390 460 L 378 464 L 368 470 L 360 478 L 354 488 L 350 500 L 346 512 L 340 524 L 330 534 L 318 540 L 304 544 L 290 546 L 276 546 L 262 544 L 248 540 L 235 534 L 222 526 L 210 518 L 198 510 L 186 502 L 175 492 L 165 482 L 155 470 L 146 458 L 138 444 L 132 430 L 126 415 L 120 400 L 116 384 L 112 368 L 108 352 L 106 336 L 104 320 L 104 304 L 104 288 L 106 272 L 108 256 L 112 240 L 116 224 L 120 208 L 126 192 L 132 177 L 138 162 L 146 148 L 152 134 L 155 120 L 155 106 Z" fill="none" stroke="#ffffff" stroke-width="1.5" opacity=".45"/>
     <!-- Interior glow -->
     <path d="M 155 80 L 190 72 L 230 68 L 265 60 L 295 55 L 330 52 L 365 54 L 395 58 L 420 65 L 448 74 L 468 88 L 478 105 L 488 125 L 498 148 L 508 168 L 520 185 L 538 200 L 558 215 L 572 228 L 585 242 L 596 258 L 608 272 L 622 285 L 635 296 L 645 305 L 648 318 L 644 332 L 636 345 L 628 358 L 622 372 L 618 388 L 614 404 L 610 420 L 606 436 L 598 450 L 586 462 L 570 472 L 555 480 L 540 486 L 526 490 L 512 492 L 498 492 L 485 490 L 472 486 L 460 480 L 450 472 L 440 465 L 428 460 L 415 458 L 402 458 L 390 460 L 378 464 L 368 470 L 360 478 L 354 488 L 350 500 L 346 512 L 340 524 L 330 534 L 318 540 L 304 544 L 290 546 L 276 546 L 262 544 L 248 540 L 235 534 L 222 526 L 210 518 L 198 510 L 186 502 L 175 492 L 165 482 L 155 470 L 146 458 L 138 444 L 132 430 L 126 415 L 120 400 L 116 384 L 112 368 L 108 352 L 106 336 L 104 320 L 104 304 L 104 288 L 106 272 L 108 256 L 112 240 L 116 224 L 120 208 L 126 192 L 132 177 L 138 162 L 146 148 L 152 134 L 155 120 L 155 106 Z" fill="url(#mglow)"/>
-    <!-- City dots -->
-    <g fill="#c8a96e">
-      <!-- Riyadh ~center-right -->
-      <circle cx="430" cy="290" r="5" opacity=".9"/><circle cx="430" cy="290" r="12" opacity=".15"/>
-      <!-- Jeddah left side -->
-      <circle cx="195" cy="340" r="4" opacity=".8"/><circle cx="195" cy="340" r="10" opacity=".12"/>
-      <!-- Mecca -->
-      <circle cx="185" cy="360" r="3" opacity=".7"/>
-      <!-- Dammam far right -->
-      <circle cx="570" cy="250" r="4" opacity=".8"/><circle cx="570" cy="250" r="10" opacity=".12"/>
-      <!-- Tabuk upper left -->
-      <circle cx="195" cy="155" r="3" opacity=".65"/>
-      <!-- Buraidah center -->
-      <circle cx="365" cy="215" r="3.5" opacity=".75"/>
-      <!-- Abha lower left -->
+    <!-- City dots — interactive -->
+    <g class="city-dot" onclick="cityClick('الرياض')" fill="#ffffff">
+      <circle cx="430" cy="290" r="5" opacity=".85"/>
+      <circle cx="430" cy="290" r="14" opacity=".1"/>
+    </g>
+    <g class="city-dot" onclick="cityClick('جدة')" fill="#ffffff">
+      <circle cx="195" cy="340" r="4" opacity=".75"/>
+      <circle cx="195" cy="340" r="12" opacity=".08"/>
+    </g>
+    <g class="city-dot" onclick="cityClick('مكة المكرمة')" fill="#ffffff">
+      <circle cx="185" cy="360" r="3" opacity=".65"/>
+    </g>
+    <g class="city-dot" onclick="cityClick('الدمام')" fill="#ffffff">
+      <circle cx="570" cy="250" r="4" opacity=".75"/>
+      <circle cx="570" cy="250" r="12" opacity=".08"/>
+    </g>
+    <g class="city-dot" onclick="cityClick('تبوك')" fill="#ffffff">
+      <circle cx="195" cy="155" r="3" opacity=".6"/>
+    </g>
+    <g class="city-dot" onclick="cityClick('بريدة')" fill="#ffffff">
+      <circle cx="365" cy="215" r="3.5" opacity=".7"/>
+    </g>
+    <g class="city-dot" onclick="cityClick('أبها')" fill="#ffffff">
       <circle cx="210" cy="455" r="3" opacity=".6"/>
-      <!-- Najran lower -->
+    </g>
+    <g class="city-dot" onclick="cityClick('نجران')" fill="#ffffff">
       <circle cx="318" cy="498" r="3" opacity=".6"/>
-      <!-- Hail -->
-      <circle cx="320" cy="190" r="3" opacity=".65"/>
-      <!-- Medina -->
-      <circle cx="222" cy="235" r="3.5" opacity=".7"/>
+    </g>
+    <g class="city-dot" onclick="cityClick('حائل')" fill="#ffffff">
+      <circle cx="320" cy="190" r="3" opacity=".6"/>
+    </g>
+    <g class="city-dot" onclick="cityClick('المدينة المنورة')" fill="#ffffff">
+      <circle cx="222" cy="235" r="3.5" opacity=".65"/>
     </g>
     <!-- City labels -->
-    <g font-family="Cairo,Arial,sans-serif" fill="#c8a96e" font-size="11" opacity=".7" text-anchor="middle">
+    <g font-family="Cairo,Arial,sans-serif" fill="#ffffff" font-size="11" opacity=".55" text-anchor="middle" pointer-events="none">
       <text x="430" y="280">الرياض</text>
       <text x="185" y="330">جدة</text>
       <text x="580" y="244">الدمام</text>
@@ -257,7 +289,7 @@ body{background:var(--dark);color:var(--text)}
       <text x="365" y="208">بريدة</text>
     </g>
     <!-- Grid lines subtle -->
-    <g stroke="#c8a96e" stroke-width=".3" opacity=".08">
+    <g stroke="#ffffff" stroke-width=".3" opacity=".05">
       <line x1="0" y1="175" x2="800" y2="175"/>
       <line x1="0" y1="350" x2="800" y2="350"/>
       <line x1="0" y1="525" x2="800" y2="525"/>
@@ -479,6 +511,20 @@ body{background:var(--dark);color:var(--text)}
   </div>
 </div>
 
+<!-- CITY POPUP -->
+<div id="city-pop" onclick="if(event.target===this)closeCityPop()">
+  <div id="city-pop-inner">
+    <div id="city-pop-head">
+      <div>
+        <div id="city-pop-title"></div>
+        <div id="city-pop-count"></div>
+      </div>
+      <button id="city-pop-close" onclick="closeCityPop()">×</button>
+    </div>
+    <div id="city-pop-list"></div>
+  </div>
+</div>
+
 <!-- LIGHTBOX -->
 <div id="lb" onclick="closeLb()">
   <button id="lb-x" onclick="closeLb()">✕</button>
@@ -609,6 +655,37 @@ body{background:var(--dark);color:var(--text)}
         +'</div></div>';
     }).join('');
   }
+
+  /* ── CITY MAP INTERACTION ── */
+  window.cityClick=function(cityName){
+    var list=_offers.filter(function(o){
+      return (o.city||'').indexOf(cityName)>=0 || cityName.indexOf(o.city||'')>=0;
+    });
+    document.getElementById('city-pop-title').textContent='📍 ' + cityName;
+    document.getElementById('city-pop-count').textContent = list.length
+      ? list.length + ' عرض متاح'
+      : 'لا توجد عروض حالياً في هذه المدينة';
+    var listEl=document.getElementById('city-pop-list');
+    if(!list.length){
+      listEl.innerHTML='<div style="text-align:center;padding:32px 16px;color:var(--sub);font-size:14px">لا توجد عروض حالياً في '+cityName+'<br><small style="font-size:12px;opacity:.6">تواصل معنا لمعرفة آخر المتاح</small></div>';
+    } else {
+      listEl.innerHTML=list.map(function(o){
+        return '<div class="cpop-card" onclick="closeCityPop();showOffer(\''+esc(o.id)+'\')">'
+          +(o.coverImg?'<img src="'+esc(o.coverImg)+'" loading="lazy">':'<div class="cpop-no-img">🏠</div>')
+          +'<div class="cpop-info">'
+          +'<div class="cpop-name">'+esc(o.ar||o.name||'عرض عقاري')+'</div>'
+          +'<div class="cpop-loc">'+esc((o.district?o.district+' · ':'')+cityName)+'</div>'
+          +(o.price?'<div class="cpop-price">'+fmt(o.price)+'</div>':'')
+          +'</div></div>';
+      }).join('');
+    }
+    document.getElementById('city-pop').classList.add('open');
+    document.body.style.overflow='hidden';
+  };
+  window.closeCityPop=function(){
+    document.getElementById('city-pop').classList.remove('open');
+    document.body.style.overflow='';
+  };
 
   loadOffers();
 })();
