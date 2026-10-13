@@ -568,7 +568,7 @@ tr:hover td{background:#fafafa}
             <button class="btn-primary" style="font-size:12px;padding:7px 14px" onclick="openEmployeeEditor()">+ إضافة موظف</button>
           </div>
           <table id="emp-table">
-            <thead><tr><th>اسم المستخدم</th><th>الاسم</th><th>الصلاحية</th><th>حذف</th></tr></thead>
+            <thead><tr><th>اسم المستخدم</th><th>الاسم</th><th>الصلاحية</th><th>البريد الإلكتروني</th><th>حذف</th></tr></thead>
             <tbody id="emp-body"></tbody>
           </table>
         </div>
@@ -873,6 +873,20 @@ tr:hover td{background:#fafafa}
   </div>
 </div>
 
+<!-- ══ MODAL: Edit Employee Email ══ -->
+<div class="modal-bg" id="modal-emp-email">
+  <div class="modal" style="max-width:380px">
+    <button class="modal-close" onclick="closeModal('modal-emp-email')">×</button>
+    <h3>تعديل البريد الإلكتروني</h3>
+    <input id="edit-email-username" type="hidden">
+    <div class="form-row"><label>البريد الإلكتروني</label><input id="edit-email-val" type="email" placeholder="ahmed@example.com" dir="ltr"></div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-emp-email')">إلغاء</button>
+      <button class="btn-primary" onclick="saveEmployeeEmail()">حفظ</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ MODAL: Promo Editor ══ -->
 <div class="modal-bg" id="modal-promo">
   <div class="modal" style="max-width:640px">
@@ -1100,6 +1114,10 @@ function renderEmployees(){
     <td style="direction:ltr;font-weight:600">${e.username}</td>
     <td>${e.name||'—'}</td>
     <td><span class="badge badge-gold">${e.role||'موظف'}</span></td>
+    <td><div style="display:flex;align-items:center;gap:6px;direction:ltr">
+      ${e.email?`<span style="font-size:12px;color:var(--text)">${e.email}</span>`:'<span style="font-size:12px;color:#ef4444">غير محدد</span>'}
+      <button onclick="openEditEmailModal('${e.username}')" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;color:var(--sub)">تعديل</button>
+    </div></td>
     <td>${emps.length>1?`<button class="btn-del" onclick="deleteEmployee('${e.username}')">حذف</button>`:'<span style="color:var(--sub);font-size:12px">—</span>'}</td>
   </tr>`).join('');
 }
@@ -1128,6 +1146,22 @@ function deleteEmployee(username){
   if(!emps.length){ alert('لا يمكن حذف آخر موظف'); return; }
   ss('shark_employees',emps); renderEmployees();
   showToast('تم حذف الموظف');
+}
+function openEditEmailModal(username){
+  $('edit-email-username').value=username;
+  const emp=getEmployees().find(e=>e.username===username);
+  $('edit-email-val').value=emp?.email||'';
+  $('modal-emp-email').classList.add('open');
+}
+function saveEmployeeEmail(){
+  const username=$('edit-email-username').value;
+  const email=$('edit-email-val').value.trim();
+  if(!email){ showToast('⚠️ أدخل البريد الإلكتروني'); return; }
+  var emps=getEmployees();
+  const idx=emps.findIndex(e=>e.username===username);
+  if(idx>=0){ emps[idx].email=email; ss('shark_employees',emps); }
+  closeModal('modal-emp-email'); renderEmployees();
+  showToast('✅ تم حفظ البريد الإلكتروني');
 }
 
 // ══════════════════════════════════════════════
