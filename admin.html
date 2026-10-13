@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
 :root{--gold:#c8a96e;--gold2:#b8954f;--dark:#0b0b0c;--card:#16181d;--card2:#1b1b1e;--border:rgba(244,243,239,.08);--border2:rgba(244,243,239,.14);--red:#e05252;--green:#4caf50;--text:#f4f3ef;--sub:#a8a59d}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -407,8 +409,37 @@ tr:hover td{background:rgba(255,255,255,.025)}
 const DEFAULT_PASS = 'shark2024';
 const PASS_KEY = 'shark_admin_pass';
 const SESSION_KEY = 'shark_admin_auth';
-const CLIENTS_KEY = 'shark_admin_clients'; // our own clients (separate from bundled app)
-const OFFERS_KEY = 'shark_offers';          // shared with main site
+const CLIENTS_KEY = 'shark_admin_clients';
+const OFFERS_KEY = 'shark_offers';
+
+// ── FIREBASE ──
+var _db = null;
+var _offersCache = [];
+var _clientsCache = [];
+var _promosCache = [];
+function initFirebase(){
+  var cfg={apiKey:"AIzaSyCJ59kjkb7mZ7pcsLImkT4L2-fdHFDTVko",authDomain:"sharek-re.firebaseapp.com",projectId:"sharek-re",storageBucket:"sharek-re.firebasestorage.app",messagingSenderId:"1000796915275",appId:"1:1000796915275:web:bb556f80db9d2f7f99efce"};
+  if(!firebase.apps.length) firebase.initializeApp(cfg);
+  _db=firebase.firestore();
+}
+async function loadAllFromFirestore(){
+  try{
+    var [os,cs,ps]=await Promise.all([
+      _db.collection('offers').orderBy('_ts','desc').get(),
+      _db.collection('clients').orderBy('_ts','desc').get(),
+      _db.collection('promos').orderBy('_ts','desc').get()
+    ]);
+    _offersCache=os.docs.map(d=>d.data());
+    _clientsCache=cs.docs.map(d=>d.data());
+    _promosCache=ps.docs.map(d=>d.data());
+  }catch(e){
+    console.error('Firestore error:',e);
+    _offersCache=gs(OFFERS_KEY)||[];
+    _clientsCache=gs(CLIENTS_KEY)||[];
+    _promosCache=gs('shark_promos')||[];
+    showToast('⚠️ تعذّر الاتصال — عرض البيانات المحلية');
+  }
+}
 
 const FEAT_CATALOG = [
   'بوابة واسعة للشاحنات','ارتفاع عالٍ','أرضية إسمنتية مسلّحة','كهرباء ٣ فاز',
@@ -467,8 +498,11 @@ window.addEventListener('load',()=>{
 // ══════════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════════
-function init(){
+async function init(){
+  initFirebase();
   $('topbar-date').textContent = new Date().toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  showToast('جاري تحميل البيانات...');
+  await loadAllFromFirestore();
   renderStats(); renderClients(); renderOffers(); renderPromos(); loadSettings();
 }
 
@@ -487,8 +521,7 @@ function showTab(name){
 // ══════════════════════════════════════════════
 //  CLIENTS DATA
 // ══════════════════════════════════════════════
-function getClients(){ return gs(CLIENTS_KEY)||[]; }
-function saveClients(arr){ ss(CLIENTS_KEY,arr); }
+function getClients(){ return _clientsCache; }
 
 function renderStats(){
   const c=getClients();
@@ -498,7 +531,7 @@ function renderStats(){
     <div class="stat-card"><div class="num">${c.length}</div><div class="lbl">إجمالي العملاء</div></div>
     <div class="stat-card"><div class="num">${c.filter(r=>r.type==='عميل اتصال').length}</div><div class="lbl">عملاء اتصال</div></div>
     <div class="stat-card"><div class="num">${c.filter(r=>r.type==='رغبة استثمار').length}</div><div class="lbl">رغبات استثمار</div></div>
-    <div class="stat-card"><div class="num">${(gs(OFFERS_KEY)||[]).length}</div><div class="lbl">عروض عقارية</div></div>
+    <div class="stat-card"><div class="num">${_offersCache.length}</div><div class="lbl">عروض عقارية</div></div>
   `;
 }
 
@@ -508,8 +541,7 @@ function renderClients(){
   const badge={
     'عميل اتصال':'badge-lead','رغبة استثمار':'badge-inv','عرض عقار':'badge-req','طلب شراء':'badge-req'
   };
-  const offers=gs(OFFERS_KEY)||[];
-  const offerMap={}; offers.forEach(o=>{offerMap[o.id]=o.ar||o.name||o.id;});
+  const offerMap={}; _offersCache.forEach(o=>{offerMap[o.id]=o.ar||o.name||o.id;});
 
   $('clients-body').innerHTML = rows.length===0
     ? '<tr><td colspan="8" style="text-align:center;padding:32px;color:rgba(255,255,255,.3)">لا توجد سجلات بعد</td></tr>'
@@ -533,9 +565,7 @@ function renderClients(){
 function openAddClient(){
   ['cl-name','cl-phone','cl-interest','cl-note'].forEach(id=>$(id).value='');
   $('cl-type').value='عميل اتصال';
-  // Populate offers dropdown
-  const offers=gs(OFFERS_KEY)||[];
-  $('cl-offer').innerHTML='<option value="">— بدون عرض —</option>'+offers.map(o=>`<option value="${o.id}">${o.ar||o.name||o.id}</option>`).join('');
+  $('cl-offer').innerHTML='<option value="">— بدون عرض —</option>'+_offersCache.map(o=>`<option value="${o.id}">${o.ar||o.name||o.id}</option>`).join('');
   $('modal-client').classList.add('open');
   $('modal-client-title').textContent='إضافة عميل جديد';
 }
@@ -558,32 +588,40 @@ function loadSettings(){
   if(s.phone && $('set-phone')) $('set-phone').value=s.phone;
   if(s.sheetsUrl && $('set-sheets')) $('set-sheets').value=s.sheetsUrl;
 }
-function saveClient(){
+async function saveClient(){
   const name=$('cl-name').value.trim(), phone=$('cl-phone').value.trim();
   if(!name||!phone){ alert('الرجاء إدخال الاسم ورقم الجوال'); return; }
   const offerId=$('cl-offer').value;
-  const offers=gs(OFFERS_KEY)||[];
-  const offer=offerId ? offers.find(o=>o.id===offerId) : null;
+  const offer=offerId ? _offersCache.find(o=>o.id===offerId) : null;
   const rec={
     id:uid(), name, phone, type:$('cl-type').value,
     interest:$('cl-interest').value.trim(), note:$('cl-note').value.trim(),
     offerId: offerId||'', offerName: offer ? (offer.ar||offer.name||'') : '',
     offerTitle: offer ? (offer.title||offer.name||'') : '',
-    source:$('cl-type').value==='تسويق عقار'?'marketing':'client', date:nowAr()
+    source:$('cl-type').value==='تسويق عقار'?'marketing':'client', date:nowAr(),
+    _ts: Date.now()
   };
-  const arr=getClients(); arr.unshift(rec); saveClients(arr);
+  _clientsCache.unshift(rec);
+  try{ await _db.collection('clients').doc(rec.id).set(rec); }catch(e){ console.error(e); }
   sendToSheets(rec);
   closeModal('modal-client'); renderStats(); renderClients();
   showToast('تم حفظ العميل بنجاح ✓');
 }
-function deleteClient(id){
+async function deleteClient(id){
   if(!confirm('هل تريد حذف هذا السجل؟')) return;
-  saveClients(getClients().filter(r=>r.id!==id));
+  _clientsCache=_clientsCache.filter(r=>r.id!==id);
+  try{ await _db.collection('clients').doc(id).delete(); }catch(e){ console.error(e); }
   renderStats(); renderClients();
 }
-function clearClients(){
+async function clearClients(){
   if(!confirm('سيتم حذف جميع سجلات العملاء. هل أنت متأكد؟')) return;
-  ss(CLIENTS_KEY,[]); renderStats(); renderClients();
+  const ids=_clientsCache.map(r=>r.id); _clientsCache=[];
+  renderStats(); renderClients();
+  try{
+    var batch=_db.batch();
+    ids.forEach(id=>batch.delete(_db.collection('clients').doc(id)));
+    await batch.commit();
+  }catch(e){ console.error(e); }
 }
 
 // ══════════════════════════════════════════════
@@ -601,8 +639,7 @@ function buildWaMsg(client, offer){
     const base=location.origin+location.pathname.replace('admin.html','')+'landing.html';
     msg += `\n🔗 تفاصيل العرض: ${base}?id=${offer.id}\n`;
   } else if(client.offerName || client.offerId){
-    const offers=gs(OFFERS_KEY)||[];
-    const o=offers.find(x=>x.id===client.offerId);
+    const o=_offersCache.find(x=>x.id===client.offerId);
     if(o) return buildWaMsg(client, o);
     msg += `شكراً لتواصلك مع شركة شارك العقارية 🏢\nاهتمامك بالعقار: ${client.offerName||client.offerId}\n`;
   } else {
@@ -617,9 +654,7 @@ function openClientActions(id){
   const c=getClients().find(r=>r.id===id); if(!c) return;
   _activeClient=c;
   $('act-client-name').textContent='إجراءات: '+c.name;
-  // Populate offer dropdown
-  const offers=gs(OFFERS_KEY)||[];
-  $('act-offer-sel').innerHTML='<option value="">— بدون عرض —</option>'+offers.map(o=>`<option value="${o.id}"${o.id===c.offerId?' selected':''}>${o.ar||o.name||o.id}</option>`).join('');
+  $('act-offer-sel').innerHTML='<option value="">— بدون عرض —</option>'+_offersCache.map(o=>`<option value="${o.id}"${o.id===c.offerId?' selected':''}>${o.ar||o.name||o.id}</option>`).join('');
   rebuildWaMsg();
   $('modal-actions').classList.add('open');
 }
@@ -627,8 +662,7 @@ function openClientActions(id){
 function rebuildWaMsg(){
   const c=_activeClient; if(!c) return;
   const offerId=$('act-offer-sel').value;
-  const offers=gs(OFFERS_KEY)||[];
-  const offer=offerId ? offers.find(o=>o.id===offerId) : null;
+  const offer=offerId ? _offersCache.find(o=>o.id===offerId) : null;
   $('wa-msg').value=buildWaMsg(c, offer||null);
 }
 
@@ -641,8 +675,7 @@ function openWA(){
 
 function generatePDF(){
   const c=_activeClient; if(!c) return;
-  const offers=gs(OFFERS_KEY)||[];
-  const offer=c.offerId ? offers.find(o=>o.id===c.offerId) : null;
+  const offer=c.offerId ? _offersCache.find(o=>o.id===c.offerId) : null;
   const coverImg=offer?.coverImg||'';
   const galleryImgs=(offer?.gallery||'').split('\n').filter(Boolean).slice(0,4);
 
@@ -753,12 +786,11 @@ function copyQRUrl(){
 var _galleryB64 = [];
 
 function renderOffers(){
-  const offers=gs(OFFERS_KEY)||[];
-  if(!offers.length){
+  if(!_offersCache.length){
     $('offers-grid').innerHTML='<div style="color:rgba(255,255,255,.3);padding:32px">لا توجد عروض بعد — أضف أول عرض</div>';
     return;
   }
-  $('offers-grid').innerHTML=offers.map(o=>`
+  $('offers-grid').innerHTML=_offersCache.map(o=>`
     <div class="offer-card">
       ${o.coverImg ? `<img src="${o.coverImg}" alt="${o.ar||''}">` : `<div class="no-img">لا توجد صورة</div>`}
       <div class="oc-body">
@@ -793,8 +825,7 @@ function openOfferEditor(id){
     </label>`).join('');
 
   if(id){
-    const offers=gs(OFFERS_KEY)||[];
-    const o=offers.find(x=>x.id===id); if(!o) return;
+    const o=_offersCache.find(x=>x.id===id); if(!o) return;
     $('of-name').value=o.ar||o.name||'';
     $('of-type').value=o.type||'warehouses';
     $('of-price').value=o.price||'';
@@ -877,11 +908,10 @@ function autoFillCityCoords(city){
   if(c){ $('of-lat').value=c[0]; $('of-lng').value=c[1]; }
 }
 
-function saveOffer(){
+async function saveOffer(){
   const name=$('of-name').value.trim(); if(!name){ alert('الرجاء إدخال اسم العرض'); return; }
   const features=[...document.querySelectorAll('[name="feat"]:checked')].map(cb=>cb.value);
   const editId=$('offer-edit-id').value;
-  const offers=gs(OFFERS_KEY)||[];
   const rec={
     id: editId||ouid(), ar:name, name:name,
     type:$('of-type').value,
@@ -894,14 +924,22 @@ function saveOffer(){
     coverImg:$('of-cover-b64').value||'',
     gallery:_galleryB64.join('\n'),
     features, status:'available',
-    beds:0, baths:0, map:'', en:name
+    beds:0, baths:0, map:'', en:name,
+    _ts: Date.now()
   };
   if(editId){
-    const idx=offers.findIndex(o=>o.id===editId);
-    if(idx>=0) offers[idx]=rec; else offers.unshift(rec);
-  } else { offers.unshift(rec); }
-  ss(OFFERS_KEY,offers);
+    const idx=_offersCache.findIndex(o=>o.id===editId);
+    if(idx>=0) _offersCache[idx]=rec; else _offersCache.unshift(rec);
+  } else { _offersCache.unshift(rec); }
   closeModal('modal-offer'); renderOffers();
+  showToast('جاري الحفظ...');
+  try{
+    await _db.collection('offers').doc(rec.id).set(rec);
+    showToast('تم حفظ العرض ✓');
+  }catch(e){
+    console.error(e);
+    showToast('⚠️ خطأ في الحفظ — تحقق من الاتصال');
+  }
 }
 
 function shareLanding(id){
@@ -910,10 +948,11 @@ function shareLanding(id){
   if(navigator.share){ navigator.share({title:'عرض شارك العقارية', url}).catch(()=>{}); return; }
   navigator.clipboard.writeText(url).then(()=>showToast('تم نسخ الرابط ✓')).catch(()=>{ prompt('انسخ الرابط:',url); });
 }
-function deleteOffer(id){
+async function deleteOffer(id){
   if(!confirm('هل تريد حذف هذا العرض؟')) return;
-  ss(OFFERS_KEY,(gs(OFFERS_KEY)||[]).filter(o=>o.id!==id));
+  _offersCache=_offersCache.filter(o=>o.id!==id);
   renderOffers();
+  try{ await _db.collection('offers').doc(id).delete(); }catch(e){ console.error(e); }
 }
 
 // ══════════════════════════════════════════════
@@ -927,7 +966,7 @@ function exportExcel(){
   document.head.appendChild(s);
 }
 function doExcelClients(){
-  const clients=getClients();
+  const clients=_clientsCache;
   const hdr=['الاسم','الجوال','النوع','الاهتمام','العرض المرفق','الملاحظات','التاريخ'];
   const rows=clients.map(r=>[r.name||'',r.phone||'',r.type||'',r.interest||'',r.offerName||'',r.note||'',r.date||'']);
   const wb=XLSX.utils.book_new();
@@ -947,7 +986,7 @@ function exportOffersExcel(){
   document.head.appendChild(s);
 }
 function doExcelOffers(){
-  const offers=gs(OFFERS_KEY)||[];
+  const offers=_offersCache;
   const hdr=['الاسم','النوع','السعر','المساحة','المدينة','الحي','المميزات','الوصف'];
   const rows=offers.map(o=>[o.ar||o.name||'',TYPE_LABELS[o.type]||o.type||'',o.price||'',o.area||'',o.city||'',o.district||'',(o.features||[]).join(' | '),o.desc||'']);
   const wb=XLSX.utils.book_new();
@@ -963,7 +1002,7 @@ function doExcelOffers(){
 const PROMOS_KEY = 'shark_promos';
 var _promoGallery = [];
 
-function getPromos(){ return gs(PROMOS_KEY)||[]; }
+function getPromos(){ return _promosCache; }
 
 function compressPromoImg(file, maxPx, q, cb){
   var r=new FileReader(); r.onload=function(e){ var img=new Image(); img.onload=function(){
@@ -1014,7 +1053,7 @@ function openPromoEditor(id){
   $('modal-promo').classList.add('open');
 }
 
-function savePromo(){
+async function savePromo(){
   const headline=$('pr-headline').value.trim(); if(!headline){ alert('الرجاء إدخال عنوان الإعلان'); return; }
   const editId=$('promo-edit-id').value;
   const pts=$('pr-points').value.split('\n').map(s=>s.trim()).filter(Boolean);
@@ -1029,13 +1068,11 @@ function savePromo(){
     gallery:_promoGallery.filter(Boolean),
     created:nowAr()
   };
-  var arr=getPromos();
-  if(editId){ var idx=arr.findIndex(x=>x.id===editId); if(idx>=0) arr[idx]=promo; else arr.unshift(promo); }
-  else arr.unshift(promo);
-  ss(PROMOS_KEY,arr);
+  if(editId){ var idx=_promosCache.findIndex(x=>x.id===editId); if(idx>=0) _promosCache[idx]=promo; else _promosCache.unshift(promo); }
+  else _promosCache.unshift(promo);
   closeModal('modal-promo'); renderPromos();
   showToast('تم حفظ الإعلان ✓');
-  /* auto-show link */
+  try{ await _db.collection('promos').doc(promo.id).set(promo); }catch(e){ console.error(e); }
   setTimeout(function(){ sharePromo(promo.id); }, 400);
 }
 
@@ -1071,9 +1108,10 @@ function sharePromo(id){
   navigator.clipboard.writeText(url).then(function(){ showToast('تم نسخ الرابط ✓'); }).catch(function(){ prompt('رابط الإعلان:',url); });
 }
 
-function deletePromo(id){
+async function deletePromo(id){
   if(!confirm('هل تريد حذف هذا الإعلان؟')) return;
-  ss(PROMOS_KEY,getPromos().filter(p=>p.id!==id)); renderPromos();
+  _promosCache=_promosCache.filter(p=>p.id!==id); renderPromos();
+  try{ await _db.collection('promos').doc(id).delete(); }catch(e){ console.error(e); }
 }
 
 // ══════════════════════════════════════════════

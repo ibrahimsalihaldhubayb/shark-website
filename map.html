@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--gold:#c8a96e;--dark:#0b0b0c;--card:#16181d;--border:rgba(244,243,239,.1);--text:#f4f3ef;--sub:#a8a59d}
@@ -382,13 +384,27 @@ html,body{height:100%;font-family:'Cairo',Tahoma,Arial,sans-serif;direction:rtl;
   };
 
   /* ── INIT ── */
-  _allOffers=gs('shark_offers')||[];
-  rebuildMarkers();
-
-  /* open panel if there are offers */
-  if(_allOffers.length){
-    document.getElementById('panel').classList.remove('collapsed');
-    _panelOpen=true;
+  function initFS(){
+    var cfg={apiKey:"AIzaSyCJ59kjkb7mZ7pcsLImkT4L2-fdHFDTVko",authDomain:"sharek-re.firebaseapp.com",projectId:"sharek-re",storageBucket:"sharek-re.firebasestorage.app",messagingSenderId:"1000796915275",appId:"1:1000796915275:web:bb556f80db9d2f7f99efce"};
+    if(!firebase.apps.length) firebase.initializeApp(cfg);
+    return firebase.firestore();
+  }
+  try{
+    var fsdb=initFS();
+    fsdb.collection('offers').orderBy('_ts','desc').get()
+      .then(function(snap){
+        _allOffers=snap.docs.map(function(d){return d.data();});
+        if(!_allOffers.length) _allOffers=gs('shark_offers')||[];
+        rebuildMarkers();
+        if(_allOffers.length){ document.getElementById('panel').classList.remove('collapsed'); _panelOpen=true; }
+      })
+      .catch(function(){
+        _allOffers=gs('shark_offers')||[];
+        rebuildMarkers();
+      });
+  }catch(e){
+    _allOffers=gs('shark_offers')||[];
+    rebuildMarkers();
   }
 
   /* close popup on map click */
