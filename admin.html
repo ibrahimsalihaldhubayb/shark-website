@@ -53,16 +53,15 @@ body{font-family:'Cairo',Tahoma,Arial,sans-serif;background:var(--bg);color:var(
 
 /* ── Sidebar ── */
 .sidebar{width:var(--sidebar-w);background:#fff;border-left:1px solid var(--border);flex-shrink:0;overflow-y:auto;padding:16px 0;position:sticky;top:60px;height:calc(100vh - 60px)}
-.sidebar-section-label{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--sub);padding:14px 20px 6px;text-transform:uppercase;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;transition:.15s}
+.sidebar-section-label{font-size:10px;font-weight:700;letter-spacing:.12em;color:#9ca3af;padding:16px 20px 5px;text-transform:uppercase;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none}
 .sidebar-section-label:hover{color:var(--text)}
 .sidebar-group{overflow:hidden;transition:max-height .28s ease}
 .sidebar-group.collapsed{max-height:0!important}
 .sg-arrow{transition:transform .22s;font-style:normal;font-size:12px}
 .sg-arrow.up{transform:rotate(-180deg)}
-.sidebar-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;font-weight:500;color:var(--sub);cursor:pointer;transition:.15s;border-right:3px solid transparent;margin:1px 0}
+.sidebar-item{display:flex;align-items:center;padding:9px 20px 9px 16px;font-size:13px;font-weight:500;color:var(--sub);cursor:pointer;transition:.15s;border-right:3px solid transparent;margin:1px 0;gap:0}
 .sidebar-item:hover{background:#f9fafb;color:var(--text)}
-.sidebar-item.active{background:rgba(200,169,110,.08);color:var(--gold);border-right-color:var(--gold);font-weight:700}
-.sidebar-item .si-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.sidebar-item.active{background:rgba(200,169,110,.07);color:var(--gold);border-right-color:var(--gold);font-weight:700}
 
 /* ── Main content ── */
 .main{flex:1;padding:28px 32px;min-width:0;overflow-x:hidden}
@@ -247,6 +246,34 @@ tr:hover td{background:#fafafa}
 .modal-close{background:none;border:none;color:var(--sub);font-size:22px;cursor:pointer;line-height:1;width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:6px}
 .modal-close:hover{background:#f3f4f6}
 
+/* ── Workspace Offer Cards ── */
+.wo-card{background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:.18s;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.wo-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.1);transform:translateY(-2px);border-color:var(--gold)}
+.wo-card-img{width:100%;height:160px;object-fit:cover;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:40px;color:#d1d5db}
+.wo-card-body{padding:14px 16px}
+.wo-card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wo-card-meta{font-size:12px;color:var(--sub);margin-bottom:10px}
+.wo-card-price{font-size:16px;font-weight:800;color:var(--gold)}
+.wo-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
+.wo-badge{font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:3px 10px;color:var(--sub);font-weight:600}
+.wo-pub-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:4px}
+
+/* ── Offer Detail Panel Tabs ── */
+.od-tab{flex:1;padding:14px;background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:var(--sub);transition:.15s}
+.od-tab:hover{color:var(--text);background:#f3f4f6}
+.od-tab.active{color:var(--gold);border-bottom-color:var(--gold);background:#fff}
+
+/* ── Task List View ── */
+.task-filter-btn{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:7px 16px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;color:var(--sub);transition:.15s}
+.task-filter-btn:hover{color:var(--text)}
+.task-filter-btn.active{background:var(--gold);color:#fff;border-color:var(--gold)}
+.task-row{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:8px;display:flex;align-items:center;gap:14px;transition:.15s}
+.task-row:hover{border-color:var(--gold);box-shadow:0 2px 8px rgba(200,169,110,.15)}
+.task-row.done-row{opacity:.6}
+.task-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.15s}
+.task-check.checked{background:var(--gold);border-color:var(--gold);color:#fff}
+.task-check:hover{border-color:var(--gold)}
+
 /* ── Responsive ── */
 @media(max-width:768px){
   .sidebar{display:none}
@@ -306,36 +333,33 @@ tr:hover td{background:#fafafa}
   <div class="layout">
     <!-- Sidebar -->
     <div class="sidebar">
-      <!-- الموقع الإلكتروني — collapsible -->
       <div class="sidebar-section-label" onclick="toggleSidebarGroup('web')">
         <span>الموقع الإلكتروني</span><i class="sg-arrow" id="arrow-web">▾</i>
       </div>
       <div id="sidebar-group-web" class="sidebar-group" style="max-height:200px">
-        <div class="sidebar-item" onclick="showSection('offers')" id="nav-web-offers">🏠 العروض</div>
-        <div class="sidebar-item" onclick="showSection('clients')" id="nav-clients">👥 العملاء</div>
+        <div class="sidebar-item" onclick="showSection('offers')" id="nav-web-offers">العروض المنشورة</div>
+        <div class="sidebar-item" onclick="showSection('clients')" id="nav-clients">العملاء</div>
       </div>
 
-      <!-- مساحة العمل — always open -->
       <div class="sidebar-section-label" style="cursor:default">مساحة العمل</div>
-      <div class="sidebar-item active" onclick="showSection('dashboard')" id="nav-dashboard">📊 الرئيسية</div>
-      <div class="sidebar-item" onclick="showSection('offers')" id="nav-offers">🏗️ عروضنا</div>
-      <div class="sidebar-item" onclick="showSection('deals')" id="nav-deals">💼 الصفقات</div>
-      <div class="sidebar-item" onclick="showSection('tasks')" id="nav-tasks">✅ المهام</div>
-      <div class="sidebar-item" onclick="showSection('chat')" id="nav-chat">💬 المحادثة</div>
-      <div class="sidebar-item" onclick="showSection('finance')" id="nav-finance">💰 المالية</div>
+      <div class="sidebar-item active" onclick="showSection('dashboard')" id="nav-dashboard">الرئيسية</div>
+      <div class="sidebar-item" onclick="showSection('workspace-offers')" id="nav-workspace-offers">عروضنا</div>
+      <div class="sidebar-item" onclick="showSection('deals')" id="nav-deals">الصفقات</div>
+      <div class="sidebar-item" onclick="showSection('tasks')" id="nav-tasks">المهام</div>
+      <div class="sidebar-item" onclick="showSection('chat')" id="nav-chat">المحادثة</div>
+      <div class="sidebar-item" onclick="showSection('finance')" id="nav-finance">المالية</div>
 
-      <!-- التسويق — collapsible -->
       <div class="sidebar-section-label" onclick="toggleSidebarGroup('mkt')">
         <span>التسويق</span><i class="sg-arrow" id="arrow-mkt">▾</i>
       </div>
       <div id="sidebar-group-mkt" class="sidebar-group" style="max-height:200px">
-        <div class="sidebar-item" onclick="showSection('promos')" id="nav-promos">📣 الإعلانات</div>
-        <div class="sidebar-item" onclick="showSection('landing')" id="nav-landing">🔗 صفحات الهبوط</div>
-        <div class="sidebar-item" onclick="showSection('promowa')" id="nav-promowa">📲 رسائل ترويجية</div>
+        <div class="sidebar-item" onclick="showSection('promos')" id="nav-promos">الإعلانات</div>
+        <div class="sidebar-item" onclick="showSection('landing')" id="nav-landing">صفحات الهبوط</div>
+        <div class="sidebar-item" onclick="showSection('promowa')" id="nav-promowa">الرسائل الترويجية</div>
       </div>
 
       <div class="sidebar-section-label" style="cursor:default">الإعدادات</div>
-      <div class="sidebar-item" onclick="showSection('settings')" id="nav-settings">⚙️ الإعدادات</div>
+      <div class="sidebar-item" onclick="showSection('settings')" id="nav-settings">الإعدادات</div>
     </div>
 
     <!-- Main content -->
@@ -359,6 +383,31 @@ tr:hover td{background:#fafafa}
             </table>
           </div>
         </div>
+      </div>
+
+      <!-- ── WORKSPACE OFFERS ── -->
+      <div id="sec-workspace-offers" class="section" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+          <div>
+            <h2 style="margin:0;font-size:20px">عروضنا</h2>
+            <div style="font-size:13px;color:var(--sub);margin-top:2px">إدارة العروض العقارية الداخلية</div>
+          </div>
+          <button class="btn-primary" onclick="openOfferEditor(null)">+ إضافة عرض</button>
+        </div>
+        <!-- Filter bar -->
+        <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+          <input id="wo-search" type="text" placeholder="ابحث باسم العرض أو المدينة..." oninput="renderWorkspaceOffers()" style="flex:1;min-width:200px;padding:9px 14px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:#fff">
+          <select id="wo-filter-type" onchange="renderWorkspaceOffers()" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:#fff">
+            <option value="">كل الأنواع</option>
+            <option value="warehouses">مستودعات</option>
+            <option value="land">أراضي</option>
+            <option value="villa">فلل</option>
+            <option value="apartment">شقق</option>
+            <option value="commercial">تجاري</option>
+            <option value="office">مكاتب</option>
+          </select>
+        </div>
+        <div id="workspace-offers-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px"></div>
       </div>
 
       <!-- ── CLIENTS ── -->
@@ -435,8 +484,24 @@ tr:hover td{background:#fafafa}
           </div>
         </div>
         <div class="card" style="margin-bottom:20px">
-          <div class="card-head"><span>👷 حالة الموظفين والمهام</span></div>
+          <div class="card-head"><span>حالة الموظفين والمهام</span></div>
           <div id="emp-task-strip" style="display:flex;gap:12px;flex-wrap:wrap;padding:12px 0"></div>
+        </div>
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-head">
+            <span>المهام الأخيرة</span>
+            <button onclick="showSection('tasks')" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:13px;font-weight:600;font-family:inherit">عرض الكل</button>
+          </div>
+          <div id="dash-tasks-list" style="padding:0 4px"></div>
+          <div style="padding:8px 0 0">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--sub);margin-bottom:6px">
+              <span>نسبة الإنجاز</span>
+              <span id="dash-task-pct">—</span>
+            </div>
+            <div style="background:var(--bg);border-radius:6px;height:8px;overflow:hidden">
+              <div id="dash-task-bar" style="background:linear-gradient(90deg,var(--gold),#e8c87a);border-radius:6px;height:8px;width:0;transition:width .6s"></div>
+            </div>
+          </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start">
           <div class="card">
@@ -495,21 +560,31 @@ tr:hover td{background:#fafafa}
       </div>
 
       <!-- ── TASKS ── -->
-      <div class="section" id="sec-tasks">
-        <div class="sec-header">
-          <h2>✅ المهام</h2>
+      <div id="sec-tasks" class="section" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+          <div>
+            <h2 style="margin:0;font-size:20px">المهام</h2>
+            <div style="font-size:13px;color:var(--sub);margin-top:2px" id="tasks-summary-line">جاري التحميل...</div>
+          </div>
           <button class="btn-primary" onclick="openTaskEditor()">+ مهمة جديدة</button>
         </div>
-        <div class="kanban">
-          <div class="kanban-col">
-            <h4><span style="width:10px;height:10px;background:#f59e0b;border-radius:50%;display:inline-block"></span> قيد التنفيذ</h4>
-            <div id="tasks-pending"></div>
+        <!-- Progress bar -->
+        <div class="card" style="margin-bottom:20px;padding:16px 20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:13px;font-weight:600">نسبة الإنجاز الكلية</span>
+            <span id="tasks-pct-label" style="font-size:14px;font-weight:800;color:var(--gold)">0%</span>
           </div>
-          <div class="kanban-col">
-            <h4><span style="width:10px;height:10px;background:#10b981;border-radius:50%;display:inline-block"></span> منجزة</h4>
-            <div id="tasks-done"></div>
+          <div style="background:var(--bg);border-radius:8px;height:10px;overflow:hidden">
+            <div id="tasks-pct-bar" style="background:linear-gradient(90deg,var(--gold),#e8c87a);border-radius:8px;height:10px;width:0;transition:width .6s ease"></div>
           </div>
         </div>
+        <!-- Filter tabs -->
+        <div style="display:flex;gap:6px;margin-bottom:16px">
+          <button class="task-filter-btn active" onclick="setTaskFilter('all')" id="tfilt-all">الكل</button>
+          <button class="task-filter-btn" onclick="setTaskFilter('pending')" id="tfilt-pending">قيد التنفيذ</button>
+          <button class="task-filter-btn" onclick="setTaskFilter('done')" id="tfilt-done">مكتملة</button>
+        </div>
+        <div id="tasks-list-view"></div>
       </div>
 
       <!-- ── CHAT ── -->
@@ -989,6 +1064,41 @@ tr:hover td{background:#fafafa}
   </div>
 </div>
 
+<!-- ══ OFFER DETAIL PANEL ══ -->
+<div id="offer-detail-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3000;overflow-y:auto" onclick="if(event.target===this)closeOfferDetail()">
+  <div style="min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:24px">
+    <div style="background:#fff;border-radius:16px;width:100%;max-width:860px;overflow:hidden">
+      <!-- Header -->
+      <div id="od-header" style="background:linear-gradient(135deg,#1a1a2e,#2d2d44);color:#fff;padding:24px 28px;position:relative">
+        <button onclick="closeOfferDetail()" style="position:absolute;top:16px;left:16px;background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center">×</button>
+        <div style="display:flex;align-items:flex-start;gap:16px">
+          <div id="od-cover" style="width:80px;height:80px;border-radius:10px;object-fit:cover;flex-shrink:0;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden"></div>
+          <div style="flex:1">
+            <div id="od-title" style="font-size:20px;font-weight:800;margin-bottom:4px"></div>
+            <div id="od-subtitle" style="font-size:13px;opacity:.75;margin-bottom:8px"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <span id="od-price" style="background:var(--gold);color:#fff;border-radius:20px;padding:4px 14px;font-size:13px;font-weight:700"></span>
+              <span id="od-area-badge" style="background:rgba(255,255,255,.15);color:#fff;border-radius:20px;padding:4px 14px;font-size:13px"></span>
+              <span id="od-pub-badge" style="border-radius:20px;padding:4px 14px;font-size:13px;font-weight:600"></span>
+            </div>
+          </div>
+          <button onclick="openOfferEditor(_detailOfferId)" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:13px;font-weight:600">تعديل</button>
+        </div>
+      </div>
+      <!-- Tabs -->
+      <div style="display:flex;border-bottom:1px solid var(--border);background:#fafafa">
+        <button class="od-tab active" onclick="switchODTab('details')" id="odtab-details">التفاصيل</button>
+        <button class="od-tab" onclick="switchODTab('notes')" id="odtab-notes">ملاحظات الفريق</button>
+        <button class="od-tab" onclick="switchODTab('docs')" id="odtab-docs">المستندات</button>
+      </div>
+      <!-- Tab content -->
+      <div id="od-body" style="padding:24px 28px;min-height:300px">
+        <!-- filled by JS -->
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════════════════
 //  CONFIG & GLOBALS
@@ -1199,6 +1309,7 @@ function showSection(name){
   if(name==='promowa') populatePromoWAOffers();
   if(name==='dashboard') loadDashboard();
   if(name==='finance') loadFinance();
+  if(name==='workspace-offers') renderWorkspaceOffers();
 }
 
 // ══════════════════════════════════════════════
@@ -1768,28 +1879,55 @@ async function deleteDoc(idx){
 //  TASKS
 // ══════════════════════════════════════════════
 var _tasksCache=[];
-async function loadTasks(){
-  try{ const snap=await _db.collection('tasks').orderBy('_ts','desc').get(); _tasksCache=snap.docs.map(d=>d.data()); }catch(e){ _tasksCache=[]; }
+var _taskFilter = 'all';
+var _allTasksCache = [];
+
+function setTaskFilter(f){
+  _taskFilter=f;
+  ['all','pending','done'].forEach(id=>{ $('tfilt-'+id)?.classList.toggle('active',id===f); });
+  renderTasksView();
 }
+
 async function renderTasks(){
-  await loadTasks();
-  const pending=_tasksCache.filter(t=>t.status!=='done');
-  const done=_tasksCache.filter(t=>t.status==='done');
-  const renderCard=(t)=>`<div class="task-card">
-    <div class="task-title-txt">${t.title||''}</div>
-    ${t.description?`<div class="task-desc-txt">${t.description}</div>`:''}
-    <div class="task-meta-row">
-      <span class="badge-emp">${t.assignedTo||'—'}</span>
-      <span class="badge-deadline">${t.deadline||'—'}</span>
-    </div>
-    <div style="font-size:11px;color:var(--sub);margin-top:6px">من: ${t.assignedBy||'—'}</div>
-    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-      ${t.status!=='done'?`<button class="btn-sm-green" onclick="markTaskDone('${t.id}')">✓ إنجاز</button>`:''}
-      <button class="btn-del" style="padding:5px 10px;font-size:11px" onclick="deleteTask('${t.id}')">حذف</button>
-    </div>
-  </div>`;
-  $('tasks-pending').innerHTML=pending.length?pending.map(renderCard).join(''):'<div style="color:var(--sub);font-size:13px;padding:16px;text-align:center">لا توجد مهام قيد التنفيذ</div>';
-  $('tasks-done').innerHTML=done.length?done.map(renderCard).join(''):'<div style="color:var(--sub);font-size:13px;padding:16px;text-align:center">لا توجد مهام منجزة</div>';
+  if($('tasks-list-view')) $('tasks-list-view').innerHTML='<div style="color:var(--sub);font-size:13px;padding:20px">جاري التحميل...</div>';
+  try{
+    const snap=await _db.collection('tasks').orderBy('_ts','desc').get();
+    _allTasksCache=snap.docs.map(d=>({...d.data(),id:d.id}));
+    _tasksCache=_allTasksCache;
+    renderTasksView();
+  }catch(e){ if($('tasks-list-view')) $('tasks-list-view').innerHTML='<div style="color:#ef4444">تعذّر التحميل</div>'; }
+}
+
+function renderTasksView(){
+  const done=_allTasksCache.filter(t=>t.status==='done').length;
+  const total=_allTasksCache.length;
+  const pct=total?Math.round(done/total*100):0;
+  if($('tasks-summary-line')) $('tasks-summary-line').textContent=`${total} مهمة · ${done} مكتملة · ${total-done} قيد التنفيذ`;
+  if($('tasks-pct-label')) $('tasks-pct-label').textContent=pct+'%';
+  if($('tasks-pct-bar')) $('tasks-pct-bar').style.width=pct+'%';
+  const filtered=_taskFilter==='all'?_allTasksCache:_allTasksCache.filter(t=>t.status===(_taskFilter==='done'?'done':'pending'));
+  const listEl=$('tasks-list-view'); if(!listEl) return;
+  if(!filtered.length){ listEl.innerHTML='<div style="text-align:center;padding:48px;color:var(--sub);font-size:14px">لا توجد مهام في هذه الفئة</div>'; return; }
+  listEl.innerHTML=filtered.map(t=>{
+    const isDone=t.status==='done';
+    const overdue=!isDone&&t.dueDate&&new Date(t.dueDate)<new Date();
+    return `<div class="task-row${isDone?' done-row':''}">
+      <div class="task-check${isDone?' checked':''}" onclick="${isDone?'':("markTaskDone('"+t.id+"')")}">
+        ${isDone?'✓':''}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:14px;color:var(--text);${isDone?'text-decoration:line-through;':''}">${t.title||'—'}</div>
+        ${t.description?`<div style="font-size:12px;color:var(--sub);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.description}</div>`:''}
+      </div>
+      <div style="text-align:center;min-width:80px">
+        <div style="font-size:11px;font-weight:600;color:var(--text)">${t.assignedTo||'—'}</div>
+        <div style="font-size:10px;color:var(--sub)">المسؤول</div>
+      </div>
+      ${t.dueDate?`<div style="text-align:center;min-width:80px"><div style="font-size:11px;font-weight:600;color:${overdue?'#ef4444':'var(--text)'}">${t.dueDate}</div><div style="font-size:10px;color:${overdue?'#ef4444':'var(--sub)'}">${overdue?'متأخرة':'الموعد'}</div></div>`:''}
+      <span style="font-size:11px;padding:4px 10px;border-radius:20px;background:${isDone?'#d1fae5':'#fef3c7'};color:${isDone?'#065f46':'#92400e'};font-weight:600;flex-shrink:0">${isDone?'مكتملة':'جارية'}</span>
+      <button onclick="deleteTask('${t.id}')" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:18px;padding:4px;flex-shrink:0" title="حذف">×</button>
+    </div>`;
+  }).join('');
 }
 function openTaskEditor(){
   ['task-title-inp','task-desc-inp','task-deadline-inp','task-due'].forEach(id=>$(id).value='');
@@ -1811,11 +1949,20 @@ async function saveTask(){
   closeModal('modal-task'); renderTasks();
 }
 async function markTaskDone(id){
-  try{ await _db.collection('tasks').doc(id).update({status:'done'}); renderTasks(); }catch(e){}
+  try{
+    await _db.collection('tasks').doc(id).update({status:'done'});
+    const idx=_allTasksCache.findIndex(t=>t.id===id);
+    if(idx>=0) _allTasksCache[idx].status='done';
+    renderTasksView();
+  }catch(e){}
 }
 async function deleteTask(id){
   if(!confirm('حذف هذه المهمة؟')) return;
-  try{ await _db.collection('tasks').doc(id).delete(); renderTasks(); }catch(e){}
+  try{
+    await _db.collection('tasks').doc(id).delete();
+    _allTasksCache=_allTasksCache.filter(t=>t.id!==id);
+    renderTasksView();
+  }catch(e){}
 }
 
 // ══════════════════════════════════════════════
@@ -2093,6 +2240,25 @@ async function loadDashboard(){
       </div>`;
     }).join('');
     renderCalendar(allTasks);
+    // Dashboard tasks widget
+    const pending2 = allTasks.filter(t=>t.status!=='done');
+    const doneCount = allTasks.filter(t=>t.status==='done').length;
+    const totalCount = allTasks.length;
+    const dpct = totalCount?Math.round(doneCount/totalCount*100):0;
+    if($('dash-task-pct')) $('dash-task-pct').textContent = dpct+'% ('+doneCount+'/'+totalCount+')';
+    if($('dash-task-bar')) $('dash-task-bar').style.width=dpct+'%';
+    if($('dash-tasks-list')){
+      const recent = [...allTasks].sort((a,b)=>b._ts-a._ts).slice(0,5);
+      $('dash-tasks-list').innerHTML = recent.length ? recent.map(t=>{
+        const isDone=t.status==='done';
+        const overdue=!isDone&&t.dueDate&&new Date(t.dueDate)<new Date();
+        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+          <div style="width:10px;height:10px;border-radius:50%;background:${isDone?'#10b981':overdue?'#ef4444':'#f59e0b'};flex-shrink:0"></div>
+          <div style="flex:1;font-size:13px;font-weight:500;color:var(--text);${isDone?'text-decoration:line-through;opacity:.6':''}">${t.title||'—'}</div>
+          <div style="font-size:11px;color:var(--sub)">${t.assignedTo||''}</div>
+        </div>`;
+      }).join('') : '<div style="font-size:13px;color:var(--sub);padding:12px 0">لا توجد مهام</div>';
+    }
   }catch(e){ console.warn('tasks load error',e); }
   // Revenue this month
   try{
@@ -2347,6 +2513,214 @@ document.addEventListener('click',e=>{
     if(_notifOpen){ _notifOpen=false; const p=$('notif-panel'); if(p) p.style.display='none'; }
   }
 });
+
+// ══════════════════════════════════════════════
+//  WORKSPACE OFFERS
+// ══════════════════════════════════════════════
+var _detailOfferId = '';
+var _detailTab = 'details';
+var _offerDocsCache = {};
+
+function renderWorkspaceOffers(){
+  const search = ($('wo-search')?.value||'').trim().toLowerCase();
+  const typeFilter = $('wo-filter-type')?.value||'';
+  let list = _offersCache.filter(o=>{
+    const name=(o.ar||o.name||'').toLowerCase();
+    const city=(o.city||'').toLowerCase();
+    const matchSearch = !search || name.includes(search) || city.includes(search);
+    const matchType = !typeFilter || o.type===typeFilter;
+    return matchSearch && matchType;
+  });
+  if(!list.length){
+    $('workspace-offers-grid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--sub);font-size:14px">لا توجد عروض مطابقة</div>';
+    return;
+  }
+  $('workspace-offers-grid').innerHTML = list.map(o=>{
+    const pub = o.published!==false;
+    const imgHtml = o.coverImg
+      ? `<img src="${o.coverImg}" style="width:100%;height:160px;object-fit:cover">`
+      : `<div class="wo-card-img">🏠</div>`;
+    const typeLabel = {warehouses:'مستودع',land:'أرض',villa:'فيلا',apartment:'شقة',commercial:'تجاري',office:'مكتب'}[o.type]||o.type||'عقار';
+    return `<div class="wo-card" onclick="openOfferDetail('${o.id}')">
+      ${imgHtml}
+      <div class="wo-card-body">
+        <div class="wo-card-title">${o.ar||o.name||'—'}</div>
+        <div class="wo-card-meta">${typeLabel}${o.city?' · '+o.city:''}${o.district?' · '+o.district:''}</div>
+        <div class="wo-card-price">${o.price?Number(o.price).toLocaleString('ar-SA')+' ر.س':'السعر عند الطلب'}</div>
+        <div class="wo-card-footer">
+          <span class="wo-badge">${o.area||'—'} م²</span>
+          <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:${pub?'#10b981':'#9ca3af'}">
+            <span class="wo-pub-dot" style="background:${pub?'#10b981':'#d1d5db'}"></span>
+            ${pub?'منشور':'غير منشور'}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function openOfferDetail(id){
+  _detailOfferId = id;
+  const o = _offersCache.find(x=>x.id===id);
+  if(!o) return;
+  const pub = o.published!==false;
+  const imgEl = $('od-cover');
+  if(o.coverImg){ imgEl.innerHTML=`<img src="${o.coverImg}" style="width:80px;height:80px;object-fit:cover">`; }
+  else { imgEl.innerHTML='🏠'; }
+  $('od-title').textContent = o.ar||o.name||'—';
+  const typeLabel = {warehouses:'مستودع',land:'أرض',villa:'فيلا',apartment:'شقة',commercial:'تجاري',office:'مكتب'}[o.type]||o.type||'عقار';
+  $('od-subtitle').textContent = typeLabel+(o.city?' · '+o.city:'')+(o.district?' · '+o.district:'');
+  $('od-price').textContent = o.price?Number(o.price).toLocaleString('ar-SA')+' ر.س':'السعر عند الطلب';
+  $('od-area-badge').textContent = (o.area||'—')+' م²';
+  $('od-pub-badge').textContent = pub?'منشور':'غير منشور';
+  $('od-pub-badge').style.background = pub?'rgba(16,185,129,.2)':'rgba(156,163,175,.2)';
+  $('od-pub-badge').style.color = pub?'#10b981':'#9ca3af';
+  $('offer-detail-overlay').style.display='block';
+  document.body.style.overflow='hidden';
+  switchODTab('details');
+}
+
+function closeOfferDetail(){
+  $('offer-detail-overlay').style.display='none';
+  document.body.style.overflow='';
+}
+
+function switchODTab(tab){
+  _detailTab=tab;
+  ['details','notes','docs'].forEach(t=>{
+    const btn=$('odtab-'+t);
+    if(btn) btn.classList.toggle('active',t===tab);
+  });
+  if(tab==='details') renderODDetails();
+  else if(tab==='notes') renderODNotes();
+  else if(tab==='docs') renderODDocs();
+}
+
+function renderODDetails(){
+  const o=_offersCache.find(x=>x.id===_detailOfferId); if(!o) return;
+  const row=(label,val)=>val?`<div style="display:flex;gap:8px;padding:10px 0;border-bottom:1px solid var(--border)"><div style="width:140px;font-size:12px;color:var(--sub);flex-shrink:0">${label}</div><div style="font-size:13px;color:var(--text);font-weight:500">${val}</div></div>`:'';
+  $('od-body').innerHTML=`
+    <div style="max-width:600px">
+      ${row('المدينة',o.city)}
+      ${row('الحي',o.district)}
+      ${row('المساحة',(o.area?o.area+' م²':''))}
+      ${row('السعر',(o.price?Number(o.price).toLocaleString('ar-SA')+' ر.س':''))}
+      ${row('هاتف المالك',o.ownerPhone)}
+      ${row('رقم إعلان الهيئة',o.regaNo)}
+      ${row('تاريخ الهدف',o.targetDate)}
+      ${row('الإحداثيات',(o.lat&&o.lng?o.lat+' , '+o.lng:''))}
+      ${o.desc?`<div style="padding:12px 0;border-bottom:1px solid var(--border)"><div style="font-size:12px;color:var(--sub);margin-bottom:6px">الوصف</div><div style="font-size:13px;color:var(--text);line-height:1.7">${o.desc}</div></div>`:''}
+      ${o.features&&o.features.length?`<div style="padding:12px 0"><div style="font-size:12px;color:var(--sub);margin-bottom:8px">المميزات</div><div style="display:flex;flex-wrap:wrap;gap:6px">${o.features.map(f=>`<span style="background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:12px">${f}</span>`).join('')}</div></div>`:''}
+    </div>`;
+}
+
+async function renderODNotes(){
+  $('od-body').innerHTML=`
+    <div style="max-width:640px">
+      <div id="od-notes-list" style="max-height:380px;overflow-y:auto;margin-bottom:16px"></div>
+      <div style="display:flex;gap:10px">
+        <input id="od-note-inp" type="text" placeholder="أضف ملاحظة..." style="flex:1;padding:10px 14px;border:1px solid var(--border);border-radius:10px;font-family:inherit;font-size:13px" onkeydown="if(event.key==='Enter')addODNote()">
+        <button onclick="addODNote()" style="background:var(--gold);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-weight:700;cursor:pointer;font-family:inherit">إرسال</button>
+      </div>
+    </div>`;
+  await loadODNotes();
+}
+
+async function loadODNotes(){
+  const listEl=$('od-notes-list'); if(!listEl) return;
+  listEl.innerHTML='<div style="color:var(--sub);font-size:13px;padding:16px">جاري التحميل...</div>';
+  try{
+    const snap=await _db.collection('offer_notes').where('offerId','==',_detailOfferId).orderBy('_ts','asc').get();
+    const notes=snap.docs.map(d=>d.data());
+    if(!notes.length){ listEl.innerHTML='<div style="color:var(--sub);font-size:13px;padding:16px 0">لا توجد ملاحظات بعد — كن أول من يضيف ملاحظة</div>'; return; }
+    listEl.innerHTML=notes.map(n=>{
+      const isMe=n.author===(_currentUser?.name||_currentUser?.username);
+      return `<div style="display:flex;flex-direction:column;align-items:${isMe?'flex-end':'flex-start'};margin-bottom:12px">
+        <div style="max-width:80%;background:${isMe?'var(--gold)':'var(--bg)'};color:${isMe?'#fff':'var(--text)'};border-radius:${isMe?'14px 14px 4px 14px':'14px 14px 14px 4px'};padding:10px 14px">
+          <div style="font-size:13px;line-height:1.5">${n.text||''}</div>
+        </div>
+        <div style="font-size:10px;color:var(--sub);margin-top:3px">${n.author||''} · ${n.date||''}</div>
+      </div>`;
+    }).join('');
+    listEl.scrollTop=listEl.scrollHeight;
+  }catch(e){ listEl.innerHTML='<div style="color:#ef4444;font-size:13px">تعذّر تحميل الملاحظات</div>'; }
+}
+
+async function addODNote(){
+  const inp=$('od-note-inp'); if(!inp) return;
+  const text=inp.value.trim(); if(!text) return;
+  const author=(_currentUser?.name||_currentUser?.username)||'موظف';
+  const note={id:'N-'+Date.now(),offerId:_detailOfferId,text,author,date:nowAr(),_ts:Date.now()};
+  inp.value='';
+  try{ await _db.collection('offer_notes').doc(note.id).set(note); loadODNotes(); checkNotifications(); }
+  catch(e){ showToast('⚠️ تعذّر حفظ الملاحظة'); }
+}
+
+async function renderODDocs(){
+  $('od-body').innerHTML=`
+    <div style="max-width:640px">
+      <div style="margin-bottom:16px">
+        <label style="display:inline-block;background:var(--gold);color:#fff;border-radius:10px;padding:10px 20px;cursor:pointer;font-size:13px;font-weight:700">
+          + رفع ملف أو صورة
+          <input type="file" multiple accept="image/*,.pdf,.doc,.docx,.xlsx,.xls" style="display:none" onchange="handleODDocUpload(this)">
+        </label>
+        <span style="font-size:11px;color:var(--sub);margin-right:12px">صور أو ملفات PDF أو Word أو Excel</span>
+      </div>
+      <div id="od-docs-list"></div>
+    </div>`;
+  loadODDocs();
+}
+
+async function loadODDocs(){
+  const listEl=$('od-docs-list'); if(!listEl) return;
+  listEl.innerHTML='<div style="color:var(--sub);font-size:13px">جاري التحميل...</div>';
+  try{
+    const snap=await _db.collection('offer_docs').where('offerId','==',_detailOfferId).orderBy('_ts','desc').get();
+    const docs=snap.docs.map(d=>({...d.data(),docId:d.id}));
+    if(!docs.length){ listEl.innerHTML='<div style="color:var(--sub);font-size:13px;padding:16px 0">لا توجد مستندات بعد</div>'; return; }
+    listEl.innerHTML=docs.map(doc=>{
+      const isImg=doc.fileType&&doc.fileType.startsWith('image/');
+      const preview=isImg?`<img src="${doc.data}" style="width:56px;height:56px;object-fit:cover;border-radius:8px;cursor:pointer" onclick="window.open(this.src)">`
+        :`<div style="width:56px;height:56px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:24px">${doc.fileType?.includes('pdf')?'📄':doc.fileType?.includes('word')||doc.fileType?.includes('doc')?'📝':'📊'}</div>`;
+      return `<div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px">
+        ${preview}
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:13px">${doc.name||'ملف'}</div>
+          <div style="font-size:11px;color:var(--sub)">${doc.uploadedBy||''} · ${doc.date||''}</div>
+        </div>
+        <a href="${doc.data}" download="${doc.name||'file'}" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:12px;color:var(--text);text-decoration:none;font-weight:600">تحميل</a>
+        <button onclick="deleteODDoc('${doc.docId}')" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:18px;padding:4px">×</button>
+      </div>`;
+    }).join('');
+  }catch(e){ listEl.innerHTML='<div style="color:#ef4444;font-size:13px">تعذّر التحميل</div>'; }
+}
+
+function handleODDocUpload(inp){
+  const files=Array.from(inp.files); if(!files.length) return;
+  showToast('جاري الرفع...');
+  let done=0;
+  files.forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=async e=>{
+      const data=e.target.result;
+      const author=(_currentUser?.name||_currentUser?.username)||'موظف';
+      const doc={id:'DOC-'+Date.now()+'-'+Math.random().toString(36).slice(2),offerId:_detailOfferId,name:file.name,fileType:file.type,data,uploadedBy:author,date:nowAr(),_ts:Date.now()};
+      try{
+        await _db.collection('offer_docs').doc(doc.id).set(doc);
+        done++;
+        if(done===files.length){ showToast('✅ تم الرفع'); loadODDocs(); }
+      }catch(err){ showToast('⚠️ تعذّر الرفع: '+file.name); }
+    };
+    reader.readAsDataURL(file);
+  });
+  inp.value='';
+}
+
+async function deleteODDoc(docId){
+  if(!confirm('حذف هذا المستند؟')) return;
+  await _db.collection('offer_docs').doc(docId).delete();
+  loadODDocs();
+}
 </script>
 </body>
 </html>
