@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>لوحة التحكم — شارك العقارية</title>
+<title>مساحة شارك</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -88,16 +88,58 @@ tr:hover td{background:rgba(255,255,255,.025)}
 .form-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .modal-footer{display:flex;gap:12px;justify-content:flex-end;margin-top:22px}
 
-/* ── Offer cards ── */
-.offers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
-.offer-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
-.offer-card img,.offer-card .no-img{width:100%;height:160px;object-fit:cover;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.2);font-size:13px}
-.offer-card .oc-body{padding:16px}
-.offer-card .oc-title{font-weight:700;font-size:15px;margin-bottom:6px}
-.offer-card .oc-price{color:var(--gold);font-weight:700;font-size:16px;margin-bottom:10px}
-.offer-card .oc-acts{display:flex;gap:8px}
+/* ── Offer strips ── */
+.offer-strip{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:12px;display:flex;align-items:center;gap:16px}
+.offer-strip:hover{border-color:rgba(200,169,110,.25)}
+.os-img{width:72px;height:56px;border-radius:8px;object-fit:cover;flex-shrink:0;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.2);font-size:20px}
+.os-body{flex:1;min-width:0}
+.os-title{font-weight:700;font-size:15px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.os-meta{font-size:12px;color:var(--sub);margin-bottom:6px}
+.os-rega{font-size:11px;color:rgba(200,169,110,.6);margin-bottom:6px}
+.os-progress{display:flex;align-items:center;gap:8px;margin-top:6px}
+.os-bar{flex:1;height:5px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}
+.os-bar-fill{height:100%;border-radius:3px;transition:width .3s}
+.os-stage-green{color:#4caf50;font-size:11px;font-weight:700}
+.os-stage-orange{color:#ff9800;font-size:11px;font-weight:700}
+.os-stage-red{color:#e05252;font-size:11px;font-weight:700}
+.os-acts{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
 .btn-edit{background:rgba(255,255,255,.08);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;font-family:inherit}
 .btn-edit:hover{background:rgba(255,255,255,.14)}
+.btn-notes{background:rgba(200,169,110,.12);color:var(--gold);border:1px solid rgba(200,169,110,.2);border-radius:8px;padding:7px 12px;font-size:12px;cursor:pointer;font-family:inherit}
+.btn-docs{background:rgba(100,149,237,.1);color:#6495ed;border:1px solid rgba(100,149,237,.2);border-radius:8px;padding:7px 12px;font-size:12px;cursor:pointer;font-family:inherit}
+
+/* ── Notes drawer ── */
+.drawer-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1100;justify-content:flex-end}
+.drawer-bg.open{display:flex}
+.drawer{background:#1a1a1f;width:min(420px,100vw);height:100vh;overflow-y:auto;padding:24px 20px;display:flex;flex-direction:column;border-right:1px solid var(--border)}
+.drawer h3{font-size:16px;font-weight:700;color:var(--gold);margin-bottom:4px}
+.drawer-sub{font-size:12px;color:var(--sub);margin-bottom:16px}
+.note-item{background:rgba(255,255,255,.04);border-radius:8px;padding:12px;margin-bottom:8px}
+.note-author{font-size:11px;color:var(--gold);font-weight:700;margin-bottom:3px}
+.note-date{font-size:10px;color:rgba(255,255,255,.3);margin-bottom:6px}
+.note-text{font-size:13px;line-height:1.7}
+.note-input-row{display:flex;gap:8px;margin-top:auto;padding-top:16px;border-top:1px solid var(--border)}
+.note-input-row textarea{flex:1;padding:10px 12px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;color:#fff;font-size:13px;font-family:inherit;resize:none;height:72px}
+
+/* ── Tasks ── */
+.task-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:10px}
+.task-title{font-weight:700;font-size:14px;margin-bottom:4px}
+.task-meta{font-size:12px;color:var(--sub);margin-bottom:8px}
+.task-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+.badge-pending{background:rgba(255,152,0,.15);color:#ff9800;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-done{background:rgba(76,175,80,.15);color:#4caf50;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+
+/* ── Chat ── */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 200px);max-height:600px}
+.chat-msgs{flex:1;overflow-y:auto;padding:12px 0;display:flex;flex-direction:column;gap:10px}
+.msg-bubble{max-width:72%;padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.6}
+.msg-mine{background:rgba(200,169,110,.18);border:1px solid rgba(200,169,110,.3);align-self:flex-end;border-bottom-left-radius:4px}
+.msg-other{background:rgba(255,255,255,.06);border:1px solid var(--border);align-self:flex-start;border-bottom-right-radius:4px}
+.msg-author{font-size:10px;color:var(--gold);font-weight:700;margin-bottom:3px}
+.msg-time{font-size:10px;color:rgba(255,255,255,.3);margin-top:4px;text-align:left}
+.chat-input-row{display:flex;gap:8px;padding-top:14px;border-top:1px solid var(--border);margin-top:8px}
+.chat-input-row input{flex:1;padding:12px 14px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;color:#fff;font-size:14px;font-family:inherit}
+.chat-input-row button{padding:12px 20px;background:var(--gold);color:#1a1a1f;border:none;border-radius:10px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
 
 /* ── Upload btn ── */
 .upload-btn{background:rgba(200,169,110,.12);color:var(--gold);border:1px solid rgba(200,169,110,.3);border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;margin-top:8px;text-align:center}
@@ -127,8 +169,9 @@ tr:hover td{background:rgba(255,255,255,.025)}
 <div id="login">
   <div class="login-box">
     <span class="logo-en">Shark</span>
-    <span class="logo-ar">لوحة التحكم</span>
-    <input id="pass-input" type="password" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')doLogin()">
+    <span class="logo-ar">مساحة شارك</span>
+    <input id="user-input" type="text" placeholder="اسم المستخدم" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="username">
+    <input id="pass-input" type="password" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter')doLogin()" autocomplete="current-password">
     <button class="btn-login" onclick="doLogin()">دخول</button>
     <div class="login-err" id="login-err"></div>
     <button onclick="resetPass()" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:12px;cursor:pointer;margin-top:10px;font-family:inherit">نسيت كلمة المرور؟ إعادة تعيين</button>
@@ -138,9 +181,10 @@ tr:hover td{background:rgba(255,255,255,.025)}
 <!-- ══ DASHBOARD ══ -->
 <div id="dashboard">
   <div class="topbar">
-    <div><div class="brand-en">Shark</div><div class="brand-ar">لوحة التحكم</div></div>
+    <div><div class="brand-en">SHARK WORKSPACE</div><div class="brand-ar">مساحة شارك</div></div>
     <div class="topbar-actions">
       <span id="topbar-date"></span>
+      <span id="topbar-user" style="color:var(--gold);font-size:12px;font-weight:600"></span>
       <button class="btn-sm btn-logout" onclick="doLogout()">خروج</button>
     </div>
   </div>
@@ -150,6 +194,8 @@ tr:hover td{background:rgba(255,255,255,.025)}
     <div class="tab" onclick="showTab('offers')">العروض</div>
     <div class="tab" onclick="showTab('promos')">الإعلانات</div>
     <div class="tab" onclick="showTab('export')">التقارير</div>
+    <div class="tab" onclick="showTab('tasks')">المهام</div>
+    <div class="tab" onclick="showTab('chat')">المحادثة</div>
     <div class="tab" onclick="showTab('settings')">الإعدادات</div>
   </div>
 
@@ -201,6 +247,27 @@ tr:hover td{background:rgba(255,255,255,.025)}
         <p style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:28px">تصدير جميع بيانات العملاء بملف Excel متعدد الأوراق</p>
         <button class="btn-primary" style="width:100%;padding:16px;font-size:15px;margin-bottom:12px" onclick="exportExcel()">📥 تنزيل Excel</button>
         <button class="btn-outline" style="width:100%;padding:14px;font-size:14px" onclick="exportOffersExcel()">تصدير العروض</button>
+      </div>
+    </div>
+
+    <!-- ── TASKS ── -->
+    <div class="section" id="sec-tasks">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h3 style="font-size:18px;font-weight:700">المهام المسندة</h3>
+        <button class="btn-primary" onclick="openTaskEditor()">+ مهمة جديدة</button>
+      </div>
+      <div id="tasks-list"></div>
+    </div>
+
+    <!-- ── CHAT ── -->
+    <div class="section" id="sec-chat">
+      <h3 style="font-size:18px;font-weight:700;margin-bottom:16px">محادثة الفريق</h3>
+      <div class="chat-wrap">
+        <div class="chat-msgs" id="chat-msgs"></div>
+        <div class="chat-input-row">
+          <input id="chat-inp" type="text" placeholder="اكتب رسالة..." onkeydown="if(event.key==='Enter')sendMsg()">
+          <button onclick="sendMsg()">إرسال</button>
+        </div>
       </div>
     </div>
 
@@ -359,6 +426,10 @@ tr:hover td{background:rgba(255,255,255,.025)}
       <div class="form-row"><label>الحي</label><input id="of-district" type="text" placeholder="حي الشمالية"></div>
     </div>
     <div class="form-row"><label>الوصف</label><textarea id="of-desc" rows="3" placeholder="وصف تفصيلي للعقار..."></textarea></div>
+    <div class="form-2col">
+      <div class="form-row"><label>رقم إعلان الهيئة العامة للعقار (اختياري)</label><input id="of-rega" type="text" placeholder="مثال: 7200012345" style="direction:ltr"></div>
+      <div class="form-row"><label>تاريخ الهدف للبيع (اختياري)</label><input id="of-target" type="date"></div>
+    </div>
     <div class="form-2col" style="margin-top:4px">
       <div class="form-row"><label>خط العرض (Lat) — اختياري</label><input id="of-lat" type="text" placeholder="مثال: 24.7136" style="direction:ltr"></div>
       <div class="form-row"><label>خط الطول (Lng) — اختياري</label><input id="of-lng" type="text" placeholder="مثال: 46.6753" style="direction:ltr"></div>
@@ -463,19 +534,32 @@ function ouid(){ return 'OF-' + Date.now().toString(36).toUpperCase(); }
 // ══════════════════════════════════════════════
 //  AUTH
 // ══════════════════════════════════════════════
+var _currentUser = null;
+
+function getEmployees(){
+  var stored = gs('shark_employees');
+  if(stored && stored.length) return stored;
+  return [{username:'admin', password: getPass(), role:'مدير'}];
+}
+
 function doLogin(){
+  const u = ($('user-input').value||'').trim();
   const p = $('pass-input').value;
-  if(p === getPass()){
+  const employees = getEmployees();
+  const emp = employees.find(e => e.username === u && e.password === p);
+  if(emp){
+    _currentUser = {username: emp.username, role: emp.role||'موظف'};
     sessionStorage.setItem(SESSION_KEY,'1');
+    sessionStorage.setItem('shark_user', JSON.stringify(_currentUser));
     $('login').style.display='none';
     $('dashboard').style.display='block';
     init();
   } else {
-    $('login-err').textContent='كلمة المرور غير صحيحة';
+    $('login-err').textContent='اسم المستخدم أو كلمة المرور غير صحيحة';
     $('pass-input').value='';
   }
 }
-function doLogout(){ sessionStorage.removeItem(SESSION_KEY); location.reload(); }
+function doLogout(){ sessionStorage.removeItem(SESSION_KEY); sessionStorage.removeItem('shark_user'); location.reload(); }
 function resetPass(){ localStorage.removeItem(PASS_KEY); $('login-err').style.color='#4caf50'; $('login-err').textContent='تم الإعادة — كلمة المرور: shark2024'; }
 function changePass(){
   const old=$('old-pass').value, nw=$('new-pass').value, nw2=$('new-pass2').value;
@@ -484,6 +568,10 @@ function changePass(){
   if(nw.length<6){ msg.style.color='#e05252'; msg.textContent='كلمة المرور يجب أن تكون 6 أحرف على الأقل'; return; }
   if(nw!==nw2){ msg.style.color='#e05252'; msg.textContent='كلمتا المرور غير متطابقتين'; return; }
   localStorage.setItem(PASS_KEY, nw);
+  // Update admin employee password too
+  var emps = getEmployees();
+  emps = emps.map(e => e.username==='admin' ? {...e, password: nw} : e);
+  ss('shark_employees', emps);
   msg.style.color='#4caf50'; msg.textContent='تم تغيير كلمة المرور بنجاح ✓';
   ['old-pass','new-pass','new-pass2'].forEach(id=>$(id).value='');
 }
@@ -491,6 +579,7 @@ function changePass(){
 // Check session on load
 window.addEventListener('load',()=>{
   if(sessionStorage.getItem(SESSION_KEY)==='1'){
+    _currentUser = JSON.parse(sessionStorage.getItem('shark_user')||'null') || {username:'admin',role:'مدير'};
     $('login').style.display='none'; $('dashboard').style.display='block'; init();
   }
 });
@@ -501,6 +590,7 @@ window.addEventListener('load',()=>{
 async function init(){
   initFirebase();
   $('topbar-date').textContent = new Date().toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  if(_currentUser && $('topbar-user')) $('topbar-user').textContent = _currentUser.username + ' · ' + (_currentUser.role||'موظف');
   showToast('جاري تحميل البيانات...');
   await loadAllFromFirestore();
   renderStats(); renderClients(); renderOffers(); renderPromos(); loadSettings();
@@ -510,12 +600,14 @@ async function init(){
 //  TABS
 // ══════════════════════════════════════════════
 function showTab(name){
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  const tabs=['clients','offers','promos','export','settings'];
+  const tabs=['clients','offers','promos','export','tasks','chat','settings'];
   const idx=tabs.indexOf(name);
-  document.querySelectorAll('.tab')[idx].classList.add('active');
+  if(idx>=0) document.querySelectorAll('.tab')[idx].classList.add('active');
   $('sec-'+name).classList.add('active');
+  if(name==='chat') loadChat();
+  if(name==='tasks') renderTasks();
 }
 
 // ══════════════════════════════════════════════
@@ -785,26 +877,42 @@ function copyQRUrl(){
 // ══════════════════════════════════════════════
 var _galleryB64 = [];
 
+function offerStage(o){
+  if(!o.targetDate||!o._ts) return {pct:0,label:'جديد',cls:'os-stage-green',color:'#4caf50'};
+  const start=o._ts, end=new Date(o.targetDate).getTime(), now=Date.now();
+  if(end<=start) return {pct:100,label:'انتهت المهلة',cls:'os-stage-red',color:'#e05252'};
+  const pct=Math.min(100,Math.round((now-start)/(end-start)*100));
+  if(pct<33) return {pct,label:'جديد',cls:'os-stage-green',color:'#4caf50'};
+  if(pct<66) return {pct,label:'نصف المدة',cls:'os-stage-orange',color:'#ff9800'};
+  return {pct,label:now>end?'انتهت المهلة':'قارب على النهاية',cls:'os-stage-red',color:'#e05252'};
+}
+
 function renderOffers(){
   if(!_offersCache.length){
     $('offers-grid').innerHTML='<div style="color:rgba(255,255,255,.3);padding:32px">لا توجد عروض بعد — أضف أول عرض</div>';
     return;
   }
-  $('offers-grid').innerHTML=_offersCache.map(o=>`
-    <div class="offer-card">
-      ${o.coverImg ? `<img src="${o.coverImg}" alt="${o.ar||''}">` : `<div class="no-img">لا توجد صورة</div>`}
-      <div class="oc-body">
-        <div class="oc-title">${o.ar||o.name||o.id}</div>
-        <div class="oc-price">${o.price?fmtPrice(o.price):'السعر غير محدد'}</div>
-        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:10px">${o.city||''} ${o.district?'· '+o.district:''} ${o.area?'· '+o.area+' م²':''}</div>
-        <div class="oc-acts">
-          <button class="btn-edit" onclick="openOfferEditor('${o.id}')">تعديل</button>
-          <button class="btn-wa" onclick="shareLanding('${o.id}')" style="font-size:11px;padding:6px 10px">نسخ الرابط</button>
-          <button class="btn-pdf" onclick="showQR('${o.id}')" style="font-size:11px;padding:6px 10px">QR</button>
-          <button class="btn-del" onclick="deleteOffer('${o.id}')">حذف</button>
-        </div>
+  $('offers-grid').innerHTML=_offersCache.map(o=>{
+    const st=offerStage(o);
+    return `<div class="offer-strip">
+      ${o.coverImg?`<img class="os-img" src="${o.coverImg}">`:`<div class="os-img">🏠</div>`}
+      <div class="os-body">
+        <div class="os-title">${o.ar||o.name||o.id} <span style="font-size:10px;font-weight:400;color:var(--sub)">${TYPE_LABELS[o.type]||''}</span></div>
+        <div class="os-meta">${o.city||''}${o.district?` · ${o.district}`:''} ${o.area?`· ${o.area} م²`:''} ${o.price?`· ${fmtPrice(o.price)}`:''}</div>
+        ${o.regaNo?`<div class="os-rega">رقم إعلان الهيئة: ${o.regaNo}</div>`:''}
+        ${o.targetDate?`<div class="os-progress"><div class="os-bar"><div class="os-bar-fill" style="width:${st.pct}%;background:${st.color}"></div></div><span class="${st.cls}">${st.label}</span></div>`:''}
       </div>
-    </div>`).join('');
+      <div class="os-acts">
+        <button class="btn-edit" onclick="openOfferEditor('${o.id}')">تعديل</button>
+        <button class="btn-notes" onclick="openNotes('${o.id}','${(o.ar||o.name||'').replace(/'/g,'')}')">ملاحظات</button>
+        <button class="btn-docs" onclick="openDocs('${o.id}','${(o.ar||o.name||'').replace(/'/g,'')}')">مستندات</button>
+        <button class="btn-wa" onclick="openOfferShare('${o.id}')" style="font-size:11px;padding:6px 10px">مشاركة</button>
+        <button class="btn-pdf" onclick="offerPDF('${o.id}')" style="font-size:11px;padding:6px 10px">PDF</button>
+        <button class="btn-pdf" onclick="showQR('${o.id}')" style="font-size:11px;padding:6px 10px">QR</button>
+        <button class="btn-del" onclick="deleteOffer('${o.id}')">حذف</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function openOfferEditor(id){
@@ -812,7 +920,7 @@ function openOfferEditor(id){
   $('offer-modal-title').textContent = id ? 'تعديل العرض' : 'إضافة عرض عقاري';
   $('offer-edit-id').value = id||'';
   // Reset form
-  ['of-name','of-price','of-area','of-city','of-district','of-desc','of-lat','of-lng'].forEach(i=>$(i).value='');
+  ['of-name','of-price','of-area','of-city','of-district','of-desc','of-lat','of-lng','of-rega','of-target'].forEach(i=>$(i).value='');
   $('of-type').value='warehouses';
   $('of-cover-b64').value='';
   $('of-cover-preview').style.display='none';
@@ -834,6 +942,8 @@ function openOfferEditor(id){
     $('of-district').value=o.district||'';
     $('of-lat').value=o.lat||''; $('of-lng').value=o.lng||'';
     $('of-desc').value=o.desc||'';
+    $('of-rega').value=o.regaNo||'';
+    $('of-target').value=o.targetDate||'';
     if(o.coverImg){ $('of-cover-b64').value=o.coverImg; $('of-cover-preview').src=o.coverImg; $('of-cover-preview').style.display='block'; }
     if(o.gallery){ _galleryB64=o.gallery.split('\n').filter(Boolean); renderGalleryPreviews(); }
     const feats=o.features||[];
@@ -921,6 +1031,8 @@ async function saveOffer(){
     district:$('of-district').value.trim(),
     desc:$('of-desc').value.trim(),
     lat:$('of-lat').value||'', lng:$('of-lng').value||'',
+    regaNo:$('of-rega').value.trim()||'',
+    targetDate:$('of-target').value||'',
     coverImg:$('of-cover-b64').value||'',
     gallery:_galleryB64.join('\n'),
     features, status:'available',
@@ -948,6 +1060,57 @@ function shareLanding(id){
   if(navigator.share){ navigator.share({title:'عرض شارك العقارية', url}).catch(()=>{}); return; }
   navigator.clipboard.writeText(url).then(()=>showToast('تم نسخ الرابط ✓')).catch(()=>{ prompt('انسخ الرابط:',url); });
 }
+// Direct offer PDF (no client)
+function offerPDF(id){
+  const o=_offersCache.find(x=>x.id===id); if(!o) return;
+  const galleryImgs=(o.gallery||'').split('\n').filter(Boolean).slice(0,4);
+  const html=`<div id="print-area" style="display:block;font-family:'Segoe UI',Arial,sans-serif;direction:rtl;color:#111;padding:50px 60px;background:#fff;max-width:900px;margin:0 auto">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px;padding-bottom:24px;border-bottom:3px solid #c8a96e">
+      <div><div style="font-size:34px;font-weight:900;color:#c8a96e;letter-spacing:2px">SHARK</div><div style="font-size:13px;color:#888;margin-top:4px">شركة شارك العقارية</div><div style="font-size:12px;color:#aaa">sharekre.sa</div></div>
+      <div style="text-align:left;font-size:12px;color:#999"><div>${new Date().toLocaleDateString('ar-SA',{year:'numeric',month:'long',day:'numeric'})}</div></div>
+    </div>
+    <div style="background:#f9f7f2;border-radius:12px;padding:24px;margin-bottom:28px;border:1px solid #e8e0cc">
+      <div style="font-size:19px;font-weight:800;color:#c8a96e;margin-bottom:16px">🏠 ${o.ar||o.name||''}</div>
+      ${o.coverImg?`<img src="${o.coverImg}" style="width:100%;max-height:280px;object-fit:cover;border-radius:8px;margin-bottom:16px">`:''}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+        ${o.city?`<div><span style="color:#999;font-size:12px">الموقع</span><br><strong>${o.city}${o.district?' — '+o.district:''}</strong></div>`:''}
+        ${o.price?`<div><span style="color:#999;font-size:12px">السعر</span><br><strong style="color:#c8a96e">${fmtPrice(o.price)}</strong></div>`:''}
+        ${o.area?`<div><span style="color:#999;font-size:12px">المساحة</span><br><strong>${o.area} م²</strong></div>`:''}
+        ${o.type?`<div><span style="color:#999;font-size:12px">النوع</span><br><strong>${TYPE_LABELS[o.type]||o.type}</strong></div>`:''}
+        ${o.regaNo?`<div><span style="color:#999;font-size:12px">رقم إعلان الهيئة</span><br><strong>${o.regaNo}</strong></div>`:''}
+      </div>
+      ${o.desc?`<div style="font-size:13px;color:#555;line-height:1.7;margin-bottom:12px">${o.desc}</div>`:''}
+      ${(o.features||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:6px">${(o.features||[]).map(f=>`<span style="background:#c8a96e22;color:#8b6914;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600">${f}</span>`).join('')}</div>`:''}
+      ${galleryImgs.length?`<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:14px">${galleryImgs.map(src=>`<img src="${src}" style="width:100%;height:120px;object-fit:cover;border-radius:6px">`).join('')}</div>`:''}
+    </div>
+    <div style="margin-top:24px;padding-top:16px;border-top:1px solid #e8e0cc;display:flex;justify-content:space-between;font-size:11px;color:#bbb">
+      <span>شارك العقارية — sharekre.sa</span><span>وثيقة سرية</span>
+    </div>
+  </div>`;
+  $('print-area').innerHTML=html; $('print-area').style.display='block';
+  setTimeout(()=>{ window.print(); $('print-area').style.display='none'; },200);
+}
+
+// WhatsApp share per offer
+var _shareOfferId='';
+function openOfferShare(id){
+  _shareOfferId=id;
+  const o=_offersCache.find(x=>x.id===id); if(!o) return;
+  const base=location.origin+location.pathname.replace('admin.html','')+'landing.html';
+  const url=base+'?id='+id;
+  const msg=`السلام عليكم،\n\nنقدم لكم عرضاً عقارياً مميزاً:\n🏠 ${o.ar||o.name||''}\n📍 ${o.city||''}${o.district?' — '+o.district:''}\n💰 ${o.price?fmtPrice(o.price):'السعر عند التواصل'}\n${o.area?`📐 المساحة: ${o.area} م²\n`:''}\n🔗 تفاصيل العرض: ${url}\n\nفريق شارك العقارية`;
+  $('share-msg').value=msg;
+  $('share-phone').value='';
+  $('modal-share').classList.add('open');
+}
+function sendOfferShare(){
+  const phone=$('share-phone').value.replace(/^0/,'966').replace(/\D/g,'');
+  if(!phone){ alert('أدخل رقم الجوال'); return; }
+  const msg=encodeURIComponent($('share-msg').value);
+  window.open(`https://wa.me/${phone}?text=${msg}`,'_blank');
+  closeModal('modal-share');
+}
+
 async function deleteOffer(id){
   if(!confirm('هل تريد حذف هذا العرض؟')) return;
   _offersCache=_offersCache.filter(o=>o.id!==id);
@@ -1115,6 +1278,148 @@ async function deletePromo(id){
 }
 
 // ══════════════════════════════════════════════
+//  NOTES
+// ══════════════════════════════════════════════
+var _notesOfferId='', _notesOfferName='';
+async function openNotes(id, name){
+  _notesOfferId=id; _notesOfferName=name;
+  $('notes-title').textContent='ملاحظات: '+name;
+  $('notes-list').innerHTML='<div style="color:rgba(255,255,255,.3);font-size:13px">جاري التحميل...</div>';
+  $('drawer-notes').classList.add('open');
+  try{
+    const snap=await _db.collection('offer_notes').where('offerId','==',id).orderBy('_ts','asc').get();
+    renderNotesList(snap.docs.map(d=>d.data()));
+  }catch(e){ $('notes-list').innerHTML='<div style="color:#e05252;font-size:12px">تعذّر تحميل الملاحظات</div>'; }
+}
+function renderNotesList(notes){
+  if(!notes.length){ $('notes-list').innerHTML='<div style="color:rgba(255,255,255,.3);font-size:13px;padding:16px 0">لا توجد ملاحظات بعد</div>'; return; }
+  $('notes-list').innerHTML=notes.map(n=>`<div class="note-item">
+    <div class="note-author">${n.author||'موظف'}</div>
+    <div class="note-date">${n.date||''}</div>
+    <div class="note-text">${n.text||''}</div>
+  </div>`).join('');
+  $('notes-list').scrollTop=$('notes-list').scrollHeight;
+}
+async function addNote(){
+  const text=$('note-inp').value.trim(); if(!text) return;
+  const note={id:'N-'+Date.now(), offerId:_notesOfferId, text, author:(_currentUser&&_currentUser.username)||'موظف', date:nowAr(), _ts:Date.now()};
+  $('note-inp').value='';
+  try{
+    await _db.collection('offer_notes').doc(note.id).set(note);
+    const snap=await _db.collection('offer_notes').where('offerId','==',_notesOfferId).orderBy('_ts','asc').get();
+    renderNotesList(snap.docs.map(d=>d.data()));
+  }catch(e){ showToast('⚠️ تعذّر الحفظ'); }
+}
+
+// ══════════════════════════════════════════════
+//  DOCS
+// ══════════════════════════════════════════════
+var _docsOfferId='';
+function openDocs(id, name){
+  _docsOfferId=id;
+  $('docs-title').textContent='مستندات: '+name;
+  const o=_offersCache.find(x=>x.id===id);
+  renderDocsList((o&&o.docs)||[]);
+  $('doc-name').value=''; $('doc-url').value='';
+  $('modal-docs').classList.add('open');
+}
+function renderDocsList(docs){
+  $('docs-list').innerHTML=docs.length?docs.map((d,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,.04);border-radius:8px;margin-bottom:6px">
+    <span style="flex:1;font-size:13px">${d.name||'مستند'}</span>
+    <a href="${d.url}" target="_blank" style="color:var(--gold);font-size:12px;text-decoration:none">فتح ←</a>
+    <button onclick="deleteDoc(${i})" style="background:rgba(224,82,82,.15);color:#e05252;border:none;border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer">حذف</button>
+  </div>`).join(''):'<div style="color:rgba(255,255,255,.3);font-size:13px;padding:8px 0">لا توجد مستندات</div>';
+}
+async function addDoc(){
+  const name=$('doc-name').value.trim(), url=$('doc-url').value.trim();
+  if(!name||!url){ alert('أدخل اسم المستند والرابط'); return; }
+  const o=_offersCache.find(x=>x.id===_docsOfferId); if(!o) return;
+  const docs=[...(o.docs||[]), {name,url,date:nowAr()}];
+  o.docs=docs;
+  renderDocsList(docs);
+  $('doc-name').value=''; $('doc-url').value='';
+  try{ await _db.collection('offers').doc(_docsOfferId).update({docs}); showToast('تم حفظ المستند ✓'); }catch(e){ showToast('⚠️ تعذّر الحفظ'); }
+}
+async function deleteDoc(idx){
+  const o=_offersCache.find(x=>x.id===_docsOfferId); if(!o) return;
+  const docs=(o.docs||[]).filter((_,i)=>i!==idx);
+  o.docs=docs; renderDocsList(docs);
+  try{ await _db.collection('offers').doc(_docsOfferId).update({docs}); }catch(e){}
+}
+
+// ══════════════════════════════════════════════
+//  TASKS
+// ══════════════════════════════════════════════
+var _tasksCache=[];
+async function loadTasks(){
+  try{ const snap=await _db.collection('tasks').orderBy('_ts','desc').get(); _tasksCache=snap.docs.map(d=>d.data()); }catch(e){ _tasksCache=[]; }
+}
+async function renderTasks(){
+  await loadTasks();
+  if(!_tasksCache.length){ $('tasks-list').innerHTML='<div style="color:rgba(255,255,255,.3);padding:32px;font-size:14px">لا توجد مهام بعد</div>'; return; }
+  $('tasks-list').innerHTML=_tasksCache.map(t=>`<div class="task-card">
+    <div class="task-title">${t.title||''}</div>
+    ${t.description?`<div style="font-size:13px;color:var(--sub);margin-bottom:6px">${t.description}</div>`:''}
+    <div class="task-meta">مسندة إلى: <strong style="color:var(--gold)">${t.assignedTo||'—'}</strong> · من: ${t.assignedBy||'—'} · الموعد: ${t.deadline||'—'}</div>
+    <div class="task-footer">
+      <span class="${t.status==='done'?'badge-done':'badge-pending'}">${t.status==='done'?'منجزة':'قيد التنفيذ'}</span>
+      <div style="display:flex;gap:8px">
+        ${t.status!=='done'?`<button class="btn-edit" onclick="markTaskDone('${t.id}')">✓ إنجاز</button>`:''}
+        <button class="btn-del" onclick="deleteTask('${t.id}')">حذف</button>
+      </div>
+    </div>
+  </div>`).join('');
+}
+function openTaskEditor(){
+  ['task-title-inp','task-desc-inp','task-assigned-inp','task-deadline-inp'].forEach(id=>$(id).value='');
+  $('modal-task').classList.add('open');
+}
+async function saveTask(){
+  const title=$('task-title-inp').value.trim(); if(!title){ alert('أدخل عنوان المهمة'); return; }
+  const t={id:'T-'+Date.now(), title, description:$('task-desc-inp').value.trim(), assignedTo:$('task-assigned-inp').value.trim(), assignedBy:(_currentUser&&_currentUser.username)||'موظف', deadline:$('task-deadline-inp').value, status:'pending', _ts:Date.now()};
+  try{ await _db.collection('tasks').doc(t.id).set(t); showToast('تم حفظ المهمة ✓'); }catch(e){ showToast('⚠️ تعذّر الحفظ'); }
+  closeModal('modal-task'); renderTasks();
+}
+async function markTaskDone(id){
+  try{ await _db.collection('tasks').doc(id).update({status:'done'}); renderTasks(); }catch(e){}
+}
+async function deleteTask(id){
+  if(!confirm('حذف هذه المهمة؟')) return;
+  try{ await _db.collection('tasks').doc(id).delete(); renderTasks(); }catch(e){}
+}
+
+// ══════════════════════════════════════════════
+//  CHAT
+// ══════════════════════════════════════════════
+var _chatInterval=null;
+async function loadChat(){
+  if(_chatInterval) clearInterval(_chatInterval);
+  await fetchMsgs();
+  _chatInterval=setInterval(fetchMsgs,15000);
+}
+async function fetchMsgs(){
+  try{
+    const snap=await _db.collection('messages').orderBy('_ts','asc').limitToLast(50).get();
+    const msgs=snap.docs.map(d=>d.data());
+    const me=(_currentUser&&_currentUser.username)||'';
+    $('chat-msgs').innerHTML=msgs.map(m=>`<div style="display:flex;flex-direction:column;align-items:${m.author===me?'flex-end':'flex-start'}">
+      <div class="msg-bubble ${m.author===me?'msg-mine':'msg-other'}">
+        ${m.author!==me?`<div class="msg-author">${m.author}</div>`:''}
+        <div>${m.text||''}</div>
+        <div class="msg-time">${m.date||''}</div>
+      </div>
+    </div>`).join('');
+    $('chat-msgs').scrollTop=$('chat-msgs').scrollHeight;
+  }catch(e){}
+}
+async function sendMsg(){
+  const text=$('chat-inp').value.trim(); if(!text) return;
+  $('chat-inp').value='';
+  const msg={id:'M-'+Date.now(), author:(_currentUser&&_currentUser.username)||'موظف', text, date:nowAr(), _ts:Date.now()};
+  try{ await _db.collection('messages').doc(msg.id).set(msg); await fetchMsgs(); }catch(e){ showToast('⚠️ تعذّر الإرسال'); }
+}
+
+// ══════════════════════════════════════════════
 //  UTILS
 // ══════════════════════════════════════════════
 function showToast(msg){
@@ -1171,6 +1476,70 @@ document.querySelectorAll('.modal-bg').forEach(m=>{
     <div class="modal-footer">
       <button class="btn-outline" onclick="closeModal('modal-promo')">إلغاء</button>
       <button class="btn-primary" onclick="savePromo()">حفظ وإنشاء الرابط</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: WhatsApp Share Offer ══ -->
+<div class="modal-bg" id="modal-share">
+  <div class="modal" style="max-width:480px">
+    <button class="modal-close" onclick="closeModal('modal-share')">×</button>
+    <h3>📲 مشاركة العرض عبر واتساب</h3>
+    <div class="form-row"><label>رقم جوال العميل *</label><input id="share-phone" type="tel" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right"></div>
+    <div class="form-row"><label>نص الرسالة (قابل للتعديل)</label><textarea id="share-msg" rows="6" style="width:100%;padding:10px 12px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:9px;color:#fff;font-size:13px;font-family:inherit;resize:vertical"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-share')">إلغاء</button>
+      <button class="btn-wa" style="padding:12px 24px;font-size:14px;border-radius:8px" onclick="sendOfferShare()">إرسال عبر واتساب</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Documents ══ -->
+<div class="modal-bg" id="modal-docs">
+  <div class="modal" style="max-width:500px">
+    <button class="modal-close" onclick="closeModal('modal-docs')">×</button>
+    <h3 id="docs-title">مستندات العرض</h3>
+    <div id="docs-list" style="margin-bottom:16px"></div>
+    <div style="border-top:1px solid var(--border);padding-top:16px">
+      <div class="form-2col">
+        <div class="form-row"><label>اسم المستند</label><input id="doc-name" type="text" placeholder="مثال: صك الملكية"></div>
+        <div class="form-row"><label>الرابط (Google Drive أو غيره)</label><input id="doc-url" type="url" placeholder="https://..." dir="ltr" style="text-align:left"></div>
+      </div>
+      <button class="btn-primary" onclick="addDoc()">+ إضافة مستند</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DRAWER: Notes ══ -->
+<div class="drawer-bg" id="drawer-notes" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="drawer">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <h3 id="notes-title">ملاحظات العرض</h3>
+      <button onclick="$('drawer-notes').classList.remove('open')" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:22px;cursor:pointer;line-height:1">×</button>
+    </div>
+    <div class="drawer-sub">ملاحظات داخلية للموظفين فقط</div>
+    <div id="notes-list" style="flex:1;overflow-y:auto"></div>
+    <div class="note-input-row">
+      <textarea id="note-inp" placeholder="اكتب ملاحظة..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addNote();}"></textarea>
+      <button class="btn-primary" onclick="addNote()" style="padding:10px 16px;white-space:nowrap">إضافة</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: New Task ══ -->
+<div class="modal-bg" id="modal-task">
+  <div class="modal" style="max-width:480px">
+    <button class="modal-close" onclick="closeModal('modal-task')">×</button>
+    <h3>✅ مهمة جديدة</h3>
+    <div class="form-row"><label>عنوان المهمة *</label><input id="task-title-inp" type="text" placeholder="مثال: متابعة عميل محمد"></div>
+    <div class="form-row"><label>التفاصيل</label><textarea id="task-desc-inp" rows="3" placeholder="وصف تفصيلي..."></textarea></div>
+    <div class="form-2col">
+      <div class="form-row"><label>مسندة إلى (اسم الموظف)</label><input id="task-assigned-inp" type="text" placeholder="مثال: أحمد"></div>
+      <div class="form-row"><label>الموعد النهائي</label><input id="task-deadline-inp" type="date"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-task')">إلغاء</button>
+      <button class="btn-primary" onclick="saveTask()">حفظ المهمة</button>
     </div>
   </div>
 </div>
