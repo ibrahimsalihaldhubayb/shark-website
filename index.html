@@ -123,8 +123,11 @@ body{background:var(--dark);color:var(--text)}
 .filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
 .f-btn{padding:7px 16px;border-radius:18px;border:1px solid var(--border);background:transparent;color:var(--sub);font-size:13px;font-weight:600;cursor:pointer;font-family:'Cairo',sans-serif;transition:.2s}
 .f-btn.active,.f-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(200,169,110,.07)}
-.offers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
-.o-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.offers-grid{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:12px;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:var(--gold) transparent}
+.offers-grid::-webkit-scrollbar{height:4px}
+.offers-grid::-webkit-scrollbar-track{background:transparent}
+.offers-grid::-webkit-scrollbar-thumb{background:var(--gold);border-radius:4px}
+.o-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s;flex:0 0 290px;scroll-snap-align:start}
 .o-card:hover{transform:translateY(-4px);box-shadow:0 10px 36px rgba(0,0,0,.5)}
 .o-card img,.o-card .o-no-img{width:100%;height:188px;object-fit:cover}
 .o-card .o-no-img{background:linear-gradient(135deg,#1a1a1f,#1e1a0e);display:flex;align-items:center;justify-content:center;font-size:36px;color:rgba(200,169,110,.2)}
@@ -135,6 +138,9 @@ body{background:var(--dark);color:var(--text)}
 .o-price{font-size:17px;font-weight:900;color:var(--gold)}
 .o-meta{display:flex;gap:12px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--sub)}
 .o-empty{text-align:center;padding:48px 0;color:var(--sub);font-size:14px;grid-column:1/-1}
+.o-card-actions{padding:0 16px 12px}
+.o-int-btn{width:100%;padding:9px;background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.3);color:var(--gold);border-radius:8px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:.2s}
+.o-int-btn:hover{background:rgba(200,169,110,.2)}
 
 /* ═══ ABOUT ═══ */
 .about-bg{background:#0e0e10;border-top:1px solid var(--border)}
@@ -168,6 +174,36 @@ body{background:var(--dark);color:var(--text)}
 .f-col li:hover{color:var(--gold)}
 .f-copy{border-top:1px solid var(--border);padding-top:20px;display:flex;justify-content:space-between;font-size:11px;color:rgba(244,243,239,.25);flex-wrap:wrap;gap:8px;max-width:1100px;margin:0 auto}
 @media(max-width:720px){.footer-inner{grid-template-columns:1fr}}
+
+/* ═══ MOBILE FIXES ═══ */
+@media(max-width:600px){
+  .nav{padding:0 14px;height:56px}
+  .nav-wa span{display:none}
+  .nav-wa{padding:8px 12px}
+  .hero-map{min-height:480px}
+  .hero-bottom{padding:16px 16px 80px}
+  .hero-tagline{font-size:20px}
+  .hero-stats{gap:16px}
+  .hstat-n{font-size:22px}
+  .section{padding:44px 14px}
+  .s-title{font-size:20px}
+  .s-sub{font-size:13px}
+  .srv-row{padding:16px 14px;gap:12px}
+  .srv-num{font-size:26px;min-width:36px}
+  .srv-name{font-size:14px}
+  .mkt-wrap{gap:24px}
+  .mkt-head h2{font-size:20px}
+  .mkt-cycle{width:240px;height:240px}
+  .offers-grid{gap:12px;padding-bottom:8px}
+  .o-card{flex:0 0 240px}
+  .o-card img,.o-card .o-no-img{height:160px}
+  .cta{padding:40px 14px}
+  .cta .s-title{font-size:18px}
+  .cta-btns{gap:8px}
+  .btn-gold,.btn-out{padding:12px 18px;font-size:13px}
+  .hours-card{padding:24px 18px}
+  .footer-inner{gap:24px}
+}
 
 /* ═══ MODALS ═══ */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9000;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
@@ -414,10 +450,6 @@ body{background:var(--dark);color:var(--text)}
       <div class="s-tag">خدمة التسويق</div>
       <h2>نسوّق عقارك<br><span>من الفكرة للصفقة</span></h2>
       <p>لا تكتفِ بالإعلان العادي — نبني لعقارك هوية تسويقية كاملة تصل للمشتري الصح.</p>
-      <button class="btn-mkt-cta" onclick="document.getElementById('mod-mkt').classList.add('open')">
-        اطلب التسويق الآن
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-      </button>
     </div>
     <!-- Cycle diagram -->
     <div class="mkt-cycle">
@@ -485,7 +517,6 @@ body{background:var(--dark);color:var(--text)}
   <p class="s-sub">سواء كنت تريد الشراء أو البيع أو الاستثمار</p>
   <div class="cta-btns" style="margin-top:28px">
     <button class="btn-gold" onclick="document.getElementById('mod-inv').classList.add('open')">💰 مهتم بالاستثمار</button>
-    <button class="btn-out" onclick="document.getElementById('mod-mkt').classList.add('open')">🏠 طلب تسويق</button>
     <button class="btn-out" onclick="openWA()">تواصل واتساب</button>
   </div>
 </div>
@@ -580,6 +611,22 @@ body{background:var(--dark);color:var(--text)}
   </div>
 </div>
 
+<!-- MODAL: تسجيل اهتمام بعرض -->
+<div class="modal-bg" id="mod-interest">
+  <div class="modal">
+    <button class="m-close" onclick="closeM('mod-interest')">×</button>
+    <h3>🏠 تسجيل اهتمام بالعرض</h3>
+    <p id="int-offer-name" style="font-size:13px;color:var(--gold);margin-bottom:16px"></p>
+    <div id="int-f">
+      <div class="f-row"><label>الاسم *</label><input id="int-name" type="text" placeholder="محمد أحمد"></div>
+      <div class="f-row"><label>الجوال *</label><input id="int-phone" type="tel" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right"></div>
+      <div class="f-row"><label>ملاحظات</label><textarea id="int-note" rows="3" placeholder="استفسار أو طلب خاص..."></textarea></div>
+      <button class="btn-sub" onclick="subInterest()">تسجيل الاهتمام</button>
+    </div>
+    <div class="m-ok" id="int-ok"><div class="ic">🎉</div><h4>تم التسجيل!</h4><p>سيتواصل معك مستشارنا قريباً.</p></div>
+  </div>
+</div>
+
 <!-- MODAL: offer detail -->
 <div class="modal-bg" id="mod-offer">
   <div class="modal" style="max-width:520px">
@@ -670,6 +717,25 @@ body{background:var(--dark);color:var(--text)}
     setTimeout(function(){closeM('mod-mkt');document.getElementById('mkt-f').style.display='block';document.getElementById('mkt-ok').style.display='none';['sm-name','sm-phone','sm-note'].forEach(function(i){document.getElementById(i).value='';});},3000);
   };
 
+  window.openInterest=function(offerName){
+    closeM('mod-offer');
+    document.getElementById('int-offer-name').textContent=offerName?'العرض: '+offerName:'';
+    document.getElementById('int-offer-name').dataset.offer=offerName||'';
+    document.getElementById('int-f').style.display='block';
+    document.getElementById('int-ok').style.display='none';
+    ['int-name','int-phone','int-note'].forEach(function(i){document.getElementById(i).value='';});
+    document.getElementById('mod-interest').classList.add('open');
+  };
+  window.subInterest=function(){
+    var n=document.getElementById('int-name').value.trim(),p=document.getElementById('int-phone').value.trim();
+    if(!n||!p){alert('الرجاء إدخال الاسم ورقم الجوال');return;}
+    var offer=document.getElementById('int-offer-name').dataset.offer||'';
+    var r={name:n,phone:p,type:'تسجيل اهتمام',offer:offer,note:document.getElementById('int-note').value.trim(),source:'interest',sheet:'تسجيل الاهتمام',date:now(),id:'SK-'+(Date.now()%100000)};
+    save(r);send(r);
+    document.getElementById('int-f').style.display='none';document.getElementById('int-ok').style.display='block';
+    setTimeout(function(){closeM('mod-interest');},3000);
+  };
+
   /* ── FIREBASE ── */
   var _fsdb=null;
   function initFS(){
@@ -716,6 +782,7 @@ body{background:var(--dark);color:var(--text)}
         +'<div class="o-loc"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>'+esc((o.city||'')+(o.district?' · '+o.district:''))+'</div>'
         +'<div class="o-price">'+fmt(o.price)+'</div>'
         +((o.area||o.beds)?'<div class="o-meta">'+(o.area?'<span>📐 '+o.area+' م²</span>':'')+(o.beds?'<span>🛏 '+o.beds+'</span>':'')+'</div>':'')
+        +'<div class="o-card-actions"><button class="o-int-btn" onclick="event.stopPropagation();openInterest(\''+esc(o.ar||o.name||'')+'\')" >تسجيل اهتمام</button></div>'
         +'</div></div>';
     }).join('');
   }
@@ -739,7 +806,7 @@ body{background:var(--dark);color:var(--text)}
       +'<button class="btn-wa-od" onclick="waOffer(\''+esc(o.ar||o.name||'')+'\')">'
       +'<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.533 5.847L.054 23.272a.5.5 0 0 0 .625.613l5.563-1.46A11.952 11.952 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>'
       +'تواصل عبر واتساب</button>'
-      +'<button class="btn-int-od" onclick="closeM(\'mod-offer\');document.getElementById(\'mod-inv\').classList.add(\'open\')">سجّل اهتمامك بهذا العرض</button>';
+      +'<button class="btn-int-od" onclick="openInterest(\''+esc(o.ar||o.name||'')+'\')" style="margin-top:8px">🏠 سجّل اهتمامك بهذا العرض</button>';
     document.getElementById('mod-offer').classList.add('open');
   };
   window.waOffer=function(t){window.open('https://wa.me/'+PHONE+'?text='+encodeURIComponent('السلام عليكم، أنا مهتم بالعقار: '+t),'_blank');};
