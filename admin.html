@@ -2241,13 +2241,24 @@ async function sendTaskEmail(assignedToName, taskTitle, assignedBy){
   const pub=localStorage.getItem('shark_ejs_pub');
   const svc=localStorage.getItem('shark_ejs_service');
   const tpl=localStorage.getItem('shark_ejs_template');
-  if(!pub||!svc||!tpl) return;
+  if(!pub||!svc||!tpl){ showToast('⚠️ مفاتيح EmailJS غير محفوظة'); return; }
   const emp=getEmployees().find(e=>(e.name||e.username)===assignedToName);
-  if(!emp||!emp.email) return;
+  if(!emp||!emp.email){ showToast('⚠️ الموظف ليس عنده بريد محفوظ'); return; }
   try{
     emailjs.init({publicKey:pub});
-    await emailjs.send(svc, tpl, {to_email:emp.email, to_name:emp.name||emp.username, task_title:taskTitle, assigned_by:assignedBy, company:'شارك العقارية'});
-  }catch(e){ console.warn('EmailJS send failed', e); }
+    const res=await emailjs.send(svc, tpl, {
+      to_email:emp.email,
+      to_name:emp.name||emp.username,
+      task_title:taskTitle,
+      assigned_by:assignedBy,
+      company:'شارك العقارية'
+    });
+    if(res.status===200) showToast('📧 تم إرسال الإشعار بالبريد ✓');
+    else showToast('⚠️ خطأ في الإرسال: '+res.text);
+  }catch(e){
+    showToast('⚠️ فشل الإرسال: '+e.text||e.message||'خطأ غير معروف');
+    console.error('EmailJS error:', e);
+  }
 }
 
 // ══════════════════════════════════════════════
