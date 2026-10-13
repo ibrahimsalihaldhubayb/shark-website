@@ -2040,11 +2040,11 @@ function loadSettings(){
 // ══════════════════════════════════════════════
 //  UTILS
 // ══════════════════════════════════════════════
-function showToast(msg){
+function showToast(msg, dur){
   var t=document.createElement('div');
   t.textContent=msg; t.className='toast';
   document.body.appendChild(t);
-  setTimeout(function(){ t.style.opacity='0'; setTimeout(function(){ t.remove(); },400); },2200);
+  setTimeout(function(){ t.style.opacity='0'; setTimeout(function(){ t.remove(); },400); },dur||3500);
 }
 function closeModal(id){ var el=$(id); if(el){ el.classList.remove('open'); } }
 document.addEventListener('click',function(e){
@@ -2238,9 +2238,9 @@ function saveEmailJSConfig(){
   showToast('✅ تم حفظ إعدادات البريد');
 }
 async function sendTaskEmail(assignedToName, taskTitle, assignedBy){
-  const pub=localStorage.getItem('shark_ejs_pub');
-  const svc=localStorage.getItem('shark_ejs_service');
-  const tpl=localStorage.getItem('shark_ejs_template');
+  const pub=localStorage.getItem('shark_ejs_pub')||'7I3ZFIMRzMph2ELCS';
+  const svc=localStorage.getItem('shark_ejs_service')||'service_m14d3mv';
+  const tpl=localStorage.getItem('shark_ejs_template')||'template_4scjnzb';
   if(!pub||!svc||!tpl){ showToast('⚠️ مفاتيح EmailJS غير محفوظة'); return; }
   const emp=getEmployees().find(e=>(e.name||e.username)===assignedToName);
   if(!emp||!emp.email){ showToast('⚠️ الموظف ليس عنده بريد محفوظ'); return; }
@@ -2253,10 +2253,10 @@ async function sendTaskEmail(assignedToName, taskTitle, assignedBy){
       assigned_by:assignedBy,
       company:'شارك العقارية'
     });
-    if(res.status===200) showToast('📧 تم إرسال الإشعار بالبريد ✓');
-    else showToast('⚠️ خطأ في الإرسال: '+res.text);
+    if(res.status===200) showToast('📧 تم إرسال الإشعار بالبريد ✓', 6000);
+    else showToast('⚠️ خطأ في الإرسال: '+res.text, 8000);
   }catch(e){
-    showToast('⚠️ فشل الإرسال: '+e.text||e.message||'خطأ غير معروف');
+    showToast('⚠️ فشل الإرسال: '+(e.text||e.message||JSON.stringify(e)), 8000);
     console.error('EmailJS error:', e);
   }
 }
