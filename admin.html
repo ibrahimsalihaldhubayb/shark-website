@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 :root{
   --gold:#c8a96e;--gold2:#b8954f;
@@ -52,7 +53,12 @@ body{font-family:'Cairo',Tahoma,Arial,sans-serif;background:var(--bg);color:var(
 
 /* ── Sidebar ── */
 .sidebar{width:var(--sidebar-w);background:#fff;border-left:1px solid var(--border);flex-shrink:0;overflow-y:auto;padding:16px 0;position:sticky;top:60px;height:calc(100vh - 60px)}
-.sidebar-section-label{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--sub);padding:14px 20px 6px;text-transform:uppercase}
+.sidebar-section-label{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--sub);padding:14px 20px 6px;text-transform:uppercase;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;transition:.15s}
+.sidebar-section-label:hover{color:var(--text)}
+.sidebar-group{overflow:hidden;transition:max-height .28s ease}
+.sidebar-group.collapsed{max-height:0!important}
+.sg-arrow{transition:transform .22s;font-style:normal;font-size:12px}
+.sg-arrow.up{transform:rotate(-180deg)}
 .sidebar-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;font-weight:500;color:var(--sub);cursor:pointer;transition:.15s;border-right:3px solid transparent;margin:1px 0}
 .sidebar-item:hover{background:#f9fafb;color:var(--text)}
 .sidebar-item.active{background:rgba(200,169,110,.08);color:var(--gold);border-right-color:var(--gold);font-weight:700}
@@ -276,6 +282,19 @@ tr:hover td{background:#fafafa}
       </div>
     </div>
     <div class="topbar-right">
+      <!-- Notifications bell -->
+      <div style="position:relative;margin-left:8px">
+        <button onclick="toggleNotifPanel()" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;width:38px;height:38px;cursor:pointer;font-size:18px;position:relative;display:flex;align-items:center;justify-content:center">🔔
+          <span id="notif-badge" style="display:none;position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;border-radius:50%;min-width:18px;height:18px;font-size:10px;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 3px">0</span>
+        </button>
+        <div id="notif-panel" style="display:none;position:absolute;top:46px;left:0;width:310px;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.13);z-index:2000;max-height:380px;overflow-y:auto">
+          <div style="padding:12px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:13px;display:flex;justify-content:space-between;align-items:center">
+            <span>🔔 الإشعارات</span>
+            <button onclick="clearNotifications()" style="background:none;border:none;font-size:11px;color:var(--sub);cursor:pointer">مسح الكل</button>
+          </div>
+          <div id="notif-list"></div>
+        </div>
+      </div>
       <div class="topbar-user">
         <span class="u-name" id="topbar-name">المدير</span>
         <span class="u-role" id="topbar-role">مدير</span>
@@ -287,24 +306,35 @@ tr:hover td{background:#fafafa}
   <div class="layout">
     <!-- Sidebar -->
     <div class="sidebar">
-      <div class="sidebar-section-label">الموقع الإلكتروني</div>
-      <div class="sidebar-item" onclick="showSection('offers')" id="nav-web-offers">🏠 العروض</div>
-      <div class="sidebar-item" onclick="showSection('clients')" id="nav-clients">👥 العملاء</div>
+      <!-- الموقع الإلكتروني — collapsible -->
+      <div class="sidebar-section-label" onclick="toggleSidebarGroup('web')">
+        <span>الموقع الإلكتروني</span><i class="sg-arrow" id="arrow-web">▾</i>
+      </div>
+      <div id="sidebar-group-web" class="sidebar-group" style="max-height:200px">
+        <div class="sidebar-item" onclick="showSection('offers')" id="nav-web-offers">🏠 العروض</div>
+        <div class="sidebar-item" onclick="showSection('clients')" id="nav-clients">👥 العملاء</div>
+      </div>
 
-      <div class="sidebar-section-label">مساحة العمل</div>
+      <!-- مساحة العمل — always open -->
+      <div class="sidebar-section-label" style="cursor:default">مساحة العمل</div>
       <div class="sidebar-item active" onclick="showSection('dashboard')" id="nav-dashboard">📊 الرئيسية</div>
-      <div class="sidebar-item" onclick="showSection('offers')" id="nav-offers">🏗️ عروض المساحة</div>
+      <div class="sidebar-item" onclick="showSection('offers')" id="nav-offers">🏗️ عروضنا</div>
       <div class="sidebar-item" onclick="showSection('deals')" id="nav-deals">💼 الصفقات</div>
       <div class="sidebar-item" onclick="showSection('tasks')" id="nav-tasks">✅ المهام</div>
       <div class="sidebar-item" onclick="showSection('chat')" id="nav-chat">💬 المحادثة</div>
       <div class="sidebar-item" onclick="showSection('finance')" id="nav-finance">💰 المالية</div>
 
-      <div class="sidebar-section-label">التسويق</div>
-      <div class="sidebar-item" onclick="showSection('promos')" id="nav-promos">📣 الإعلانات</div>
-      <div class="sidebar-item" onclick="showSection('landing')" id="nav-landing">🔗 صفحات الهبوط</div>
-      <div class="sidebar-item" onclick="showSection('promowa')" id="nav-promowa">📲 رسائل ترويجية</div>
+      <!-- التسويق — collapsible -->
+      <div class="sidebar-section-label" onclick="toggleSidebarGroup('mkt')">
+        <span>التسويق</span><i class="sg-arrow" id="arrow-mkt">▾</i>
+      </div>
+      <div id="sidebar-group-mkt" class="sidebar-group" style="max-height:200px">
+        <div class="sidebar-item" onclick="showSection('promos')" id="nav-promos">📣 الإعلانات</div>
+        <div class="sidebar-item" onclick="showSection('landing')" id="nav-landing">🔗 صفحات الهبوط</div>
+        <div class="sidebar-item" onclick="showSection('promowa')" id="nav-promowa">📲 رسائل ترويجية</div>
+      </div>
 
-      <div class="sidebar-section-label">الإعدادات</div>
+      <div class="sidebar-section-label" style="cursor:default">الإعدادات</div>
       <div class="sidebar-item" onclick="showSection('settings')" id="nav-settings">⚙️ الإعدادات</div>
     </div>
 
@@ -581,6 +611,16 @@ tr:hover td{background:#fafafa}
           </div>
           <div id="openai-key-status" style="font-size:12px;margin-top:8px;color:var(--sub)"></div>
         </div>
+        <div class="settings-card" style="max-width:600px;margin-top:16px">
+          <h4>📧 إشعارات البريد الإلكتروني (EmailJS)</h4>
+          <p style="color:var(--sub);font-size:13px;margin-bottom:12px">يُستخدم لإرسال إشعار بريد للموظف عند إسناد مهمة إليه. سجّل في <a href="https://www.emailjs.com" target="_blank" style="color:var(--gold)">emailjs.com</a> مجاناً للحصول على المفاتيح.</p>
+          <div class="form-row"><label>Public Key</label><input id="ejs-pubkey" type="text" placeholder="user_XXXXXX" dir="ltr" style="font-family:monospace;font-size:13px"></div>
+          <div class="form-row"><label>Service ID</label><input id="ejs-service" type="text" placeholder="service_XXXXX" dir="ltr" style="font-family:monospace;font-size:13px"></div>
+          <div class="form-row"><label>Template ID</label><input id="ejs-template" type="text" placeholder="template_XXXXX" dir="ltr" style="font-family:monospace;font-size:13px"></div>
+          <p style="font-size:11px;color:var(--sub);margin-bottom:12px">متغيرات القالب: <code>{{to_email}}</code> <code>{{to_name}}</code> <code>{{task_title}}</code> <code>{{assigned_by}}</code></p>
+          <button onclick="saveEmailJSConfig()" class="btn-primary">حفظ إعدادات البريد</button>
+          <div id="ejs-status" style="font-size:12px;margin-top:8px;color:var(--sub)"></div>
+        </div>
       </div>
 
     </div><!-- /main -->
@@ -818,6 +858,7 @@ tr:hover td{background:#fafafa}
     <div class="form-row"><label>اسم المستخدم *</label><input id="emp-username" type="text" placeholder="ahmed" dir="ltr"></div>
     <div class="form-row"><label>الاسم الكامل *</label><input id="emp-name" type="text" placeholder="أحمد محمد"></div>
     <div class="form-row"><label>كلمة المرور *</label><input id="emp-pass" type="password" placeholder="••••••••"></div>
+    <div class="form-row"><label>البريد الإلكتروني (للإشعارات)</label><input id="emp-email" type="email" placeholder="ahmed@example.com" dir="ltr"></div>
     <div class="form-row"><label>الصلاحية</label>
       <select id="emp-role">
         <option value="موظف">موظف</option>
@@ -1063,7 +1104,7 @@ function renderEmployees(){
   </tr>`).join('');
 }
 function openEmployeeEditor(){
-  ['emp-username','emp-name','emp-pass'].forEach(id=>$(id).value='');
+  ['emp-username','emp-name','emp-pass','emp-email'].forEach(id=>$(id).value='');
   $('emp-role').value='موظف';
   $('modal-emp').classList.add('open');
 }
@@ -1072,10 +1113,11 @@ function saveEmployee(){
   const name=$('emp-name').value.trim();
   const pass=$('emp-pass').value;
   const role=$('emp-role').value;
+  const email=$('emp-email').value.trim();
   if(!username||!name||!pass){ alert('الرجاء ملء جميع الحقول'); return; }
   var emps = getEmployees();
   if(emps.find(e=>e.username===username)){ alert('اسم المستخدم موجود مسبقاً'); return; }
-  emps.push({username,name,password:pass,role});
+  emps.push({username,name,password:pass,role,email});
   ss('shark_employees',emps);
   closeModal('modal-emp'); renderEmployees();
   showToast('تم إضافة الموظف ✓');
@@ -1102,7 +1144,9 @@ async function init(){
   renderOffers(); renderClients(); renderStats(); renderPromos(); renderDeals();
   loadSettings(); renderEmployees();
   populatePromoWAOffers();
+  initSidebarGroups();
   showSection('dashboard');
+  setTimeout(checkNotifications, 2000);
 }
 
 // ══════════════════════════════════════════════
@@ -1649,6 +1693,7 @@ async function addOfferNote(){
   try{
     await _db.collection('offer_notes').doc(note.id).set(note);
     loadOfferModalNotes(_modalNotesOfferId);
+    checkNotifications();
   }catch(e){ showToast('⚠️ تعذّر حفظ الملاحظة'); }
 }
 
@@ -1724,7 +1769,11 @@ async function saveTask(){
     assignedTo:$('task-assigned-sel').value,
     assignedBy:(_currentUser&&(_currentUser.name||_currentUser.username))||'موظف',
     deadline:$('task-deadline-inp').value, dueDate:$('task-due').value||'', status:'pending', _ts:Date.now()};
-  try{ await _db.collection('tasks').doc(t.id).set(t); showToast('تم حفظ المهمة ✓'); }catch(e){ showToast('⚠️ تعذّر الحفظ'); }
+  try{
+    await _db.collection('tasks').doc(t.id).set(t);
+    showToast('تم حفظ المهمة ✓');
+    sendTaskEmail(t.assignedTo, t.title, t.assignedBy);
+  }catch(e){ showToast('⚠️ تعذّر الحفظ'); }
   closeModal('modal-task'); renderTasks();
 }
 async function markTaskDone(id){
@@ -1975,23 +2024,30 @@ var _calYear = new Date().getFullYear();
 var _calMonth = new Date().getMonth();
 
 async function loadDashboard(){
+  // Render empty calendar immediately so layout is visible
+  renderCalendar([]);
+  // Offers count
   try{
     const offSnap = await _db.collection('offers').get();
     $('stat-offers-val').textContent = offSnap.docs.filter(d=>d.data().published!==false).length;
+  }catch(e){}
+  // Clients
+  try{
     const cliSnap = await _db.collection('clients').get();
     $('stat-clients-val').textContent = cliSnap.size;
     const recent = cliSnap.docs.map(d=>d.data()).sort((a,b)=>(b._ts||0)-(a._ts||0)).slice(0,8);
     $('dash-clients').innerHTML = recent.length ? recent.map(c=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)"><div style="width:34px;height:34px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0">${(c.name||'؟')[0]}</div><div><div style="font-weight:600;font-size:13px">${c.name||'—'}</div><div style="font-size:11px;color:var(--sub)">${c.phone||''}</div></div></div>`).join('') : '<div style="color:var(--sub);font-size:13px;padding:16px">لا يوجد عملاء</div>';
   }catch(e){}
+  // Tasks
   try{
     const now = new Date(); const y=now.getFullYear(),m=now.getMonth();
     const tSnap = await _db.collection('tasks').get();
-    const monthTasks = tSnap.docs.map(d=>d.data()).filter(t=>{ const d=new Date(t._ts||0); return d.getFullYear()===y&&d.getMonth()===m; });
+    const allTasks = tSnap.docs.map(d=>d.data());
+    const monthTasks = allTasks.filter(t=>{ const d=new Date(t._ts||0); return d.getFullYear()===y&&d.getMonth()===m; });
     $('stat-tasks-val').textContent = monthTasks.length;
     const emps = getEmployees();
-    const allTasks = tSnap.docs.map(d=>d.data());
     $('emp-task-strip').innerHTML = emps.map(e=>{
-      const myTasks = allTasks.filter(t=>t.assignedTo===e.name);
+      const myTasks = allTasks.filter(t=>t.assignedTo===(e.name||e.username));
       const done = myTasks.filter(t=>t.status==='done').length;
       const total = myTasks.length;
       const pct = total ? Math.round(done/total*100) : 0;
@@ -2002,13 +2058,15 @@ async function loadDashboard(){
         <div style="font-size:10px;color:var(--gold);font-weight:700;margin-top:4px">${pct}%</div>
       </div>`;
     }).join('');
-    try{
-      const fSnap = await _db.collection('finance').get();
-      const fMonth = fSnap.docs.map(d=>d.data()).filter(f=>{ const d=new Date(f.date||''); return d.getFullYear()===y&&d.getMonth()===m; });
-      const rev = fMonth.filter(f=>f.type==='income').reduce((s,f)=>s+(parseFloat(f.amount)||0),0);
-      $('stat-revenue-val').textContent = rev.toLocaleString('ar-SA')+'ر';
-    }catch(e){}
     renderCalendar(allTasks);
+  }catch(e){ console.warn('tasks load error',e); }
+  // Revenue this month
+  try{
+    const now2=new Date(); const y2=now2.getFullYear(),m2=now2.getMonth();
+    const fSnap = await _db.collection('finance').get();
+    const fMonth = fSnap.docs.map(d=>d.data()).filter(f=>{ const d=new Date(f.date||''); return d.getFullYear()===y2&&d.getMonth()===m2; });
+    const rev = fMonth.filter(f=>f.type==='income').reduce((s,f)=>s+(parseFloat(f.amount)||0),0);
+    $('stat-revenue-val').textContent = rev.toLocaleString('ar-SA')+'ر';
   }catch(e){}
 }
 
@@ -2126,7 +2184,121 @@ function saveOpenAIKey(){
 function loadOpenAIKeyField(){
   const k=localStorage.getItem('shark_openai_key')||'';
   if($('openai-key-inp')){ $('openai-key-inp').value=k; if(k) { $('openai-key-status').textContent='✓ مفتاح محفوظ'; $('openai-key-status').style.color='#10b981'; } }
+  // Load EmailJS fields
+  if($('ejs-pubkey')) $('ejs-pubkey').value=localStorage.getItem('shark_ejs_pub')||'';
+  if($('ejs-service')) $('ejs-service').value=localStorage.getItem('shark_ejs_service')||'';
+  if($('ejs-template')) $('ejs-template').value=localStorage.getItem('shark_ejs_template')||'';
+  if($('ejs-pubkey')&&localStorage.getItem('shark_ejs_pub')){ $('ejs-status').textContent='✓ إعدادات محفوظة'; $('ejs-status').style.color='#10b981'; }
 }
+
+// ══════════════════════════════════════════════
+//  EMAILJS CONFIG + EMAIL SENDER
+// ══════════════════════════════════════════════
+function saveEmailJSConfig(){
+  const pub=$('ejs-pubkey').value.trim(), svc=$('ejs-service').value.trim(), tpl=$('ejs-template').value.trim();
+  if(!pub||!svc||!tpl){ showToast('⚠️ أكمل جميع حقول EmailJS'); return; }
+  localStorage.setItem('shark_ejs_pub',pub);
+  localStorage.setItem('shark_ejs_service',svc);
+  localStorage.setItem('shark_ejs_template',tpl);
+  $('ejs-status').textContent='✓ تم الحفظ'; $('ejs-status').style.color='#10b981';
+  showToast('✅ تم حفظ إعدادات البريد');
+}
+async function sendTaskEmail(assignedToName, taskTitle, assignedBy){
+  const pub=localStorage.getItem('shark_ejs_pub');
+  const svc=localStorage.getItem('shark_ejs_service');
+  const tpl=localStorage.getItem('shark_ejs_template');
+  if(!pub||!svc||!tpl) return;
+  const emp=getEmployees().find(e=>(e.name||e.username)===assignedToName);
+  if(!emp||!emp.email) return;
+  try{
+    emailjs.init({publicKey:pub});
+    await emailjs.send(svc, tpl, {to_email:emp.email, to_name:emp.name||emp.username, task_title:taskTitle, assigned_by:assignedBy, company:'شارك العقارية'});
+  }catch(e){ console.warn('EmailJS send failed', e); }
+}
+
+// ══════════════════════════════════════════════
+//  SIDEBAR COLLAPSIBLE
+// ══════════════════════════════════════════════
+function toggleSidebarGroup(id){
+  const grp=$('sidebar-group-'+id);
+  const arrow=$('arrow-'+id);
+  if(!grp) return;
+  const collapsing=!grp.classList.contains('collapsed');
+  if(collapsing){ grp.style.maxHeight=grp.scrollHeight+'px'; requestAnimationFrame(()=>{ grp.style.maxHeight='0'; grp.classList.add('collapsed'); if(arrow) arrow.classList.add('up'); }); }
+  else{ grp.classList.remove('collapsed'); if(arrow) arrow.classList.remove('up'); grp.style.maxHeight=grp.scrollHeight+'px'; setTimeout(()=>{ if(!grp.classList.contains('collapsed')) grp.style.maxHeight=''; },300); }
+  const st=gs('shark_sidebar_state')||{};
+  st[id]=collapsing?'collapsed':'open';
+  ss('shark_sidebar_state',st);
+}
+function initSidebarGroups(){
+  const st=gs('shark_sidebar_state')||{};
+  ['web','mkt'].forEach(id=>{
+    const grp=$('sidebar-group-'+id);
+    if(!grp) return;
+    if(st[id]==='collapsed'){
+      grp.style.maxHeight='0'; grp.classList.add('collapsed');
+      const arrow=$('arrow-'+id); if(arrow) arrow.classList.add('up');
+    } else { grp.style.maxHeight=''; }
+  });
+}
+
+// ══════════════════════════════════════════════
+//  NOTIFICATIONS
+// ══════════════════════════════════════════════
+var _notifItems = [];
+var _notifOpen = false;
+async function checkNotifications(){
+  if(!_currentUser||!_db) return;
+  const lastRead = parseInt(localStorage.getItem('shark_notif_read_ts')||'0');
+  let count=0; const items=[];
+  try{
+    const snap=await _db.collection('offer_notes').orderBy('_ts','desc').limit(60).get();
+    snap.docs.forEach(d=>{
+      const n=d.data();
+      if(n._ts>lastRead && n.author!==(_currentUser.name||_currentUser.username)){
+        count++;
+        const off=_offersCache.find(o=>o.id===n.offerId);
+        items.push({icon:'📝',text:`ملاحظة على "${off?.ar||off?.name||'عرض'}": ${n.text}`,author:n.author,ts:n._ts});
+      }
+    });
+  }catch(e){}
+  try{
+    const cur=_currentUser.name||_currentUser.username;
+    const tSnap=await _db.collection('tasks').orderBy('_ts','desc').limit(30).get();
+    tSnap.docs.forEach(d=>{
+      const t=d.data();
+      if(t._ts>lastRead && t.assignedTo===cur){
+        count++;
+        items.push({icon:'✅',text:`مهمة جديدة لك: ${t.title||'مهمة'}`,author:t.assignedBy||'موظف',ts:t._ts});
+      }
+    });
+  }catch(e){}
+  _notifItems=items.sort((a,b)=>b.ts-a.ts);
+  const badge=$('notif-badge');
+  if(!badge) return;
+  if(count>0){ badge.textContent=count>9?'9+':count; badge.style.display='flex'; }
+  else { badge.style.display='none'; }
+}
+function toggleNotifPanel(){
+  _notifOpen=!_notifOpen;
+  const panel=$('notif-panel');
+  panel.style.display=_notifOpen?'block':'none';
+  if(_notifOpen){
+    const list=$('notif-list');
+    list.innerHTML=_notifItems.length?_notifItems.map(n=>`<div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start"><span style="font-size:18px;flex-shrink:0">${n.icon}</span><div><div style="font-size:13px;line-height:1.5;color:var(--text)">${n.text}</div><div style="font-size:11px;color:var(--sub);margin-top:2px">${n.author}</div></div></div>`).join(''):'<div style="padding:20px;text-align:center;color:var(--sub);font-size:13px">لا توجد إشعارات جديدة 🎉</div>';
+  }
+}
+function clearNotifications(){
+  localStorage.setItem('shark_notif_read_ts',Date.now().toString());
+  _notifItems=[]; $('notif-badge').style.display='none';
+  $('notif-list').innerHTML='<div style="padding:20px;text-align:center;color:var(--sub);font-size:13px">تم مسح الإشعارات ✓</div>';
+}
+// Close notif panel when clicking outside
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#notif-panel')&&!e.target.closest('button[onclick="toggleNotifPanel()"]')){
+    if(_notifOpen){ _notifOpen=false; const p=$('notif-panel'); if(p) p.style.display='none'; }
+  }
+});
 </script>
 </body>
 </html>
