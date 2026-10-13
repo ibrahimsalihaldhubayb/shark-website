@@ -2248,8 +2248,11 @@ async function sendTaskEmail(assignedToName, taskTitle, assignedBy){
     emailjs.init({publicKey:pub});
     const res=await emailjs.send(svc, tpl, {
       to_email:emp.email,
+      email:emp.email,
       to_name:emp.name||emp.username,
+      name:emp.name||emp.username,
       task_title:taskTitle,
+      title:taskTitle,
       assigned_by:assignedBy,
       company:'شارك العقارية'
     });
