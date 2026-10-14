@@ -282,30 +282,29 @@ tr:hover td{background:#fafafa}
 .task-check:hover{border-color:var(--gold)}
 
 /* ── Minutebook Task View ── */
-.minutebook{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.06)}
-.minutebook-header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%);padding:28px 36px;display:flex;justify-content:space-between;align-items:center}
-.minutebook-logo{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px}
-.minutebook-logo small{display:block;font-size:11px;font-weight:400;opacity:.7;margin-top:2px}
-.minutebook-date{text-align:left;color:rgba(255,255,255,.8);font-size:12px;line-height:1.8}
-.minutebook-title-band{background:repeating-linear-gradient(-45deg,#e8c87a,#e8c87a 8px,#c8a96e 8px,#c8a96e 16px);padding:14px 36px;text-align:center}
-.minutebook-title-band h2{margin:0;font-size:24px;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.3);letter-spacing:1px}
-.emp-section{padding:0 28px 28px}
-.emp-name-band{margin:24px -28px 18px;background:repeating-linear-gradient(-45deg,#f0f0f0,#f0f0f0 8px,#e8e8e8 8px,#e8e8e8 16px);padding:14px 28px;text-align:center}
-.emp-name-band h3{margin:0;font-size:28px;font-weight:800;color:#1a1a2e;letter-spacing:0.5px}
-.task-cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.minutebook{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.07)}
+.minutebook-header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%);padding:16px 28px;display:flex;align-items:center;gap:16px}
+.minutebook-logo{color:#fff;font-size:16px;font-weight:800;letter-spacing:-0.3px}
+.minutebook-logo small{display:block;font-size:10px;font-weight:400;opacity:.6;margin-top:1px}
+.minutebook-title-band{background:repeating-linear-gradient(-45deg,#e8c87a,#e8c87a 7px,#c8a96e 7px,#c8a96e 14px);padding:10px 28px;text-align:center}
+.minutebook-title-band h2{margin:0;font-size:18px;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.3);letter-spacing:1px}
+.emp-section{padding:0 20px 20px}
+.emp-name-band{margin:18px -20px 14px;background:repeating-linear-gradient(-45deg,#f0f0f0,#f0f0f0 6px,#e8e8e8 6px,#e8e8e8 12px);padding:10px 20px;text-align:center}
+.emp-name-band h3{margin:0;font-size:20px;font-weight:800;color:#1a1a2e}
+.task-cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:640px){.task-cards-grid{grid-template-columns:1fr}}
-.tc-card{background:#b8d4f0;border-radius:10px;padding:14px 16px;position:relative;min-height:80px;transition:.15s;cursor:default}
-.tc-card:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.tc-card{background:#b8d4f0;border-radius:9px;padding:10px 12px 32px;position:relative;min-height:70px;transition:.15s;cursor:default}
+.tc-card:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.09)}
 .tc-card.done-card{background:#c8efd4}
 .tc-card.overdue-card{background:#ffd5d5}
-.tc-badge{position:absolute;top:10px;right:10px;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:800;line-height:1.4;text-align:center}
+.tc-badge{position:absolute;top:8px;right:8px;border-radius:5px;padding:2px 7px;font-size:9px;font-weight:800;line-height:1.5;text-align:center;white-space:pre-line}
 .tc-badge.pending{background:#5b9bd5;color:#fff}
 .tc-badge.done{background:#5cb85c;color:#fff}
 .tc-badge.overdue{background:#e74c3c;color:#fff}
-.tc-title{font-size:15px;font-weight:700;color:#1a1a2e;margin:0 0 8px;padding-left:54px}
-.tc-meta{font-size:11px;color:#4a5568;display:flex;gap:12px;flex-wrap:wrap}
-.tc-meta span{background:rgba(255,255,255,.5);border-radius:4px;padding:2px 6px}
-.minutebook-footer{background:#f8f9fa;border-top:1px solid var(--border);padding:16px 36px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--sub)}
+.tc-title{font-size:13px;font-weight:700;color:#1a1a2e;margin:0 0 6px;padding-left:52px}
+.tc-meta{font-size:10px;color:#4a5568;display:flex;gap:8px;flex-wrap:wrap}
+.tc-meta span{background:rgba(255,255,255,.55);border-radius:4px;padding:1px 5px}
+.minutebook-footer{background:#f8f9fa;border-top:1px solid var(--border);padding:10px 28px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--sub)}
 
 /* ── Responsive ── */
 @media(max-width:768px){
@@ -608,7 +607,8 @@ tr:hover td{background:#fafafa}
           <!-- Header -->
           <div class="minutebook-header">
             <div class="minutebook-logo">شـارك<small>شركة ركن شارك العقارية</small></div>
-            <div class="minutebook-date" id="mb-date-display"></div>
+            <div style="flex:1"></div>
+            <div id="mb-date-display" style="color:rgba(255,255,255,.7);font-size:11px;text-align:left"></div>
           </div>
           <!-- Title band -->
           <div class="minutebook-title-band">
@@ -1971,10 +1971,8 @@ function renderTasksView(){
 
   // update date display
   const now=new Date();
-  const hijri=now.toLocaleDateString('ar-SA-u-ca-islamic',{year:'numeric',month:'2-digit',day:'2-digit'});
   const greg=now.toLocaleDateString('ar-SA',{year:'numeric',month:'2-digit',day:'2-digit'});
-  const city='في مدينة بريدة';
-  if($('mb-date-display')) $('mb-date-display').innerHTML=`تم تحرير هذا المحضر بتاريخ<br>${hijri} هـ<br>${greg} م<br>${city}`;
+  if($('mb-date-display')) $('mb-date-display').textContent=greg+' م';
   if($('mb-footer-date')) $('mb-footer-date').textContent=greg+' م';
 
   const filtered=_taskFilter==='all'?_allTasksCache:_allTasksCache.filter(t=>t.status===(_taskFilter==='done'?'done':'pending'));
@@ -1998,8 +1996,11 @@ function renderTasksView(){
       const awarded=t.award;
       let meta=[];
       if(t.responsible) meta.push(`المسؤول: ${t.responsible}`);
-      if(t.dueDate) meta.push(`${overdue?'المدة يوم ':'الموعد '}${t.dueDate}`);
-      if(t.deadline) meta.push(`ينتظر ${t.deadline}`);
+      // assigned date: derived from _ts
+      if(t._ts){ const d=new Date(t._ts); meta.push(`تاريخ الإسناد: ${d.toLocaleDateString('ar-SA',{year:'numeric',month:'2-digit',day:'2-digit'})}`); }
+      // deadline / dueDate as last delivery date
+      const dl=t.deadline||t.dueDate;
+      if(dl) meta.push(`${overdue?'⚠ آخر موعد: ':'آخر موعد: '}${dl}`);
       return `<div class="tc-card ${isDone?'done-card':''}${overdue?' overdue-card':''}" style="position:relative">
         <div class="tc-badge ${statusClass}">${statusLabel}</div>
         <div class="tc-title">${t.title||'—'}${awarded?' ★':''}</div>
