@@ -874,10 +874,16 @@ body{background:var(--dark);color:var(--text)}
 var _aiOpen = false;
 var _aiHistory = [];
 var _aiOfferContext = '';
+// رابط Cloudflare Worker الافتراضي (يُستبدل بالقيمة المحفوظة من لوحة الإدارة في settings/ai)
+var AI_PROXY_URL = '';
 
 async function initAIContext(){
   try{
     if(!window.db) return;
+    try{
+      var cfg = await window.db.collection('settings').doc('ai').get();
+      if(cfg.exists && cfg.data().proxyUrl) AI_PROXY_URL = cfg.data().proxyUrl;
+    }catch(e){}
     var snap = await window.db.collection('offers').where('published','==',true).get();
     var offers = snap.docs.map(function(d){return d.data();});
     _aiOfferContext = offers.map(function(o){return '- '+(o.ar||o.name||'')+': '+(o.type||'')+' في '+(o.city||'')+(o.district?'، '+o.district:'')+', المساحة: '+(o.area||'?')+' م², السعر: '+(o.price||'?')+' ر.س'+(o.desc?', '+o.desc:'');}).join('\n');
@@ -916,25 +922,35 @@ async function sendAIMsg(){
   document.getElementById('ai-msgs').appendChild(typing);
   document.getElementById('ai-msgs').scrollTop = 99999;
 
+  if(!window.db){ await new Promise(function(r){ setTimeout(r,2100); }); }
+  if(!AI_PROXY_URL) await initAIContext();
   var apiKey = localStorage.getItem('shark_openai_key')||'';
-  if(!apiKey){ typing.remove(); appendAIMsg('bot','⚠️ لم يتم ضبط مفتاح الذكاء الاصطناعي بعد. يرجى التواصل مع الإدارة.'); return; }
+  if(!AI_PROXY_URL && !apiKey){ typing.remove(); appendAIMsg('bot','⚠️ لم يتم ربط المساعد الذكي بعد. يرجى التواصل معنا على واتساب: 966539997060'); return; }
 
   try{
     var systemPrompt = 'أنت مساعد عقاري متخصص لشركة شارك العقارية في المملكة العربية السعودية. مهمتك الإجابة على استفسارات العملاء بشأن العقارات المتاحة وتقديم المشورة العقارية بشكل احترافي ومختصر. تحدث بالعربية دائماً.\n\nالعروض المتاحة حالياً:\n'+(_aiOfferContext||'(لا توجد عروض منشورة حالياً)')+'\n\nإذا سأل العميل عن عقار معين وهو متاح، اعطه التفاصيل. اقترح التواصل مع فريق شارك على واتساب: 966539997060';
+    var messages = [{role:'system',content:systemPrompt}].concat(_aiHistory.slice(-8));
+    var reply = null;
 
-    var res = await fetch('https://api.openai.com/v1/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
-      body: JSON.stringify({
-        model:'gpt-4o-mini',
-        messages:[{role:'system',content:systemPrompt}].concat(_aiHistory.slice(-8)),
-        max_tokens:400,temperature:0.7
-      })
-    });
-    var data = await res.json();
+    if(AI_PROXY_URL){
+      var res = await fetch(AI_PROXY_URL,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({messages:messages})
+      });
+      var data = await res.json();
+      reply = data.reply || null;
+    } else {
+      var res = await fetch('https://api.openai.com/v1/chat/completions',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+        body: JSON.stringify({model:'gpt-4o-mini',messages:messages,max_tokens:400,temperature:0.7})
+      });
+      var data = await res.json();
+      reply = (data.choices&&data.choices[0]) ? data.choices[0].message.content : null;
+    }
     typing.remove();
-    if(data.choices&&data.choices[0]){
-      var reply = data.choices[0].message.content;
+    if(reply){
       _aiHistory.push({role:'assistant',content:reply});
       appendAIMsg('bot', reply);
     } else { appendAIMsg('bot','عذراً، حدث خطأ. حاول مرة أخرى.'); }

@@ -725,13 +725,22 @@ tr:hover td{background:#fafafa}
         </div>
 
         <div class="settings-card" style="max-width:600px">
-          <h4>🤖 مفتاح الذكاء الاصطناعي (OpenAI)</h4>
-          <p style="color:var(--sub);font-size:13px;margin-bottom:12px">مفتاح OpenAI API يُستخدم لتشغيل المساعد الذكي على الموقع. يُحفظ في المتصفح فقط.</p>
+          <h4>🤖 ربط ChatGPT بالموقع</h4>
+          <p style="color:var(--sub);font-size:13px;margin-bottom:12px">رابط الوسيط الآمن (Cloudflare Worker) الذي يحمل مفتاح OpenAI. يُحفظ في قاعدة البيانات فيعمل المساعد لجميع زوار الموقع، والمفتاح نفسه لا يظهر لهم. طريقة الإنشاء في ملف <code>ai-worker/README.md</code>.</p>
+          <div style="display:flex;gap:10px;align-items:center">
+            <input id="ai-proxy-inp" type="url" dir="ltr" placeholder="https://shark-ai.xxxx.workers.dev" style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:monospace;font-size:13px" value="">
+            <button onclick="saveAIProxyUrl()" class="btn-primary">حفظ</button>
+          </div>
+          <div id="ai-proxy-status" style="font-size:12px;margin-top:8px;color:var(--sub)"></div>
+          <details style="margin-top:14px">
+            <summary style="cursor:pointer;font-size:12px;color:var(--sub)">للتجربة فقط: مفتاح OpenAI على هذا الجهاز</summary>
+            <p style="color:var(--sub);font-size:12px;margin:8px 0">يُحفظ في هذا المتصفح فقط ولا يعمل للزوار.</p>
           <div style="display:flex;gap:10px;align-items:center">
             <input id="openai-key-inp" type="password" placeholder="sk-..." style="flex:1;padding:10px;border:1px solid var(--border);border-radius:8px;font-family:monospace;font-size:13px" value="">
             <button onclick="saveOpenAIKey()" class="btn-primary">حفظ</button>
           </div>
           <div id="openai-key-status" style="font-size:12px;margin-top:8px;color:var(--sub)"></div>
+          </details>
         </div>
         <div class="settings-card" style="max-width:600px;margin-top:16px">
           <h4>📧 إشعارات البريد الإلكتروني (EmailJS)</h4>
@@ -2518,7 +2527,22 @@ function saveOpenAIKey(){
   $('openai-key-status').textContent='✓ تم الحفظ'; $('openai-key-status').style.color='#10b981';
   showToast('✅ تم حفظ مفتاح OpenAI');
 }
+async function saveAIProxyUrl(){
+  const u=$('ai-proxy-inp').value.trim();
+  if(u && !/^https:\/\//.test(u)){ showToast('⚠️ الرابط يجب أن يبدأ بـ https://'); return; }
+  try{
+    await _db.collection('settings').doc('ai').set({proxyUrl:u},{merge:true});
+    $('ai-proxy-status').textContent=u?'✓ تم الربط — المساعد يعمل الآن للزوار':'تم إلغاء الربط';
+    $('ai-proxy-status').style.color='#10b981';
+    showToast('✅ تم الحفظ');
+  }catch(e){ $('ai-proxy-status').textContent='⚠️ تعذّر الحفظ: '+e.message; $('ai-proxy-status').style.color='#ef4444'; }
+}
 function loadOpenAIKeyField(){
+  if($('ai-proxy-inp')) _db.collection('settings').doc('ai').get().then(d=>{
+    const u=(d.exists&&d.data().proxyUrl)||'';
+    $('ai-proxy-inp').value=u;
+    if(u){ $('ai-proxy-status').textContent='✓ ChatGPT مربوط بالموقع'; $('ai-proxy-status').style.color='#10b981'; }
+  }).catch(()=>{});
   const k=localStorage.getItem('shark_openai_key')||'';
   if($('openai-key-inp')){ $('openai-key-inp').value=k; if(k) { $('openai-key-status').textContent='✓ مفتاح محفوظ'; $('openai-key-status').style.color='#10b981'; } }
   // Load EmailJS fields
