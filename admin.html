@@ -281,6 +281,32 @@ tr:hover td{background:#fafafa}
 .task-check.checked{background:var(--gold);border-color:var(--gold);color:#fff}
 .task-check:hover{border-color:var(--gold)}
 
+/* ── Minutebook Task View ── */
+.minutebook{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.06)}
+.minutebook-header{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%);padding:28px 36px;display:flex;justify-content:space-between;align-items:center}
+.minutebook-logo{color:#fff;font-size:22px;font-weight:800;letter-spacing:-0.5px}
+.minutebook-logo small{display:block;font-size:11px;font-weight:400;opacity:.7;margin-top:2px}
+.minutebook-date{text-align:left;color:rgba(255,255,255,.8);font-size:12px;line-height:1.8}
+.minutebook-title-band{background:repeating-linear-gradient(-45deg,#e8c87a,#e8c87a 8px,#c8a96e 8px,#c8a96e 16px);padding:14px 36px;text-align:center}
+.minutebook-title-band h2{margin:0;font-size:24px;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.3);letter-spacing:1px}
+.emp-section{padding:0 28px 28px}
+.emp-name-band{margin:24px -28px 18px;background:repeating-linear-gradient(-45deg,#f0f0f0,#f0f0f0 8px,#e8e8e8 8px,#e8e8e8 16px);padding:14px 28px;text-align:center}
+.emp-name-band h3{margin:0;font-size:28px;font-weight:800;color:#1a1a2e;letter-spacing:0.5px}
+.task-cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:640px){.task-cards-grid{grid-template-columns:1fr}}
+.tc-card{background:#b8d4f0;border-radius:10px;padding:14px 16px;position:relative;min-height:80px;transition:.15s;cursor:default}
+.tc-card:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.tc-card.done-card{background:#c8efd4}
+.tc-card.overdue-card{background:#ffd5d5}
+.tc-badge{position:absolute;top:10px;right:10px;border-radius:6px;padding:3px 8px;font-size:10px;font-weight:800;line-height:1.4;text-align:center}
+.tc-badge.pending{background:#5b9bd5;color:#fff}
+.tc-badge.done{background:#5cb85c;color:#fff}
+.tc-badge.overdue{background:#e74c3c;color:#fff}
+.tc-title{font-size:15px;font-weight:700;color:#1a1a2e;margin:0 0 8px;padding-left:54px}
+.tc-meta{font-size:11px;color:#4a5568;display:flex;gap:12px;flex-wrap:wrap}
+.tc-meta span{background:rgba(255,255,255,.5);border-radius:4px;padding:2px 6px}
+.minutebook-footer{background:#f8f9fa;border-top:1px solid var(--border);padding:16px 36px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--sub)}
+
 /* ── Responsive ── */
 @media(max-width:768px){
   .sidebar{display:none}
@@ -568,30 +594,44 @@ tr:hover td{background:#fafafa}
 
       <!-- ── TASKS ── -->
       <div id="sec-tasks" class="section" style="display:none">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
-          <div>
-            <h2 style="margin:0;font-size:20px">المهام</h2>
-            <div style="font-size:13px;color:var(--sub);margin-top:2px" id="tasks-summary-line">جاري التحميل...</div>
+        <!-- Top controls -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div style="display:flex;gap:6px">
+            <button class="task-filter-btn active" onclick="setTaskFilter('all')" id="tfilt-all">الكل</button>
+            <button class="task-filter-btn" onclick="setTaskFilter('pending')" id="tfilt-pending">جارية</button>
+            <button class="task-filter-btn" onclick="setTaskFilter('done')" id="tfilt-done">مكتملة</button>
           </div>
           <button class="btn-primary" onclick="openTaskEditor()">+ مهمة جديدة</button>
         </div>
-        <!-- Progress bar -->
-        <div class="card" style="margin-bottom:20px;padding:16px 20px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <span style="font-size:13px;font-weight:600">نسبة الإنجاز الكلية</span>
-            <span id="tasks-pct-label" style="font-size:14px;font-weight:800;color:var(--gold)">0%</span>
+        <!-- Minutebook container -->
+        <div class="minutebook">
+          <!-- Header -->
+          <div class="minutebook-header">
+            <div class="minutebook-logo">شـارك<small>شركة ركن شارك العقارية</small></div>
+            <div class="minutebook-date" id="mb-date-display"></div>
           </div>
-          <div style="background:var(--bg);border-radius:8px;height:10px;overflow:hidden">
-            <div id="tasks-pct-bar" style="background:linear-gradient(90deg,var(--gold),#e8c87a);border-radius:8px;height:10px;width:0;transition:width .6s ease"></div>
+          <!-- Title band -->
+          <div class="minutebook-title-band">
+            <h2>محضر المهام اليومي</h2>
+          </div>
+          <!-- Progress strip -->
+          <div style="padding:14px 28px;background:#fafafa;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px">
+            <div style="flex:1">
+              <div style="background:#e5e7eb;border-radius:8px;height:8px;overflow:hidden">
+                <div id="tasks-pct-bar" style="background:linear-gradient(90deg,#5b9bd5,#3b82f6);border-radius:8px;height:8px;width:0;transition:width .7s ease"></div>
+              </div>
+            </div>
+            <span id="tasks-pct-label" style="font-size:13px;font-weight:800;color:#1a1a2e;min-width:40px">0%</span>
+            <span id="tasks-summary-line" style="font-size:12px;color:var(--sub)"></span>
+          </div>
+          <!-- Employee groups -->
+          <div id="tasks-list-view" style="padding:0 0 8px"></div>
+          <!-- Footer -->
+          <div class="minutebook-footer">
+            <span>sharekre.sa</span>
+            <span id="mb-footer-date"></span>
           </div>
         </div>
-        <!-- Filter tabs -->
-        <div style="display:flex;gap:6px;margin-bottom:16px">
-          <button class="task-filter-btn active" onclick="setTaskFilter('all')" id="tfilt-all">الكل</button>
-          <button class="task-filter-btn" onclick="setTaskFilter('pending')" id="tfilt-pending">قيد التنفيذ</button>
-          <button class="task-filter-btn" onclick="setTaskFilter('done')" id="tfilt-done">مكتملة</button>
-        </div>
-        <div id="tasks-list-view"></div>
       </div>
 
       <!-- ── CHAT ── -->
@@ -1925,41 +1965,56 @@ function renderTasksView(){
   const done=_allTasksCache.filter(t=>t.status==='done').length;
   const total=_allTasksCache.length;
   const pct=total?Math.round(done/total*100):0;
-  if($('tasks-summary-line')) $('tasks-summary-line').textContent=`${total} مهمة · ${done} مكتملة · ${total-done} قيد التنفيذ`;
+  if($('tasks-summary-line')) $('tasks-summary-line').textContent=`${total} مهمة · ${done} مكتملة · ${total-done} جارية`;
   if($('tasks-pct-label')) $('tasks-pct-label').textContent=pct+'%';
   if($('tasks-pct-bar')) $('tasks-pct-bar').style.width=pct+'%';
+
+  // update date display
+  const now=new Date();
+  const hijri=now.toLocaleDateString('ar-SA-u-ca-islamic',{year:'numeric',month:'2-digit',day:'2-digit'});
+  const greg=now.toLocaleDateString('ar-SA',{year:'numeric',month:'2-digit',day:'2-digit'});
+  const city='في مدينة بريدة';
+  if($('mb-date-display')) $('mb-date-display').innerHTML=`تم تحرير هذا المحضر بتاريخ<br>${hijri} هـ<br>${greg} م<br>${city}`;
+  if($('mb-footer-date')) $('mb-footer-date').textContent=greg+' م';
+
   const filtered=_taskFilter==='all'?_allTasksCache:_allTasksCache.filter(t=>t.status===(_taskFilter==='done'?'done':'pending'));
   const listEl=$('tasks-list-view'); if(!listEl) return;
   if(!filtered.length){ listEl.innerHTML='<div style="text-align:center;padding:48px;color:var(--sub);font-size:14px">لا توجد مهام في هذه الفئة</div>'; return; }
-  const PRIORITY_COLOR={urgent:'#ef4444',high:'#f59e0b',normal:'#d1d5db'};
-  const PRIORITY_LABEL={urgent:'عاجلة',high:'عالية',normal:'عادية'};
-  listEl.innerHTML=filtered.map(t=>{
-    const isDone=t.status==='done';
-    const overdue=!isDone&&t.dueDate&&new Date(t.dueDate)<new Date();
-    const pColor=PRIORITY_COLOR[t.priority||'normal'];
-    const awarded=t.award;
-    return `<div class="task-row${isDone?' done-row':''}${overdue?' overdue-row':''}">
-      <div class="task-priority-dot" style="background:${pColor}" title="${PRIORITY_LABEL[t.priority||'normal']}"></div>
-      <div class="task-check${isDone?' checked':''}" onclick="${isDone?'':("markTaskDone('"+t.id+"')")}">
-        ${isDone?'✓':''}
-      </div>
-      <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-weight:600;font-size:14px;color:var(--text);${isDone?'text-decoration:line-through;':''}">${t.title||'—'}</span>
-          ${awarded?`<span class="badge-award">&#9733; عمل مميز</span>`:''}
-          ${overdue?`<span style="font-size:11px;background:#fee2e2;color:#b91c1c;border-radius:20px;padding:2px 8px;font-weight:600">متأخرة</span>`:''}
+
+  // group by assignedTo
+  const groups={};
+  filtered.forEach(t=>{
+    const key=t.assignedTo||'غير محدد';
+    if(!groups[key]) groups[key]=[];
+    groups[key].push(t);
+  });
+
+  listEl.innerHTML=Object.entries(groups).map(([emp,tasks])=>{
+    const cards=tasks.map(t=>{
+      const isDone=t.status==='done';
+      const overdue=!isDone&&t.dueDate&&new Date(t.dueDate)<new Date();
+      const statusClass=overdue?'overdue':isDone?'done':'pending';
+      const statusLabel=overdue?'متأخر':isDone?'تم\nالإنجاز':'جاري\nالعمل';
+      const awarded=t.award;
+      let meta=[];
+      if(t.responsible) meta.push(`المسؤول: ${t.responsible}`);
+      if(t.dueDate) meta.push(`${overdue?'المدة يوم ':'الموعد '}${t.dueDate}`);
+      if(t.deadline) meta.push(`ينتظر ${t.deadline}`);
+      return `<div class="tc-card ${isDone?'done-card':''}${overdue?' overdue-card':''}" style="position:relative">
+        <div class="tc-badge ${statusClass}">${statusLabel}</div>
+        <div class="tc-title">${t.title||'—'}${awarded?' ★':''}</div>
+        ${meta.length?`<div class="tc-meta">${meta.map(m=>`<span>${m}</span>`).join('')}</div>`:''}
+        <div style="position:absolute;bottom:8px;left:8px;display:flex;gap:4px">
+          ${isDone&&!awarded?`<button onclick="grantAward('${t.id}')" style="background:rgba(245,158,11,.2);border:1px solid rgba(245,158,11,.5);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:10px;color:#92600a;font-family:inherit">★ تميز</button>`:''}
+          ${overdue?`<button onclick="sendOverdueNotif('${t.id}','${t.assignedTo||''}','${(t.title||'').replace(/'/g,'\\\'')}')" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:10px;color:#b91c1c;font-family:inherit">تنبيه</button>`:''}
+          ${!isDone?`<button onclick="markTaskDone('${t.id}')" style="background:rgba(92,184,92,.15);border:1px solid rgba(92,184,92,.3);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:10px;color:#1a6b1a;font-family:inherit">إنجاز</button>`:''}
+          <button onclick="deleteTask('${t.id}')" style="background:rgba(0,0,0,.06);border:none;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:12px;color:#9ca3af;font-family:inherit">×</button>
         </div>
-        <div style="display:flex;gap:12px;margin-top:4px;flex-wrap:wrap">
-          ${t.assignedTo?`<div style="font-size:11px;color:var(--sub)">المنفذ: <strong style="color:var(--text)">${t.assignedTo}</strong></div>`:''}
-          ${t.responsible?`<div style="font-size:11px;color:var(--sub)">المسؤول: <strong style="color:var(--text)">${t.responsible}</strong></div>`:''}
-          ${t.description?`<div style="font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px">${t.description}</div>`:''}
-        </div>
-      </div>
-      ${t.dueDate?`<div style="text-align:center;min-width:72px;flex-shrink:0"><div style="font-size:11px;font-weight:600;color:${overdue?'#ef4444':'var(--text)'}">${t.dueDate}</div><div style="font-size:10px;color:${overdue?'#ef4444':'var(--sub)'}">الموعد</div></div>`:''}
-      <span style="font-size:11px;padding:4px 10px;border-radius:20px;background:${isDone?'#d1fae5':'#fef3c7'};color:${isDone?'#065f46':'#92400e'};font-weight:600;flex-shrink:0">${isDone?'مكتملة':'جارية'}</span>
-      ${isDone&&!awarded?`<button class="award-btn" onclick="grantAward('${t.id}')" title="منح وسام عمل مميز">&#9733; تميز</button>`:''}
-      ${overdue?`<button onclick="sendOverdueNotif('${t.id}','${t.assignedTo||''}','${(t.title||'').replace(/'/g,'\\\'')}')" style="background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:11px;color:#b91c1c;font-family:inherit" title="إشعار بالتأخير">تنبيه</button>`:''}
-      <button onclick="deleteTask('${t.id}')" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:18px;padding:4px;flex-shrink:0" title="حذف">×</button>
+      </div>`;
+    }).join('');
+    return `<div class="emp-section">
+      <div class="emp-name-band"><h3>${emp}</h3></div>
+      <div class="task-cards-grid">${cards}</div>
     </div>`;
   }).join('');
 }
@@ -2330,10 +2385,13 @@ async function loadDashboard(){
       $('dash-tasks-list').innerHTML = recent.length ? recent.map(t=>{
         const isDone=t.status==='done';
         const overdue=!isDone&&t.dueDate&&new Date(t.dueDate)<new Date();
-        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
-          <div style="width:10px;height:10px;border-radius:50%;background:${isDone?'#10b981':overdue?'#ef4444':'#f59e0b'};flex-shrink:0"></div>
-          <div style="flex:1;font-size:13px;font-weight:500;color:var(--text);${isDone?'text-decoration:line-through;opacity:.6':''}">${t.title||'—'}</div>
-          <div style="font-size:11px;color:var(--sub)">${t.assignedTo||''}</div>
+        const stColor=isDone?'#5cb85c':overdue?'#e74c3c':'#5b9bd5';
+        const stLabel=isDone?'مكتمل':overdue?'متأخر':'جاري';
+        return `<div style="background:${isDone?'#f0fdf4':overdue?'#fff5f5':'#eff6ff'};border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px">
+          <div style="width:8px;height:8px;border-radius:50%;background:${stColor};flex-shrink:0"></div>
+          <div style="flex:1;font-size:13px;font-weight:600;color:#1a1a2e;${isDone?'text-decoration:line-through;opacity:.6':''}">${t.title||'—'}</div>
+          ${t.assignedTo?`<div style="font-size:11px;color:#4a5568;background:rgba(255,255,255,.7);border-radius:4px;padding:2px 6px">${t.assignedTo}</div>`:''}
+          <div style="font-size:10px;font-weight:700;color:${stColor}">${stLabel}</div>
         </div>`;
       }).join('') : '<div style="font-size:13px;color:var(--sub);padding:12px 0">لا توجد مهام</div>';
     }
