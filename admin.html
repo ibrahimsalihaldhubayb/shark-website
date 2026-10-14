@@ -270,6 +270,13 @@ tr:hover td{background:#fafafa}
 .task-row{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:8px;display:flex;align-items:center;gap:14px;transition:.15s}
 .task-row:hover{border-color:var(--gold);box-shadow:0 2px 8px rgba(200,169,110,.15)}
 .task-row.done-row{opacity:.6}
+.task-row.overdue-row{border-color:#fca5a5;background:#fff5f5}
+.task-priority-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.badge-award{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px}
+.badge-star{color:#f59e0b;font-size:13px}
+.emp-rating{display:flex;align-items:center;gap:2px;font-size:13px}
+.award-btn{background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(217,119,6,.1));border:1px solid rgba(245,158,11,.4);color:#92600a;border-radius:8px;padding:4px 12px;cursor:pointer;font-size:12px;font-family:inherit;transition:.15s}
+.award-btn:hover{background:linear-gradient(135deg,rgba(245,158,11,.25),rgba(217,119,6,.2))}
 .task-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.15s}
 .task-check.checked{background:var(--gold);border-color:var(--gold);color:#fff}
 .task-check:hover{border-color:var(--gold)}
@@ -333,14 +340,6 @@ tr:hover td{background:#fafafa}
   <div class="layout">
     <!-- Sidebar -->
     <div class="sidebar">
-      <div class="sidebar-section-label" onclick="toggleSidebarGroup('web')">
-        <span>الموقع الإلكتروني</span><i class="sg-arrow" id="arrow-web">▾</i>
-      </div>
-      <div id="sidebar-group-web" class="sidebar-group" style="max-height:200px">
-        <div class="sidebar-item" onclick="showSection('offers')" id="nav-web-offers">العروض المنشورة</div>
-        <div class="sidebar-item" onclick="showSection('clients')" id="nav-clients">العملاء</div>
-      </div>
-
       <div class="sidebar-section-label" style="cursor:default">مساحة العمل</div>
       <div class="sidebar-item active" onclick="showSection('dashboard')" id="nav-dashboard">الرئيسية</div>
       <div class="sidebar-item" onclick="showSection('workspace-offers')" id="nav-workspace-offers">عروضنا</div>
@@ -356,6 +355,14 @@ tr:hover td{background:#fafafa}
         <div class="sidebar-item" onclick="showSection('promos')" id="nav-promos">الإعلانات</div>
         <div class="sidebar-item" onclick="showSection('landing')" id="nav-landing">صفحات الهبوط</div>
         <div class="sidebar-item" onclick="showSection('promowa')" id="nav-promowa">الرسائل الترويجية</div>
+      </div>
+
+      <div class="sidebar-section-label" onclick="toggleSidebarGroup('web')">
+        <span>الموقع الإلكتروني</span><i class="sg-arrow" id="arrow-web">▾</i>
+      </div>
+      <div id="sidebar-group-web" class="sidebar-group" style="max-height:200px">
+        <div class="sidebar-item" onclick="showSection('offers')" id="nav-web-offers">العروض المنشورة</div>
+        <div class="sidebar-item" onclick="showSection('clients')" id="nav-clients">العملاء</div>
       </div>
 
       <div class="sidebar-section-label" style="cursor:default">الإعدادات</div>
@@ -643,7 +650,7 @@ tr:hover td{background:#fafafa}
             <button class="btn-primary" style="font-size:12px;padding:7px 14px" onclick="openEmployeeEditor()">+ إضافة موظف</button>
           </div>
           <table id="emp-table">
-            <thead><tr><th>اسم المستخدم</th><th>الاسم</th><th>الصلاحية</th><th>البريد الإلكتروني</th><th>حذف</th></tr></thead>
+            <thead><tr><th>اسم المستخدم</th><th>الاسم</th><th>الصلاحية</th><th>التقييم</th><th>البريد الإلكتروني</th><th>حذف</th></tr></thead>
             <tbody id="emp-body"></tbody>
           </table>
         </div>
@@ -906,18 +913,30 @@ tr:hover td{background:#fafafa}
 
 <!-- ══ MODAL: Task Editor ══ -->
 <div class="modal-bg" id="modal-task">
-  <div class="modal" style="max-width:480px">
+  <div class="modal" style="max-width:520px">
     <button class="modal-close" onclick="closeModal('modal-task')">×</button>
-    <h3>✅ مهمة جديدة</h3>
+    <h3>مهمة جديدة</h3>
     <div class="form-row"><label>عنوان المهمة *</label><input id="task-title-inp" type="text" placeholder="متابعة عميل محمد"></div>
     <div class="form-row"><label>التفاصيل</label><textarea id="task-desc-inp" rows="3" placeholder="وصف تفصيلي..."></textarea></div>
     <div class="form-2col">
-      <div class="form-row"><label>مسندة إلى</label>
+      <div class="form-row"><label>مسندة إلى (المنفذ)</label>
         <select id="task-assigned-sel"></select>
       </div>
-      <div class="form-row"><label>الموعد النهائي</label><input id="task-deadline-inp" type="date"></div>
+      <div class="form-row"><label>المسؤول عن المهمة</label>
+        <select id="task-responsible-sel"></select>
+      </div>
     </div>
-    <div class="form-row"><label>تاريخ الاستحقاق (للتقويم)</label><input id="task-due" type="date"></div>
+    <div class="form-2col">
+      <div class="form-row"><label>الموعد النهائي</label><input id="task-deadline-inp" type="date"></div>
+      <div class="form-row"><label>تاريخ الاستحقاق (للتقويم)</label><input id="task-due" type="date"></div>
+    </div>
+    <div class="form-row"><label>الأولوية</label>
+      <select id="task-priority-sel">
+        <option value="normal">عادية</option>
+        <option value="high">عالية</option>
+        <option value="urgent">عاجلة</option>
+      </select>
+    </div>
     <div class="modal-footer">
       <button class="btn-outline" onclick="closeModal('modal-task')">إلغاء</button>
       <button class="btn-primary" onclick="saveTask()">حفظ المهمة</button>
@@ -1220,16 +1239,20 @@ window.addEventListener('load',()=>{
 // ── Employee CRUD ──
 function renderEmployees(){
   const emps = getEmployees();
-  $('emp-body').innerHTML = emps.map(e=>`<tr>
+  $('emp-body').innerHTML = emps.map(e=>{
+    const rating=e.rating||0;
+    const stars='★'.repeat(Math.min(rating,5))+'☆'.repeat(Math.max(0,5-Math.min(rating,5)));
+    return `<tr>
     <td style="direction:ltr;font-weight:600">${e.username}</td>
     <td>${e.name||'—'}</td>
     <td><span class="badge badge-gold">${e.role||'موظف'}</span></td>
+    <td><div class="emp-rating" title="${rating} أوسمة">${[...stars].map((s,i)=>`<span style="color:${i<rating?'#f59e0b':'#d1d5db'}">${s}</span>`).join('')}${rating>0?`<span style="font-size:10px;color:var(--sub);margin-right:4px">(${rating})</span>`:''}</div></td>
     <td><div style="display:flex;align-items:center;gap:6px;direction:ltr">
       ${e.email?`<span style="font-size:12px;color:var(--text)">${e.email}</span>`:'<span style="font-size:12px;color:#ef4444">غير محدد</span>'}
       <button onclick="openEditEmailModal('${e.username}')" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:11px;color:var(--sub)">تعديل</button>
     </div></td>
     <td>${emps.length>1?`<button class="btn-del" onclick="deleteEmployee('${e.username}')">حذف</button>`:'<span style="color:var(--sub);font-size:12px">—</span>'}</td>
-  </tr>`).join('');
+  </tr>`;}).join('');
 }
 function openEmployeeEditor(){
   ['emp-username','emp-name','emp-pass','emp-email'].forEach(id=>$(id).value='');
@@ -1908,23 +1931,34 @@ function renderTasksView(){
   const filtered=_taskFilter==='all'?_allTasksCache:_allTasksCache.filter(t=>t.status===(_taskFilter==='done'?'done':'pending'));
   const listEl=$('tasks-list-view'); if(!listEl) return;
   if(!filtered.length){ listEl.innerHTML='<div style="text-align:center;padding:48px;color:var(--sub);font-size:14px">لا توجد مهام في هذه الفئة</div>'; return; }
+  const PRIORITY_COLOR={urgent:'#ef4444',high:'#f59e0b',normal:'#d1d5db'};
+  const PRIORITY_LABEL={urgent:'عاجلة',high:'عالية',normal:'عادية'};
   listEl.innerHTML=filtered.map(t=>{
     const isDone=t.status==='done';
     const overdue=!isDone&&t.dueDate&&new Date(t.dueDate)<new Date();
-    return `<div class="task-row${isDone?' done-row':''}">
+    const pColor=PRIORITY_COLOR[t.priority||'normal'];
+    const awarded=t.award;
+    return `<div class="task-row${isDone?' done-row':''}${overdue?' overdue-row':''}">
+      <div class="task-priority-dot" style="background:${pColor}" title="${PRIORITY_LABEL[t.priority||'normal']}"></div>
       <div class="task-check${isDone?' checked':''}" onclick="${isDone?'':("markTaskDone('"+t.id+"')")}">
         ${isDone?'✓':''}
       </div>
       <div style="flex:1;min-width:0">
-        <div style="font-weight:600;font-size:14px;color:var(--text);${isDone?'text-decoration:line-through;':''}">${t.title||'—'}</div>
-        ${t.description?`<div style="font-size:12px;color:var(--sub);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.description}</div>`:''}
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-weight:600;font-size:14px;color:var(--text);${isDone?'text-decoration:line-through;':''}">${t.title||'—'}</span>
+          ${awarded?`<span class="badge-award">&#9733; عمل مميز</span>`:''}
+          ${overdue?`<span style="font-size:11px;background:#fee2e2;color:#b91c1c;border-radius:20px;padding:2px 8px;font-weight:600">متأخرة</span>`:''}
+        </div>
+        <div style="display:flex;gap:12px;margin-top:4px;flex-wrap:wrap">
+          ${t.assignedTo?`<div style="font-size:11px;color:var(--sub)">المنفذ: <strong style="color:var(--text)">${t.assignedTo}</strong></div>`:''}
+          ${t.responsible?`<div style="font-size:11px;color:var(--sub)">المسؤول: <strong style="color:var(--text)">${t.responsible}</strong></div>`:''}
+          ${t.description?`<div style="font-size:11px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px">${t.description}</div>`:''}
+        </div>
       </div>
-      <div style="text-align:center;min-width:80px">
-        <div style="font-size:11px;font-weight:600;color:var(--text)">${t.assignedTo||'—'}</div>
-        <div style="font-size:10px;color:var(--sub)">المسؤول</div>
-      </div>
-      ${t.dueDate?`<div style="text-align:center;min-width:80px"><div style="font-size:11px;font-weight:600;color:${overdue?'#ef4444':'var(--text)'}">${t.dueDate}</div><div style="font-size:10px;color:${overdue?'#ef4444':'var(--sub)'}">${overdue?'متأخرة':'الموعد'}</div></div>`:''}
+      ${t.dueDate?`<div style="text-align:center;min-width:72px;flex-shrink:0"><div style="font-size:11px;font-weight:600;color:${overdue?'#ef4444':'var(--text)'}">${t.dueDate}</div><div style="font-size:10px;color:${overdue?'#ef4444':'var(--sub)'}">الموعد</div></div>`:''}
       <span style="font-size:11px;padding:4px 10px;border-radius:20px;background:${isDone?'#d1fae5':'#fef3c7'};color:${isDone?'#065f46':'#92400e'};font-weight:600;flex-shrink:0">${isDone?'مكتملة':'جارية'}</span>
+      ${isDone&&!awarded?`<button class="award-btn" onclick="grantAward('${t.id}')" title="منح وسام عمل مميز">&#9733; تميز</button>`:''}
+      ${overdue?`<button onclick="sendOverdueNotif('${t.id}','${t.assignedTo||''}','${(t.title||'').replace(/'/g,'\\\'')}')" style="background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:11px;color:#b91c1c;font-family:inherit" title="إشعار بالتأخير">تنبيه</button>`:''}
       <button onclick="deleteTask('${t.id}')" style="background:none;border:none;cursor:pointer;color:#d1d5db;font-size:18px;padding:4px;flex-shrink:0" title="حذف">×</button>
     </div>`;
   }).join('');
@@ -1932,14 +1966,22 @@ function renderTasksView(){
 function openTaskEditor(){
   ['task-title-inp','task-desc-inp','task-deadline-inp','task-due'].forEach(id=>$(id).value='');
   const emps=getEmployees();
-  $('task-assigned-sel').innerHTML=emps.map(e=>`<option value="${e.name||e.username}">${e.name||e.username}</option>`).join('');
+  const opts=emps.map(e=>`<option value="${e.name||e.username}">${e.name||e.username}</option>`).join('');
+  $('task-assigned-sel').innerHTML=opts;
+  $('task-responsible-sel').innerHTML=opts;
+  // default responsible = current user
+  const me=(_currentUser&&(_currentUser.name||_currentUser.username))||'';
+  if(me) $('task-responsible-sel').value=me;
+  $('task-priority-sel').value='normal';
   $('modal-task').classList.add('open');
 }
 async function saveTask(){
   const title=$('task-title-inp').value.trim(); if(!title){ alert('أدخل عنوان المهمة'); return; }
   const t={id:'T-'+Date.now(), title, description:$('task-desc-inp').value.trim(),
     assignedTo:$('task-assigned-sel').value,
+    responsible:$('task-responsible-sel').value,
     assignedBy:(_currentUser&&(_currentUser.name||_currentUser.username))||'موظف',
+    priority:$('task-priority-sel').value||'normal',
     deadline:$('task-deadline-inp').value, dueDate:$('task-due').value||'', status:'pending', _ts:Date.now()};
   try{
     await _db.collection('tasks').doc(t.id).set(t);
@@ -1963,6 +2005,42 @@ async function deleteTask(id){
     _allTasksCache=_allTasksCache.filter(t=>t.id!==id);
     renderTasksView();
   }catch(e){}
+}
+
+async function grantAward(taskId){
+  const task=_allTasksCache.find(t=>t.id===taskId); if(!task) return;
+  try{
+    await _db.collection('tasks').doc(taskId).update({award:true});
+    const idx=_allTasksCache.findIndex(t=>t.id===taskId);
+    if(idx>=0) _allTasksCache[idx].award=true;
+    // increase employee rating in localStorage
+    const emps=getEmployees();
+    const empIdx=emps.findIndex(e=>(e.name||e.username)===task.assignedTo);
+    if(empIdx>=0){
+      emps[empIdx].rating=(emps[empIdx].rating||0)+1;
+      localStorage.setItem('shark_employees',JSON.stringify(emps));
+    }
+    renderTasksView();
+    showToast('تم منح وسام العمل المميز ✓');
+  }catch(e){ showToast('تعذّر المنح'); }
+}
+
+function sendOverdueNotif(taskId, assigneeName, taskTitle){
+  const emps=getEmployees();
+  const emp=emps.find(e=>(e.name||e.username)===assigneeName);
+  if(!emp||!emp.email){ showToast('لا يوجد بريد إلكتروني للموظف'); return; }
+  const pub=localStorage.getItem('shark_ejs_pub')||'7I3ZFIMRzMph2ELCS';
+  const svc=localStorage.getItem('shark_ejs_service')||'service_m14d3mv';
+  const tpl=localStorage.getItem('shark_ejs_template')||'template_4scjnzb';
+  emailjs.init(pub);
+  const by=(_currentUser&&(_currentUser.name||_currentUser.username))||'المدير';
+  emailjs.send(svc, tpl, {
+    to_email:emp.email, email:emp.email,
+    to_name:emp.name||emp.username, name:emp.name||emp.username,
+    task_title:'⏰ تذكير: '+taskTitle+' (متأخرة)', title:'⏰ تذكير: '+taskTitle+' (متأخرة)',
+    assigned_by:by
+  }).then(()=>showToast('تم إرسال إشعار التأخر ✓',5000))
+    .catch(()=>showToast('تعذّر إرسال الإشعار'));
 }
 
 // ══════════════════════════════════════════════
