@@ -405,9 +405,94 @@ async function deleteOffer(id){ if(!confirm('هل تريد حذف هذا الع�
 } // ══════════════════════════════════════════════
 // DEALS (internal workspace)
 // ══════════════════════════════════════════════
-function renderDeals(){ const el=$('deals-list'); if(!el) return; if(!_offersCache.length){ el.innerHTML='<div style="color:var(--sub);padding:32px;text-align:center">لا توجد عروض بعد</div>'; return; } el.innerHTML=_offersCache.map(o=>{ const st=offerStage(o); const thumb=o.coverImg?`<img src="${o.coverImg}" style="width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0">`:`<div style="width:48px;height:48px;border-radius:8px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:11px;color:#9ca3af;font-weight:600;flex-shrink:0">${TYPE_LABELS[o.type]?.slice(0,2)||'عق'}</div>`; return `<div class="deal-strip">${thumb} <div class="deal-body"><div class="deal-title">${o.ar||o.name||o.id} <span style="font-size:11px;color:var(--sub);font-weight:400">${TYPE_LABELS[o.type]||''}</span></div> <div class="deal-meta">${o.city||''}${o.district?' · '+o.district:''} ${o.area?'· '+o.area+' م²':''} ${o.price?'· '+fmtPrice(o.price):''}</div>${o.regaNo?`<div class="deal-rega">رقم إعلان الهيئة: ${o.regaNo}</div>`:''} ${o.targetDate?`<div class="deal-progress"><div class="deal-bar"><div class="deal-bar-fill" style="width:${st.pct}%;background:${st.color}"></div></div><span class="${st.cls}">${st.label}</span></div>`:''} </div> <div class="deal-acts"><button class="btn-sm-gold" onclick="openNotes('${o.id}','${esc(o.ar||o.name||'')}')">ملاحظات</button> <button class="btn-sm-blue" onclick="openDocs('${o.id}','${esc(o.ar||o.name||'')}')">مستندات</button> <button class="btn-wa" onclick="openOfferShare('${o.id}')" style="font-size:11px;padding:6px 10px">مشاركة</button> <button class="btn-edit" onclick="offerPDF('${o.id}')" style="font-size:11px;padding:6px 10px">PDF</button> <button class="btn-edit" onclick="showQR('${o.id}')" style="font-size:11px;padding:6px 10px">QR</button> </div> </div>`; }).join('');
-} // ── Offer WA share ──
-var _shareOfferId='';
+function renderDeals(){
+  var _dealsCache = gs('shark_deals')||[];
+  const el=$('deals-list'); if(!el) return;
+  // Update summary stats
+  const totalComm = _dealsCache.reduce((s,d)=>s+(d.commission||0),0);
+  const totalCollected = _dealsCache.reduce((s,d)=>s+(d.collectedAmount||0),0);
+  if($('deals-total-val')) $('deals-total-val').textContent=_dealsCache.length;
+  if($('deals-commission-val')) $('deals-commission-val').textContent=totalComm.toLocaleString('ar-SA')+' ر.س';
+  if($('deals-collected-val')) $('deals-collected-val').textContent=totalCollected.toLocaleString('ar-SA')+' ر.س';
+  if(!_dealsCache.length){ el.innerHTML='<div style="color:var(--sub);padding:48px;text-align:center;font-size:14px">لا توجد صفقات بعد — ابدأ بإضافة أول صفقة</div>'; return; }
+  el.innerHTML=[..._dealsCache].sort((a,b)=>(b._ts||0)-(a._ts||0)).map(d=>{
+    const stBg=d.commissionStatus==='full'?'rgba(16,185,129,.12)':d.commissionStatus==='partial'?'rgba(245,158,11,.12)':'rgba(156,163,175,.12)';
+    const stColor=d.commissionStatus==='full'?'#065f46':d.commissionStatus==='partial'?'#92400e':'#6b7280';
+    const stLabel=d.commissionStatus==='full'?'مكتمل':d.commissionStatus==='partial'?'جزء':' معلق';
+    const comm=d.commission||0; const collected=d.collectedAmount||0;
+    const pct=comm>0?Math.round(collected/comm*100):0;
+    return `<div class="deal-strip">
+      <div class="deal-body">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap">
+          <div>
+            <div class="deal-title">${d.title||'—'}${d.offerName?` <span style="font-size:11px;color:var(--sub);font-weight:400">— ${d.offerName}</span>`:''}</div>
+            <div class="deal-meta">${d.buyerName||''}${d.buyerPhone?' · '+d.buyerPhone:''}</div>
+            <div style="margin:6px 0;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+              <span style="font-size:13px;font-weight:700;color:var(--text)">سعر البيع: ${(d.salePrice||0).toLocaleString('ar-SA')} ر.س</span>
+              <span style="font-size:13px;font-weight:800;color:var(--gold)">السعي: ${comm.toLocaleString('ar-SA')} ر.س</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+              <div style="flex:1;max-width:180px;height:5px;background:#e5e7eb;border-radius:3px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${d.commissionStatus==='full'?'#10b981':'var(--gold)'};border-radius:3px"></div></div>
+              <span style="font-size:11px;color:var(--sub)">${collected.toLocaleString('ar-SA')} / ${comm.toLocaleString('ar-SA')} ر.س</span>
+            </div>
+            <div class="deal-meta" style="margin-top:4px">${d.date||''}</div>
+          </div>
+          <span style="background:${stBg};color:${stColor};border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;flex-shrink:0">${stLabel}</span>
+        </div>
+      </div>
+      <div class="deal-acts" style="flex-direction:column;gap:6px">
+        <button class="btn-edit" onclick="openDealEditor('${d.id}')">تعديل</button>
+        ${d.commissionStatus!=='full'?`<button class="btn-sm-green" onclick="collectCommission('${d.id}')">تحصيل</button>`:''}
+        <button class="btn-del" onclick="deleteDeal('${d.id}')">حذف</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function calcDealCommission(val){ const v=parseFloat(val)||0; const comm=(v*0.025); const el=$('deal-commission-display'); if(el) el.value=comm.toLocaleString('ar-SA')+' ر.س'; }
+function toggleCollectedField(){ const sel=$('deal-status-sel'); const row=$('deal-collected-row'); if(row) row.style.display=(sel&&sel.value==='partial')?'block':'none'; }
+function openDealEditor(id){
+  const deal=id?(gs('shark_deals')||[]).find(d=>d.id===id):null;
+  $('deal-title-inp').value=deal?deal.title:'';
+  $('deal-buyer-inp').value=deal?deal.buyerName:'';
+  $('deal-buyer-phone-inp').value=deal?deal.buyerPhone:'';
+  $('deal-price-inp').value=deal?deal.salePrice:'';
+  $('deal-notes-inp').value=deal?deal.notes:'';
+  $('deal-status-sel').value=deal?deal.commissionStatus:'pending';
+  $('deal-collected-inp').value=deal?deal.collectedAmount:'';
+  $('deal-edit-id').value=deal?deal.id:'';
+  if($('modal-deal-title')) $('modal-deal-title').textContent=deal?'تعديل الصفقة':'صفقة جديدة';
+  calcDealCommission(deal?deal.salePrice:0);
+  toggleCollectedField();
+  const offerSel=$('deal-offer-sel');
+  if(offerSel){ offerSel.innerHTML='<option value="">بدون عرض</option>'+(_offersCache||[]).map(o=>`<option value="${o.id}" ${deal&&deal.offerId===o.id?'selected':''}>${o.ar||o.name||o.id}</option>`).join(''); }
+  if(deal&&deal.offerId) { if(offerSel) offerSel.value=deal.offerId; }
+  $('modal-deal').classList.add('open');
+}
+async function saveDeal(){
+  const title=$('deal-title-inp').value.trim(); if(!title){ alert('أدخل عنوان الصفقة'); return; }
+  const salePrice=parseFloat($('deal-price-inp').value)||0;
+  const commission=salePrice*0.025;
+  const offerId=$('deal-offer-sel').value;
+  const offerObj=offerId?(_offersCache||[]).find(o=>o.id===offerId):null;
+  const editId=$('deal-edit-id').value;
+  const commStatus=$('deal-status-sel').value;
+  const collectedAmount=commStatus==='full'?commission:(commStatus==='partial'?parseFloat($('deal-collected-inp').value)||0:0);
+  const d={
+    id:editId||('DEA-'+Date.now()),
+    title, offerId:offerId||'', offerName:offerObj?(offerObj.ar||offerObj.name||''):'',
+    buyerName:$('deal-buyer-inp').value.trim(), buyerPhone:$('deal-buyer-phone-inp').value.trim(),
+    salePrice, commission, commissionStatus:commStatus, collectedAmount,
+    notes:$('deal-notes-inp').value.trim(), date:nowAr(), status:'active', _ts:Date.now()
+  };
+  let deals=gs('shark_deals')||[];
+  if(editId){ deals=deals.map(x=>x.id===editId?d:x); } else { deals.unshift(d); }
+  ss('shark_deals',deals);
+  if(_db){ try{ await _db.collection('deals').doc(d.id).set(d); }catch(e){ console.warn('deal fs fail',e); } }
+  closeModal('modal-deal'); renderDeals(); showToast('تم حفظ الصفقة');
+}
+async function deleteDeal(id){ if(!confirm('حذف هذه الصفقة؟')) return; let deals=(gs('shark_deals')||[]).filter(d=>d.id!==id); ss('shark_deals',deals); if(_db){ try{ await _db.collection('deals').doc(id).delete(); }catch(e){} } renderDeals(); showToast('تم الحذف'); }
+async function collectCommission(id){ let deals=gs('shark_deals')||[]; const d=deals.find(x=>x.id===id); if(!d) return; d.commissionStatus='full'; d.collectedAmount=d.commission; ss('shark_deals',deals); if(_db){ try{ await _db.collection('deals').doc(id).update({commissionStatus:'full',collectedAmount:d.commission}); }catch(e){} } renderDeals(); showToast('تم تسجيل التحصيل'); }
+
 function openOfferShare(id){ _shareOfferId=id; const o=_offersCache.find(x=>x.id===id); if(!o) return; const base=location.origin+location.pathname.replace('admin.html','')+'landing.html'; const url=base+'?id='+id; const msg=`السلام عليكم،\n\nنقدم لكم عرضاً عقارياً مميزاً:
 ${o.ar||o.name||''}
 ${o.city||''}${o.district?' — '+o.district:''}
@@ -529,6 +614,15 @@ document.addEventListener('click',function(e){ if(e.target.classList.contains('m
 // ══════════════════════════════════════════════
 var _calYear = new Date().getFullYear();
 var _calMonth = new Date().getMonth(); async function loadDashboard(){ // Render empty calendar immediately so layout is visible renderCalendar([]); // Show employees immediately from localStorage (no Firestore needed) const empsInit = getEmployees(); if($('emp-task-strip')) $('emp-task-strip').innerHTML = empsInit.map(e=>{ return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 16px;min-width:140px;text-align:center"><div style="font-weight:700;font-size:13px;margin-bottom:6px">${e.name||e.username}</div> <div style="font-size:11px;color:var(--sub);margin-bottom:8px">0/0 مهمة</div> <div style="background:var(--border);border-radius:4px;height:6px"><div style="background:var(--gold);border-radius:4px;height:6px;width:0%"></div></div> <div style="font-size:10px;color:var(--gold);font-weight:700;margin-top:4px">0%</div> </div>`; }).join(''); // Offers count try{ const offSnap = await _db.collection('offers').get(); const allOffers = offSnap.docs.map(d=>({id:d.id,...d.data()})); if($('stat-workspace-offers-val')) $('stat-workspace-offers-val').textContent = allOffers.length; $('stat-offers-val').textContent = allOffers.filter(d=>d.published!==false).length; }catch(e){ if($('stat-workspace-offers-val')) $('stat-workspace-offers-val').textContent = _offersCache.length; if($('stat-offers-val')) $('stat-offers-val').textContent = _offersCache.filter(o=>o.published!==false).length; } // Clients try{ const cliSnap = await _db.collection('clients').get(); $('stat-clients-val').textContent = cliSnap.size; const recent = cliSnap.docs.map(d=>d.data()).sort((a,b)=>(b._ts||0)-(a._ts||0)).slice(0,8); $('dash-clients').innerHTML = recent.length ? recent.map(c=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)"><div style="width:34px;height:34px;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0">${(c.name||'؟')[0]}</div><div><div style="font-weight:600;font-size:13px">${c.name||'—'}</div><div style="font-size:11px;color:var(--sub)">${c.phone||''}</div></div></div>`).join('') : '<div style="color:var(--sub);font-size:13px;padding:16px">لا يوجد عملاء</div>'; }catch(e){ if($('stat-clients-val')) $('stat-clients-val').textContent = _clientsCache.length; } // Tasks const fsTimeout = ms => new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms)); try{ const now = new Date(); const y=now.getFullYear(),m=now.getMonth(); const tSnap = await Promise.race([_db.collection('tasks').get(), fsTimeout(12000)]); const allTasks = tSnap.docs.map(d=>d.data()); const monthTasks = allTasks.filter(t=>{ const d=new Date(t._ts||0); return d.getFullYear()===y&&d.getMonth()===m; }); $('stat-tasks-val').textContent = monthTasks.length; const emps = getEmployees(); $('emp-task-strip').innerHTML = emps.map(e=>{ const myTasks = allTasks.filter(t=>t.assignedTo===(e.name||e.username)); const done = myTasks.filter(t=>t.status==='done').length; const total = myTasks.length; const pct = total ? Math.round(done/total*100) : 0; return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 16px;min-width:140px;text-align:center"><div style="font-weight:700;font-size:13px;margin-bottom:6px">${e.name||e.username}</div> <div style="font-size:11px;color:var(--sub);margin-bottom:8px">${done}/${total} مهمة</div> <div style="background:var(--border);border-radius:4px;height:6px"><div style="background:var(--gold);border-radius:4px;height:6px;width:${pct}%"></div></div> <div style="font-size:10px;color:var(--gold);font-weight:700;margin-top:4px">${pct}%</div> </div>`; }).join(''); renderCalendar(allTasks); // Dashboard tasks widget const pending2 = allTasks.filter(t=>t.status!=='done'); const doneCount = allTasks.filter(t=>t.status==='done').length; const totalCount = allTasks.length; const dpct = totalCount?Math.round(doneCount/totalCount*100):0; if($('dash-task-pct')) $('dash-task-pct').textContent = dpct+'% ('+doneCount+'/'+totalCount+')'; if($('dash-task-bar')) $('dash-task-bar').style.width=dpct+'%'; if($('dash-tasks-list')){ const recent = [...allTasks].sort((a,b)=>b._ts-a._ts).slice(0,5); $('dash-tasks-list').innerHTML = recent.length ? recent.map(t=>{ const isDone=t.status==='done'; const overdue=!isDone&&t.dueDate&&new Date(t.dueDate)<new Date(); const borderColor=isDone?'var(--green)':overdue?'var(--red)':'#3b82f6'; const stLabel=isDone?'مكتمل':overdue?'متأخر':'جاري'; const pillBg=isDone?'rgba(16,185,129,.12)':overdue?'rgba(239,68,68,.12)':'rgba(59,130,246,.12)'; const pillColor=isDone?'#065f46':overdue?'#b91c1c':'#1d4ed8'; return `<div style="background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;border-right:4px solid ${borderColor}"><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:var(--text);${isDone?'text-decoration:line-through;opacity:.6':''};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.title||'—'}</div>${t.assignedTo?`<div style="font-size:11px;color:var(--sub);margin-top:2px">${t.assignedTo}</div>`:''}</div><div style="font-size:11px;font-weight:700;background:${pillBg};color:${pillColor};border-radius:20px;padding:3px 10px;white-space:nowrap">${stLabel}</div></div>`; }).join('') : '<div style="font-size:13px;color:var(--sub);padding:12px 0;text-align:center">لا توجد مهام</div>'; } }catch(e){ console.warn('tasks load error',e); } // Revenue this month try{ const now2=new Date(); const y2=now2.getFullYear(),m2=now2.getMonth(); const fSnap = await _db.collection('finance').get(); const fMonth = fSnap.docs.map(d=>d.data()).filter(f=>{ const d=new Date(f.date||''); return d.getFullYear()===y2&&d.getMonth()===m2; }); const rev = fMonth.filter(f=>f.type==='income').reduce((s,f)=>s+(parseFloat(f.amount)||0),0); $('stat-revenue-val').textContent = rev.toLocaleString('ar-SA')+'ر'; }catch(e){}
+  // Deals stats
+  try{
+    const deals2 = gs('shark_deals')||[];
+    const dealComm = deals2.reduce((s,d)=>s+(d.commission||0),0);
+    const dealCollected = deals2.reduce((s,d)=>s+(d.collectedAmount||0),0);
+    if($('deals-total-val')) $('deals-total-val').textContent = deals2.length;
+    if($('deals-commission-val')) $('deals-commission-val').textContent = dealComm.toLocaleString('ar-SA')+' ر.س';
+    if($('deals-collected-val')) $('deals-collected-val').textContent = dealCollected.toLocaleString('ar-SA')+' ر.س';
+  }catch(e2){}
 } function renderCalendar(tasks){ const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر']; const days = ['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت']; $('cal-label').textContent = months[_calMonth]+' '+_calYear; const firstDay = new Date(_calYear, _calMonth, 1).getDay(); const daysInMonth = new Date(_calYear, _calMonth+1, 0).getDate(); const today = new Date(); const taskMap = {}; (tasks||[]).forEach(t=>{ if(!t.dueDate) return; if(!taskMap[t.dueDate]) taskMap[t.dueDate]=[]; taskMap[t.dueDate].push(t); }); let html = days.map(d=>`<div class="cal-header-day">${d}</div>`).join(''); for(let i=0;i<firstDay;i++) html+=`<div class="cal-day other-month"></div>`; for(let d=1;d<=daysInMonth;d++){ const dateStr = `${_calYear}-${String(_calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; const isToday = today.getFullYear()===_calYear&&today.getMonth()===_calMonth&&today.getDate()===d; const dayTasks = taskMap[dateStr]||[]; html+=`<div class="cal-day${isToday?' today':''}"><div class="cal-day-num">${d}</div>${dayTasks.slice(0,2).map(t=>`<div class="cal-task-dot" title="${t.title||''}">${t.title||'مهمة'}</div>`).join('')} ${dayTasks.length>2?`<div style="font-size:9px;color:var(--sub)">+${dayTasks.length-2} أخرى</div>`:''} </div>`; } $('cal-grid').innerHTML=html;
 }
 function calPrev(){ _calMonth--; if(_calMonth<0){_calMonth=11;_calYear--;} loadDashboard(); }
