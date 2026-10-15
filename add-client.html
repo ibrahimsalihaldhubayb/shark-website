@@ -124,8 +124,7 @@ body{background:var(--bg);color:var(--text);display:flex;flex-direction:column;a
         <div class="type-chips" id="type-chips"></div>
       </div>
 
-      <button type="button" class="more-toggle" id="more-toggle" onclick="toggleMore()">+ تفاصيل إضافية (الاهتمام، العرض، ملاحظة)</button>
-      <div id="more" style="display:none">
+      <div id="more">
         <div class="f-row">
           <label class="f-label" for="f-interest">الاهتمام / نوع العقار <span class="f-opt">(اختياري)</span></label>
           <input type="text" class="f-input" id="f-interest" placeholder="مثال: أرض في بريدة، مستودع...">
@@ -201,7 +200,7 @@ body{background:var(--bg);color:var(--text);display:flex;flex-direction:column;a
     b.classList.add('sel'); _type=b.dataset.val;
   });
 
-  window.toggleMore=function(){ var m=$('more'); var open=m.style.display==='none'; m.style.display=open?'block':'none'; $('more-toggle').style.display=open?'none':'block'; if(open) loadOffers(); };
+
 
   /* ── العروض (للربط الاختياري) ── */
   var _offersLoaded=false;
@@ -330,6 +329,7 @@ body{background:var(--bg);color:var(--text);display:flex;flex-direction:column;a
 
   showEmp();
   updatePending();
+  loadOffers();
   if(!emp()) openWho(); else setTimeout(function(){ $('f-phone').focus(); },300);
 })();
 </script>

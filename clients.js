@@ -90,6 +90,7 @@
       sheet:r.sheet, master:MASTER_SHEET,
       id:r.id, date:r.date, type:r.type, name:r.name, phone:r.phone,
       interest:r.interest||'', offer:r.offerName||r.offerTitle||r.offer||'',
+      offerId:r.offerId||'', offerTitle:r.offerTitle||r.offerName||r.offer||'',
       note:r.note||'', employee:r.employee||'', source:r.source||''
     };
   }
@@ -122,6 +123,16 @@
     return req;
   }
 
+  /* عند نشر عرض: ينشئ تبويبه في الشيت ويضيفه لتبويب «العروض» مع رابط صفحة الهبوط */
+  var TYPE_LABELS={warehouses:'مستودع',commercial:'تجاري',residential:'سكني',villas:'فيلا',villa:'فيلا',apartments:'شقة',apartment:'شقة',lands:'أرض',land:'أرض',agricultural:'زراعي',rest:'استراحة',chalets:'شاليه',office:'مكتب'};
+  function landingUrl(offerId){ return new URL('landing.html?id='+encodeURIComponent(offerId),location.href).toString(); }
+  function registerOffer(o){
+    if(!o||!o.id) return;
+    sendSheet({ type:'offer', offerId:o.id, title:o.ar||o.name||o.title||o.id,
+      offerType:TYPE_LABELS[o.type]||o.type||'', city:o.city||'', district:o.district||'',
+      price:o.price||'', url:landingUrl(o.id) });
+  }
+
   /* هل الرقم مسجل مسبقاً؟ يرجّع السجل أو null (لا يمنع الحفظ) */
   async function findByPhone(phone){
     try{
@@ -149,7 +160,7 @@
 
   window.SharkClients={
     TYPES:TYPES, MASTER_SHEET:MASTER_SHEET, REQUESTS_SHEET:REQUESTS_SHEET, SHEETS_URL:SHEETS_URL,
-    save:save, createRequest:createRequest, findByPhone:findByPhone, flushPending:flushPending,
+    save:save, createRequest:createRequest, registerOffer:registerOffer, landingUrl:landingUrl, findByPhone:findByPhone, flushPending:flushPending,
     pendingCount:function(){ return getPending().length; },
     normPhone:normPhone, isValidPhone:isValidPhone, normType:normType, sheetFor:sheetFor,
     sendSheet:sendSheet, sheetPayload:sheetPayload, getDb:getDb, nowAr:nowAr

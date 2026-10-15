@@ -4,7 +4,9 @@
  * كل إدخال يُضاف في:
  *   1) تبويب نوعه (تسجيل عميل جديد / رغبة استثمار / طلب تسويق / طلبات الشراء / تسجيل الاهتمام)
  *   2) تبويب «العملاء قاعدة البيانات» (كل العملاء في مكان واحد)
+ *   3) إذا كان العميل مرتبط بعرض: تبويب خاص بالعرض نفسه (عرض - اسم العرض)
  * والطلبات (type = request) تُضاف في تبويب «الطلبات».
+ * وعند نشر عرض في الموقع (type = offer) يُنشأ تبويبه ويُضاف لتبويب «العروض».
  * التبويب يُنشأ تلقائياً بالعناوين إذا ما كان موجود.
  *
  * طريقة التركيب: انظر apps-script/README.md
@@ -12,6 +14,8 @@
 
 var MASTER_SHEET = 'العملاء قاعدة البيانات';
 var REQUESTS_SHEET = 'الطلبات';
+var OFFERS_SHEET = 'العروض';
+var SCRIPT_VERSION = 2;
 
 var TYPE_TO_SHEET = {
   'عميل اتصال':   'تسجيل عميل جديد',
@@ -35,6 +39,7 @@ var SOURCE_LABELS = {
 };
 
 var CLIENT_HEADERS = ['التاريخ', 'النوع', 'الاسم', 'الجوال', 'الاهتمام', 'العرض', 'الملاحظة', 'الموظف', 'المصدر', 'المعرف'];
+var OFFER_INDEX_HEADERS = ['رقم العرض', 'اسم العرض', 'النوع', 'المدينة', 'الحي', 'السعر', 'رابط صفحة الهبوط', 'عدد المهتمين', 'التبويب', 'تاريخ النشر'];
 var REQUEST_HEADERS = ['التاريخ', 'اسم العميل', 'الجوال', 'الموظف', 'الطلب', 'الميزانية', 'المنطقة', 'المدينة', 'الحي', 'الملاحظات', 'المستندات', 'المعرف'];
 
 function doPost(e) {
@@ -47,6 +52,11 @@ function doPost(e) {
       var rec = data.record; rec.sheet = rec.sheet || data.sheet; data = rec;
     }
     var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    if (data.type === 'offer') {
+      var osh = ensureOfferSheet_(ss, data.offerId, data.title, data);
+      return json_({ ok: true, sheet: osh.getName() });
+    }
 
     if (data.type === 'request') {
       appendRow_(ss, REQUESTS_SHEET, REQUEST_HEADERS, [
@@ -66,7 +76,14 @@ function doPost(e) {
     ];
     appendRow_(ss, sheetName, CLIENT_HEADERS, row, data.id);
     if (sheetName !== MASTER_SHEET) appendRow_(ss, MASTER_SHEET, CLIENT_HEADERS, row, data.id);
-    return json_({ ok: true, sheet: sheetName });
+    var offerTitle = data.offerTitle || data.offerName || data.offer || '';
+    var offerSheet = null;
+    if (data.offerId || offerTitle) {
+      offerSheet = ensureOfferSheet_(ss, data.offerId || '', offerTitle, null);
+      appendRow_(ss, offerSheet.getName(), CLIENT_HEADERS, row, data.id);
+      updateOfferIndex_(ss, data.offerId || '', offerTitle, null, offerSheet);
+    }
+    return json_({ ok: true, sheet: sheetName, offerSheet: offerSheet ? offerSheet.getName() : '' });
   } catch (err) {
     return json_({ ok: false, error: String(err) });
   } finally {
@@ -75,7 +92,62 @@ function doPost(e) {
 }
 
 function doGet() {
-  return json_({ ok: true, service: 'shark-clients' });
+  return json_({ ok: true, service: 'shark-clients', version: SCRIPT_VERSION });
+}
+
+/** تبويب خاص لكل عرض. يُحفظ ربط رقم العرض بالتبويب، فلو تغيّر اسم العرض أو التبويب يبقى نفس التبويب */
+function ensureOfferSheet_(ss, offerId, title, info) {
+  var props = PropertiesService.getDocumentProperties();
+  var key = 'offer:' + (offerId || ('name:' + title));
+  var sh = null;
+  var savedId = props.getProperty(key);
+  if (savedId) {
+    sh = ss.getSheets().filter(function (x) { return String(x.getSheetId()) === savedId; })[0] || null;
+  }
+  if (!sh) {
+    var base = ('عرض - ' + (title || offerId || 'بدون اسم')).replace(/[:\\\/?*\[\]]/g, ' ').replace(/\s+/g, ' ').trim();
+    if (base.length > 80) base = base.slice(0, 80).trim();
+    var name = base;
+    if (ss.getSheetByName(name) && offerId) name = (base + ' ' + offerId).slice(0, 99);
+    sh = ss.getSheetByName(name) || ss.insertSheet(name);
+    sh.setRightToLeft(true);
+    if (sh.getLastRow() === 0) {
+      sh.appendRow(CLIENT_HEADERS);
+      sh.getRange(1, 1, 1, CLIENT_HEADERS.length).setFontWeight('bold').setBackground('#c8a96e').setFontColor('#1a1000');
+      sh.setFrozenRows(1);
+    }
+    sh.setTabColor('#c8a96e');
+    props.setProperty(key, String(sh.getSheetId()));
+  }
+  updateOfferIndex_(ss, offerId, title, info, sh);
+  return sh;
+}
+
+/** تبويب «العروض»: صف لكل عرض مع رابط صفحة الهبوط وعدد المهتمين */
+function updateOfferIndex_(ss, offerId, title, info, offerSheet) {
+  var idx = ss.getSheetByName(OFFERS_SHEET);
+  if (!idx) { idx = ss.insertSheet(OFFERS_SHEET); idx.setRightToLeft(true); }
+  if (idx.getLastRow() === 0) {
+    idx.appendRow(OFFER_INDEX_HEADERS);
+    idx.getRange(1, 1, 1, OFFER_INDEX_HEADERS.length).setFontWeight('bold').setBackground('#c8a96e').setFontColor('#1a1000');
+    idx.setFrozenRows(1);
+  }
+  var key = offerId || title;
+  var last = idx.getLastRow();
+  var rowNum = 0;
+  if (last > 1) {
+    var hit = idx.getRange(2, offerId ? 1 : 2, last - 1, 1).createTextFinder(String(key)).matchEntireCell(true).findNext();
+    if (hit) rowNum = hit.getRow();
+  }
+  if (!rowNum) {
+    idx.appendRow([offerId || '', title || '', '', '', '', '', '', 0, '', now_()]);
+    rowNum = idx.getLastRow();
+  }
+  if (info) {
+    idx.getRange(rowNum, 1, 1, 7).setValues([[offerId || '', title || '', info.offerType || '', info.city || '', info.district || '', info.price || '', info.url || '']]);
+  }
+  idx.getRange(rowNum, 8).setValue(Math.max(0, offerSheet.getLastRow() - 1));
+  idx.getRange(rowNum, 9).setFormula('=HYPERLINK("#gid=' + offerSheet.getSheetId() + '","' + offerSheet.getName().replace(/"/g, '') + '")');
 }
 
 /** يضيف صفاً، ويتجاهل التكرار إذا نفس المعرف موجود (عند إعادة الإرسال بعد انقطاع الإنترنت) */
@@ -122,6 +194,7 @@ function setupSheets() {
   Object.keys(TYPE_TO_SHEET).forEach(function (k) { if (names.indexOf(TYPE_TO_SHEET[k]) < 0) names.push(TYPE_TO_SHEET[k]); });
   names.forEach(function (n) { appendRowHeadersOnly_(ss, n, CLIENT_HEADERS); });
   appendRowHeadersOnly_(ss, REQUESTS_SHEET, REQUEST_HEADERS);
+  appendRowHeadersOnly_(ss, OFFERS_SHEET, OFFER_INDEX_HEADERS);
 }
 
 function appendRowHeadersOnly_(ss, name, headers) {
