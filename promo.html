@@ -102,6 +102,7 @@ body{
   font-family:'Cairo',sans-serif;font-size:14px;font-weight:500;cursor:pointer;
 }
 </style>
+<script src="clients.js"></script>
 </head>
 <body>
 
@@ -140,7 +141,6 @@ body{
 
 <script>
 (function(){
-  var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyHVwZPpmNrCOrXjbzlrrkz1tYcA1v7MXvDfwlPFYKUMzV3ICTmpYsNP22HH6dsF7k/exec';
   var PHONE = '966539997060';
 
   var params = new URLSearchParams(location.search);
@@ -163,17 +163,7 @@ body{
     var btn = document.getElementById('btn-submit');
     btn.disabled = true; btn.textContent = 'جارٍ الإرسال...';
 
-    var date = new Date().toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'});
-    var rec = {id:'SK-'+(Date.now()%100000),name:name,phone:phone,note:note,source:'promo',date:date};
-
-    try{
-      var arr = JSON.parse(localStorage.getItem('shark_admin_clients')||'[]');
-      arr.unshift(rec); localStorage.setItem('shark_admin_clients',JSON.stringify(arr));
-    }catch(e){}
-
-    try{
-      fetch(SHEETS_URL,{method:'POST',mode:'no-cors',body:JSON.stringify({date:date,name:name,phone:phone,note:note})});
-    }catch(e){}
+    SharkClients.save({name:name,phone:phone,note:note,type:'تسجيل اهتمام',interest:'إعلان ترويجي',source:'promo'});
 
     document.getElementById('form-wrap').style.display='none';
     document.getElementById('success-box').style.display='block';
