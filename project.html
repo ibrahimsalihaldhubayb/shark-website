@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#0b0b0c">
+<title>مشاريع شركائنا — شارك العقارية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="clients.js"></script>
+<script src="projects.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--gold:#c8a96e;--gold2:#f0d080;--dark:#0b0b0c;--card:#16181d;--card2:#1c1f26;--border:rgba(244,243,239,.1);--border2:rgba(244,243,239,.18);--text:#f4f3ef;--sub:#a8a59d;
+  --av:#16a34a;--rs:#d97706;--sd:#dc2626}
+html,body{font-family:'Cairo',Tahoma,Arial,sans-serif;direction:rtl;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body{background:var(--dark);color:var(--text);padding-bottom:84px}
+button{font-family:'Cairo',sans-serif}
+
+/* ── TOP BAR ── */
+.topbar{position:fixed;top:0;left:0;right:0;z-index:1500;height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:rgba(11,11,12,.86);backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
+.tb-back{display:flex;align-items:center;gap:6px;padding:7px 14px;border:1px solid var(--border2);border-radius:20px;color:var(--text);font-size:12px;font-weight:700;text-decoration:none}
+.tb-back:hover{border-color:var(--gold);color:var(--gold)}
+.tb-logo{height:30px;filter:brightness(0) invert(1);object-fit:contain}
+.tb-wa{display:flex;align-items:center;gap:6px;padding:8px 14px;background:#25d366;color:#fff;border:none;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer}
+
+/* ── HERO ── */
+.hero{position:relative;height:min(62vh,560px);min-height:380px;margin-top:60px;overflow:hidden;background:linear-gradient(135deg,#1a1a1f,#1e1a0e)}
+.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(11,11,12,1) 0%,rgba(11,11,12,.55) 45%,rgba(11,11,12,.15) 100%)}
+.hero-in{position:absolute;inset:auto 0 0 0;z-index:2;padding:0 20px 28px;max-width:1100px;margin:0 auto}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;background:rgba(200,169,110,.16);border:1px solid rgba(200,169,110,.4);color:var(--gold2);font-size:11px;font-weight:700;margin-bottom:12px}
+.hero h1{font-size:clamp(26px,5vw,44px);font-weight:900;line-height:1.2;margin-bottom:8px}
+.hero-loc{font-size:14px;color:var(--sub);display:flex;align-items:center;gap:6px;margin-bottom:14px}
+.hero-chips{display:flex;gap:8px;flex-wrap:wrap}
+.hchip{padding:5px 12px;border-radius:16px;background:rgba(255,255,255,.08);border:1px solid var(--border2);font-size:12px;font-weight:600}
+.hero-gal{position:absolute;top:14px;left:14px;z-index:3;padding:7px 12px;border-radius:18px;background:rgba(0,0,0,.55);border:1px solid var(--border2);color:#fff;font-size:12px;font-weight:700;cursor:pointer;display:none}
+
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:6px}
+.st{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 12px;text-align:center}
+.st-n{font-size:26px;font-weight:900;line-height:1.1}
+.st-l{font-size:12px;color:var(--sub);margin-top:4px;display:flex;align-items:center;justify-content:center;gap:5px}
+.st-l i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.avbar{display:flex;height:8px;border-radius:6px;overflow:hidden;background:rgba(255,255,255,.06);margin:14px 0 4px}
+.avbar span{height:100%}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.fact{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px}
+.fact-k{font-size:11px;color:var(--sub)}
+.fact-v{font-size:15px;font-weight:800;color:var(--gold);margin-top:2px}
+
+/* ── SECTION NAV ── */
+.snav{position:sticky;top:60px;z-index:1200;background:rgba(11,11,12,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);margin-top:22px}
+.snav-in{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;max-width:1100px;margin:0 auto;padding:0 12px}
+.snav-in::-webkit-scrollbar{display:none}
+.snav a{padding:13px 14px;font-size:13px;font-weight:700;color:var(--sub);text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent}
+.snav a.on,.snav a:hover{color:var(--gold);border-color:var(--gold)}
+
+.sec{padding:30px 0 6px;scroll-margin-top:120px}
+.sec-h{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.sec-tag{font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--gold);margin-bottom:4px}
+.sec-t{font-size:clamp(19px,3.4vw,26px);font-weight:800}
+
+/* ── PLAN ── */
+.plan-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.chip{padding:6px 13px;border-radius:16px;border:1px solid var(--border2);background:transparent;color:var(--sub);font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.chip i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.chip.on{border-color:var(--gold);color:var(--gold);background:rgba(200,169,110,.08)}
+.plan-search{flex:1;min-width:140px;max-width:220px;padding:7px 12px;border-radius:16px;border:1px solid var(--border2);background:rgba(255,255,255,.05);color:var(--text);font-family:'Cairo',sans-serif;font-size:12px;outline:none}
+.plan-search:focus{border-color:var(--gold)}
+#plan-map{height:min(70vh,560px);min-height:360px;border-radius:16px;border:1px solid var(--border);background:#e9e6df;overflow:hidden}
+.plan-hint{font-size:12px;color:var(--sub);margin-top:8px;display:flex;align-items:center;gap:6px}
+.u-mk{display:flex;align-items:center;justify-content:center;border-radius:8px;color:#fff;font-family:'Cairo',sans-serif;font-weight:800;font-size:11px;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35);cursor:pointer;transition:transform .15s;white-space:nowrap}
+.u-mk:hover{transform:scale(1.15)}
+.u-mk.sel{outline:3px solid var(--gold2);transform:scale(1.2)}
+.u-mk.dim{opacity:.18}
+
+/* generated grid (no plan image) */
+.grid-plan{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;max-height:620px;overflow:auto}
+.blk{margin-bottom:16px}
+.blk:last-child{margin-bottom:0}
+.blk-h{font-size:12px;font-weight:800;color:var(--gold);margin-bottom:8px;display:flex;justify-content:space-between}
+.blk-h span{color:var(--sub);font-weight:600}
+.blk-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px;padding:10px;border:1px dashed var(--border2);border-radius:12px;background:rgba(255,255,255,.02)}
+.tile{aspect-ratio:1/1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:1.5px solid transparent;transition:.15s;text-align:center;padding:2px}
+.tile b{font-size:14px;font-weight:900;line-height:1}
+.tile small{font-size:9.5px;opacity:.85;margin-top:3px}
+.tile:hover{transform:translateY(-2px)}
+.tile.sel{border-color:var(--gold2);box-shadow:0 0 0 2px rgba(240,208,128,.35)}
+.tile.dim{opacity:.15}
+
+/* ── UNITS LIST ── */
+.units{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.uc{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;transition:.2s;position:relative}
+.uc:hover{border-color:rgba(200,169,110,.45);transform:translateY(-2px)}
+.uc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.uc-no{font-size:16px;font-weight:900}
+.uc-no small{font-size:11px;color:var(--sub);font-weight:600;margin-right:6px}
+.pill{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:800}
+.uc-meta{display:flex;gap:12px;font-size:12px;color:var(--sub);flex-wrap:wrap}
+.uc-price{font-size:16px;font-weight:900;color:var(--gold);margin-top:8px}
+.more-btn{display:block;margin:14px auto 0;padding:9px 22px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text);font-size:13px;font-weight:700;cursor:pointer}
+.empty{padding:30px 10px;text-align:center;color:var(--sub);font-size:13px;background:var(--card);border:1px dashed var(--border2);border-radius:14px}
+
+/* ── ABOUT ── */
+.about{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px}
+.about p{font-size:14px;line-height:1.95;color:#d9d6ce;white-space:pre-line}
+.feats{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.feat{padding:6px 12px;border-radius:10px;background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.25);color:var(--gold2);font-size:12px;font-weight:600}
+.gal{display:flex;gap:8px;overflow-x:auto;margin-top:14px;scrollbar-width:thin;padding-bottom:6px}
+.gal img{height:110px;width:160px;object-fit:cover;border-radius:10px;flex-shrink:0;cursor:pointer}
+.partner{display:flex;align-items:center;gap:12px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.partner-ic{width:42px;height:42px;border-radius:12px;background:rgba(200,169,110,.12);display:flex;align-items:center;justify-content:center;color:var(--gold)}
+.partner-k{font-size:11px;color:var(--sub)}
+.partner-v{font-size:14px;font-weight:800}
+
+#loc-map{height:300px;border-radius:16px;border:1px solid var(--border);overflow:hidden}
+.loc-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+.loc-txt{font-size:13px;color:var(--sub)}
+.gm-btn{padding:8px 16px;border-radius:18px;border:1px solid var(--border2);color:var(--text);font-size:12px;font-weight:700;text-decoration:none}
+.gm-btn:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ── STICKY CTA ── */
+.cta-bar{position:fixed;bottom:0;left:0;right:0;z-index:1400;background:rgba(14,14,16,.96);backdrop-filter:blur(14px);border-top:1px solid var(--border);padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
+.cta-in{max-width:1100px;margin:0 auto;display:flex;gap:10px;align-items:center}
+.cta-info{flex:1;min-width:0;display:none}
+.cta-info b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cta-info span{font-size:11px;color:var(--sub)}
+@media(min-width:700px){.cta-info{display:block}}
+.btn-gold{flex:1;max-width:260px;padding:13px 16px;background:linear-gradient(135deg,#c8972e,#d4a83c 55%,#ba8420);color:#1a1000;border:none;border-radius:11px;font-size:14px;font-weight:900;cursor:pointer}
+.btn-out{flex:1;max-width:260px;padding:12px 16px;background:transparent;color:var(--gold);border:1.5px solid rgba(200,169,110,.55);border-radius:11px;font-size:14px;font-weight:800;cursor:pointer}
+@media(max-width:699px){.btn-gold,.btn-out{max-width:none}}
+
+/* ── SHEETS / MODALS ── */
+.ov{display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center}
+.ov.open{display:flex}
+@media(min-width:700px){.ov{align-items:center;padding:16px}}
+.sheet{background:#17181d;border:1px solid var(--border2);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;position:relative;padding:22px 20px 24px;animation:up .28s cubic-bezier(.32,.72,0,1)}
+@media(min-width:700px){.sheet{border-radius:20px}}
+@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.x{position:absolute;top:12px;left:14px;width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,.08);color:var(--text);font-size:20px;cursor:pointer;line-height:1}
+.us-tag{font-size:11px;color:var(--gold);font-weight:800;letter-spacing:.08em}
+.us-no{font-size:24px;font-weight:900;margin:2px 0 8px}
+.us-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:14px 0}
+.us-c{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.us-k{font-size:11px;color:var(--sub)}
+.us-v{font-size:14px;font-weight:800;margin-top:2px}
+.us-price{background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.3);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.us-price b{font-size:20px;color:var(--gold);font-weight:900}
+.us-price span{font-size:11px;color:var(--sub)}
+.us-acts{display:grid;gap:8px}
+.us-acts .btn-gold,.us-acts .btn-out{max-width:none;width:100%}
+.btn-wa{width:100%;padding:11px;background:transparent;color:#25d366;border:1px solid rgba(37,211,102,.45);border-radius:11px;font-size:13px;font-weight:800;cursor:pointer}
+.note-sold{padding:10px 12px;border-radius:10px;font-size:12px;margin-bottom:12px}
+
+.bk h3{font-size:18px;font-weight:900;margin-bottom:4px}
+.bk-sub{font-size:12px;color:var(--sub);margin-bottom:14px}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:rgba(255,255,255,.05);border-radius:12px;padding:4px;margin-bottom:14px}
+.seg button{padding:9px;border:none;border-radius:9px;background:transparent;color:var(--sub);font-size:13px;font-weight:800;cursor:pointer}
+.seg button.on{background:var(--gold);color:#1a1000}
+.f-row{margin-bottom:12px}
+.f-row label{display:block;font-size:12px;color:var(--sub);margin-bottom:5px;font-weight:600}
+.f-row input,.f-row select,.f-row textarea{width:100%;padding:12px 13px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:'Cairo',sans-serif;direction:rtl;outline:none}
+.f-row input:focus,.f-row select:focus,.f-row textarea:focus{border-color:rgba(200,169,110,.5)}
+.f-row select option{background:#1a1a22}
+.f-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bk-ok{display:none;text-align:center;padding:22px 6px}
+.bk-ok .ic{font-size:44px;margin-bottom:8px}
+.bk-ok h4{font-size:18px;font-weight:900;color:var(--gold);margin-bottom:6px}
+.bk-ok p{font-size:13px;color:var(--sub);line-height:1.8}
+.bk-disc{font-size:11px;color:var(--sub);margin-top:10px;line-height:1.7;text-align:center}
+
+#lb{display:none;position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,.94);align-items:center;justify-content:center}
+#lb img{max-width:94vw;max-height:88vh;border-radius:10px}
+#lb button{position:absolute;top:16px;left:16px;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,.12);color:#fff;font-size:20px;cursor:pointer}
+
+#loading,#notfound{min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--sub);text-align:center;padding:20px;margin-top:60px}
+#notfound{display:none}
+.spin{width:34px;height:34px;border-radius:50%;border:3px solid rgba(200,169,110,.2);border-top-color:var(--gold);animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+#page{display:none}
+
+.leaflet-container{font-family:'Cairo',sans-serif;direction:ltr}
+@media(max-width:600px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .facts{grid-template-columns:1fr 1fr}
+  .facts .fact:last-child{grid-column:1/-1}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="tb-back" href="index.html#projects">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    مشاريع شركائنا
+  </a>
+  <img class="tb-logo" src="logo.png" alt="شارك العقارية">
+  <button class="tb-wa" onclick="waProject()">واتساب</button>
+</header>
+
+<div id="loading"><div class="spin"></div><div>جاري تحميل المشروع...</div></div>
+<div id="notfound">
+  <div style="font-size:40px">🏗️</div>
+  <div style="font-size:17px;font-weight:800;color:var(--text)">المشروع غير متاح</div>
+  <div>قد يكون الرابط غير صحيح أو أن المشروع لم يعد منشوراً.</div>
+  <a class="gm-btn" href="index.html#projects" style="margin-top:8px">تصفّح مشاريع شركائنا</a>
+</div>
+
+<div id="page">
+  <section class="hero" id="hero">
+    <img id="hero-img" alt="" style="display:none">
+    <button class="hero-gal" id="hero-gal" onclick="openGallery(0)"></button>
+    <div class="hero-in">
+      <div class="hero-badge">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span id="hero-badge">من مشاريع شركائنا</span>
+      </div>
+      <h1 id="p-name"></h1>
+      <div class="hero-loc">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
+        <span id="p-loc"></span>
+      </div>
+      <div class="hero-chips" id="p-chips"></div>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="stats">
+      <div class="st"><div class="st-n" id="s-total">0</div><div class="st-l" id="s-total-l">إجمالي القطع</div></div>
+      <div class="st"><div class="st-n" style="color:var(--av)" id="s-av">0</div><div class="st-l"><i style="background:var(--av)"></i>متاح</div></div>
+      <div class="st"><div class="st-n" style="color:var(--rs)" id="s-rs">0</div><div class="st-l"><i style="background:var(--rs)"></i>محجوز</div></div>
+      <div class="st"><div class="st-n" style="color:var(--sd)" id="s-sd">0</div><div class="st-l"><i style="background:var(--sd)"></i>مباع</div></div>
+    </div>
+    <div class="avbar" id="avbar"></div>
+    <div style="font-size:11px;color:var(--sub)" id="av-pct"></div>
+    <div class="facts">
+      <div class="fact"><div class="fact-k">الأسعار تبدأ من</div><div class="fact-v" id="f-price">—</div></div>
+      <div class="fact"><div class="fact-k">المساحات</div><div class="fact-v" id="f-area">—</div></div>
+      <div class="fact"><div class="fact-k">حالة المشروع</div><div class="fact-v" id="f-stage">—</div></div>
+    </div>
+  </div>
+
+  <nav class="snav"><div class="snav-in">
+    <a href="#s-plan" class="on">المخطط التفاعلي</a>
+    <a href="#s-units" id="nav-units">القطع</a>
+    <a href="#s-about">تفاصيل المشروع</a>
+    <a href="#s-loc">الموقع</a>
+  </div></nav>
+
+  <div class="wrap">
+    <section class="sec" id="s-plan">
+      <div class="sec-h"><div><div class="sec-tag">اختر قطعتك</div><div class="sec-t">المخطط التفاعلي</div></div></div>
+      <div class="plan-tools" id="plan-tools">
+        <button class="chip on" data-st="all" onclick="setSt('all')">الكل</button>
+        <button class="chip" data-st="available" onclick="setSt('available')"><i style="background:var(--av)"></i>متاح</button>
+        <button class="chip" data-st="reserved" onclick="setSt('reserved')"><i style="background:var(--rs)"></i>محجوز</button>
+        <button class="chip" data-st="sold" onclick="setSt('sold')"><i style="background:var(--sd)"></i>مباع</button>
+        <input class="plan-search" id="plan-q" type="search" placeholder="ابحث برقم القطعة..." oninput="setQ(this.value)">
+      </div>
+      <div id="plan-box"></div>
+      <div class="plan-hint">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        <span id="plan-hint">اضغط على أي قطعة لعرض تفاصيلها وحجزها</span>
+      </div>
+    </section>
+
+    <section class="sec" id="s-units">
+      <div class="sec-h">
+        <div><div class="sec-tag" id="units-tag">قائمة القطع</div><div class="sec-t" id="units-title">القطع المتاحة</div></div>
+        <select id="sort" onchange="renderUnits()" style="padding:7px 12px;border-radius:14px;border:1px solid var(--border2);background:var(--card);color:var(--text);font-family:'Cairo',sans-serif;font-size:12px">
+          <option value="no">ترتيب حسب الرقم</option>
+          <option value="price">الأقل سعراً</option>
+          <option value="area">الأكبر مساحة</option>
+        </select>
+      </div>
+      <div class="units" id="units"></div>
+      <button class="more-btn" id="more" style="display:none" onclick="_shown+=24;renderUnits()">عرض المزيد</button>
+    </section>
+
+    <section class="sec" id="s-about">
+      <div class="sec-h"><div><div class="sec-tag">نبذة</div><div class="sec-t">تفاصيل المشروع</div></div></div>
+      <div class="about">
+        <p id="p-desc"></p>
+        <div class="feats" id="p-feats"></div>
+        <div class="gal" id="p-gal"></div>
+        <div class="partner" id="p-partner">
+          <div class="partner-ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4M9 9v.01M9 12v.01M9 15v.01M9 18v.01"/></svg></div>
+          <div><div class="partner-k">المطوّر / الشريك</div><div class="partner-v" id="p-partner-v"></div></div>
+          <div style="margin-right:auto;text-align:left"><div class="partner-k">التسويق الحصري</div><div class="partner-v" style="color:var(--gold)">شارك العقارية</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="s-loc" style="padding-bottom:30px">
+      <div class="sec-h"><div><div class="sec-tag">أين يقع؟</div><div class="sec-t">موقع المشروع</div></div></div>
+      <div id="loc-map"></div>
+      <div class="loc-row">
+        <div class="loc-txt" id="loc-txt"></div>
+        <a class="gm-btn" id="gm-link" target="_blank" rel="noopener">فتح في خرائط Google ↗</a>
+      </div>
+    </section>
+  </div>
+
+  <div class="cta-bar"><div class="cta-in">
+    <div class="cta-info"><b id="cta-name"></b><span id="cta-sub"></span></div>
+    <button class="btn-out" onclick="openBooking('interest')">سجّل اهتمامك</button>
+    <button class="btn-gold" onclick="openBooking('book')">احجز الآن</button>
+  </div></div>
+</div>
+
+<!-- UNIT SHEET -->
+<div class="ov" id="ov-unit" onclick="if(event.target===this)closeOv('ov-unit')">
+  <div class="sheet"><button class="x" onclick="closeOv('ov-unit')">×</button><div id="unit-body"></div></div>
+</div>
+
+<!-- BOOKING SHEET -->
+<div class="ov" id="ov-book" onclick="if(event.target===this)closeOv('ov-book')">
+  <div class="sheet bk"><button class="x" onclick="closeOv('ov-book')">×</button>
+    <div id="bk-form">
+      <h3 id="bk-title">احجز في المشروع</h3>
+      <div class="bk-sub" id="bk-sub"></div>
+      <div class="seg">
+        <button id="seg-book" onclick="setMode('book')">طلب حجز</button>
+        <button id="seg-int" onclick="setMode('interest')">تسجيل اهتمام</button>
+      </div>
+      <div class="f-row"><label>الاسم *</label><input id="bk-name" type="text" placeholder="الاسم الكامل" autocomplete="name"></div>
+      <div class="f-row"><label>رقم الجوال *</label><input id="bk-phone" type="tel" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right" autocomplete="tel"></div>
+      <div class="f-row" id="bk-unit-row"><label id="bk-unit-l">القطعة</label><select id="bk-unit"></select></div>
+      <div class="f-2">
+        <div class="f-row"><label>طريقة الشراء</label><select id="bk-pay"><option value="">اختر</option><option>كاش</option><option>تمويل بنكي</option><option>دعم سكني</option></select></div>
+        <div class="f-row"><label>أفضل وقت للتواصل</label><select id="bk-time"><option value="">أي وقت</option><option>صباحاً</option><option>مساءً</option></select></div>
+      </div>
+      <div class="f-row"><label>ملاحظات</label><textarea id="bk-note" rows="2" placeholder="استفسار أو طلب خاص..."></textarea></div>
+      <button class="btn-gold" style="width:100%;max-width:none" id="bk-submit" onclick="submitBooking()">إرسال طلب الحجز</button>
+      <div class="bk-disc" id="bk-disc">الحجز مبدئي ويتم تأكيده بعد تواصل مستشارنا معك وإتمام الإجراءات.</div>
+    </div>
+    <div class="bk-ok" id="bk-ok"><div class="ic">🎉</div><h4 id="bk-ok-t">تم استلام طلبك</h4><p id="bk-ok-p">سيتواصل معك مستشار شارك العقارية قريباً.</p>
+      <button class="btn-out" style="margin-top:16px;max-width:none;width:100%" onclick="closeOv('ov-book')">تم</button></div>
+  </div>
+</div>
+
+<div id="lb" onclick="if(event.target===this)closeLb()"><button onclick="closeLb()">×</button><img id="lb-img" alt=""></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+(function(){
+  var PHONE='966539997060';
+  var SP=window.SharkProjects, ST=SP.STATUS;
+  var P=null, K=null, MEDIA={plan:null,gallery:[]};
+  var _st='all', _q='', _sel=null, _shown=24, _mode='book';
+  var _planMap=null, _planMarkers={};
+
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+  function $(id){return document.getElementById(id);}
+  function nowAr(){return new Date().toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'});}
+  function stOf(u){return ST[u.status]?u.status:'available';}
+  function uLabel(u){return K.unit+' '+(u.no||'');}
+  function natCmp(a,b){return String(a.no||'').localeCompare(String(b.no||''),'ar',{numeric:true});}
+
+  /* ── LOAD ── */
+  var id=new URLSearchParams(location.search).get('id');
+  if(!id){ notFound(); return; }
+  SP.loadOne(id).then(function(p){
+    if(!p||!p.published){ notFound(); return; }
+    P=p; P.units=(P.units||[]).slice().sort(natCmp); K=SP.kind(P);
+    render();
+    SP.loadMedia(P.id).then(function(m){ MEDIA=m; renderPlan(); renderGallery(); });
+  });
+  function notFound(){ $('loading').style.display='none'; $('notfound').style.display='flex'; }
+
+  function render(){
+    document.title=P.name+' — مشاريع شركائنا | شارك العقارية';
+    $('loading').style.display='none'; $('page').style.display='block';
+    if(P.coverImg){ $('hero-img').src=P.coverImg; $('hero-img').style.display='block'; }
+    else { $('hero').style.height='auto'; $('hero').style.minHeight='300px'; }
+    $('hero-badge').textContent=P.partner?'من مشاريع شركائنا · بالشراكة مع '+P.partner:'من مشاريع شركائنا';
+    $('p-name').textContent=P.name;
+    $('p-loc').textContent=[P.city,P.district].filter(Boolean).join(' — ')||'المملكة العربية السعودية';
+    $('p-chips').innerHTML=[K.label,P.stage,P.licenseNo?'ترخيص: '+P.licenseNo:''].filter(Boolean).map(function(c){return '<span class="hchip">'+esc(c)+'</span>';}).join('');
+
+    var s=SP.stats(P);
+    $('s-total').textContent=s.total; $('s-total-l').textContent='إجمالي ال'+K.units;
+    $('s-av').textContent=s.available; $('s-rs').textContent=s.reserved; $('s-sd').textContent=s.sold;
+    if(s.total){
+      $('avbar').innerHTML=['available','reserved','sold'].map(function(k){return '<span style="width:'+(s[k]/s.total*100)+'%;background:'+ST[k].color+'"></span>';}).join('');
+      $('av-pct').textContent='متاح '+Math.round(s.available/s.total*100)+'% من '+K.units+' المشروع';
+    } else { $('avbar').style.display='none'; }
+    $('f-price').textContent=s.minPrice?SP.fmtPrice(s.minPrice):'عند الطلب';
+    $('f-area').textContent=s.minArea?(s.minArea===s.maxArea?SP.fmtNum(s.minArea)+' م²':SP.fmtNum(s.minArea)+' – '+SP.fmtNum(s.maxArea)+' م²'):'—';
+    $('f-stage').textContent=P.stage||K.label;
+    $('nav-units').textContent=K.units.replace(/^/,'ال');
+    $('units-tag').textContent='قائمة ال'+K.units;
+    $('plan-q').placeholder='ابحث برقم ال'+K.unit+'...';
+    $('plan-hint').textContent='اضغط على أي '+K.unit+' لعرض تفاصيلها وحجزها';
+
+    $('p-desc').textContent=P.desc||'';
+    $('p-desc').style.display=P.desc?'block':'none';
+    $('p-feats').innerHTML=(P.features||[]).map(function(f){return '<span class="feat">✓ '+esc(f)+'</span>';}).join('');
+    if(P.partner) $('p-partner-v').textContent=P.partner; else $('p-partner').style.display='none';
+
+    $('cta-name').textContent=P.name;
+    $('cta-sub').textContent=s.available+' '+K.units+' متاحة'+(s.minPrice?' · تبدأ من '+SP.fmtPrice(s.minPrice):'');
+
+    renderPlan(); renderUnits(); renderLoc(); setupNav();
+    if(location.hash==='#book') setTimeout(function(){ openBooking('book'); },250);
+  }
+
+  /* ── FILTER ── */
+  function match(u){
+    if(_st!=='all'&&stOf(u)!==_st) return false;
+    if(_q&&String(u.no||'').indexOf(_q)<0&&String(u.block||'').indexOf(_q)<0) return false;
+    return true;
+  }
+  window.setSt=function(s){
+    _st=s; _shown=24;
+    document.querySelectorAll('#plan-tools .chip').forEach(function(c){c.classList.toggle('on',c.dataset.st===s);});
+    applyFilter(); renderUnits();
+  };
+  window.setQ=function(v){
+    _q=v.trim().replace(/[٠-٩]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d);}); _shown=24;
+    applyFilter(); renderUnits();
+    if(_q){ var hit=P.units.filter(match); if(hit.length===1) focusUnit(hit[0].id,false); }
+  };
+  function applyFilter(){
+    P.units.forEach(function(u){
+      var on=match(u);
+      var m=_planMarkers[u.id]; if(m&&m._icon){ var el=m._icon.querySelector('.u-mk'); if(el) el.classList.toggle('dim',!on); }
+      var t=document.querySelector('.tile[data-id="'+u.id+'"]'); if(t) t.classList.toggle('dim',!on);
+    });
+  }
+
+  /* ── INTERACTIVE PLAN ── */
+  function renderPlan(){
+    var box=$('plan-box');
+    if(_planMap){ _planMap.remove(); _planMap=null; _planMarkers={}; }
+    if(!P.units.length){ box.innerHTML='<div class="empty">سيتم إضافة ال'+K.units+' قريباً — سجّل اهتمامك ليصلك التحديث أولاً.</div>'; return; }
+    var placed=P.units.filter(function(u){return u.x!=null&&u.y!=null&&u.x!==''&&u.y!=='';});
+    if(MEDIA.plan&&P.planW&&P.planH){ planImage(box,placed); }
+    else { planGrid(box); }
+    applyFilter();
+  }
+
+  function planImage(box,placed){
+    box.innerHTML='<div id="plan-map"></div>';
+    var W=P.planW, H=P.planH;
+    var bw=box.clientWidth||window.innerWidth; $('plan-map').style.height=Math.round(Math.max(320,Math.min(window.innerHeight*.7,bw*H/W+80)))+'px';
+    var map=L.map('plan-map',{crs:L.CRS.Simple,minZoom:-3,maxZoom:3,zoomSnap:.25,attributionControl:false,zoomControl:true});
+    var b=[[0,0],[H,W]];
+    L.imageOverlay(MEDIA.plan,b).addTo(map);
+    map.fitBounds(b); map.setMaxBounds([[-H*.25,-W*.25],[H*1.25,W*1.25]]);
+    var z0=map.getZoom();
+    placed.forEach(function(u){
+      var st=stOf(u);
+      var html='<div class="u-mk'+(_sel===u.id?' sel':'')+'" style="background:'+ST[st].color+'">'+esc(u.no)+'</div>';
+      var icon=L.divIcon({className:'',html:html,iconSize:null});
+      var m=L.marker([H*(1-u.y/100),W*u.x/100],{icon:icon,riseOnHover:true,title:uLabel(u)+' — '+ST[st].label}).addTo(map);
+      m.on('click',function(){ openUnit(u.id); });
+      _planMarkers[u.id]=m;
+    });
+    function size(){
+      var sc=Math.pow(2,map.getZoom()-z0), s=Math.max(18,Math.min(40,26*sc));
+      document.querySelectorAll('#plan-map .u-mk').forEach(function(el){
+        el.style.minWidth=s+'px'; el.style.height=s+'px'; el.style.fontSize=Math.max(9,s*.42)+'px';
+        el.style.padding='0 '+Math.round(s*.15)+'px'; el.style.transform='translate(-50%,-50%)';
+      });
+    }
+    map.on('zoomend',size); size();
+    _planMap=map;
+    if(placed.length<P.units.length){
+      box.insertAdjacentHTML('beforeend','<div style="font-size:12px;color:var(--sub);margin:10px 0 4px">'+K.units+' غير محددة على المخطط:</div><div class="grid-plan" id="grid-rest"></div>');
+      $('grid-rest').innerHTML=blocksHtml(P.units.filter(function(u){return placed.indexOf(u)<0;}));
+    }
+  }
+
+  function blocksHtml(units){
+    var blocks={}, order=[];
+    units.forEach(function(u){ var b=u.block||''; if(!blocks[b]){blocks[b]=[];order.push(b);} blocks[b].push(u); });
+    return order.map(function(b){
+      var list=blocks[b], av=list.filter(function(u){return stOf(u)==='available';}).length;
+      return '<div class="blk">'+(b||order.length>1?'<div class="blk-h">'+(b?'بلوك '+esc(b):'بدون بلوك')+'<span>'+av+' متاح من '+list.length+'</span></div>':'')
+        +'<div class="blk-g">'+list.map(function(u){
+          var st=stOf(u), c=ST[st];
+          return '<div class="tile'+(_sel===u.id?' sel':'')+'" data-id="'+esc(u.id)+'" onclick="openUnit(\''+esc(u.id)+'\')" style="background:'+c.bg+';color:'+c.color+'" title="'+esc(uLabel(u))+' — '+c.label+'">'
+            +'<b>'+esc(u.no)+'</b>'+(u.area?'<small>'+SP.fmtNum(u.area)+' م²</small>':'<small>'+c.label+'</small>')+'</div>';
+        }).join('')+'</div></div>';
+    }).join('');
+  }
+  function planGrid(box){ box.innerHTML='<div class="grid-plan">'+blocksHtml(P.units)+'</div>'; }
+
+  function focusUnit(uid,open){
+    _sel=uid;
+    document.querySelectorAll('.u-mk.sel,.tile.sel').forEach(function(e){e.classList.remove('sel');});
+    var m=_planMarkers[uid];
+    if(m&&_planMap){ _planMap.flyTo(m.getLatLng(),Math.max(_planMap.getZoom(),_planMap.getMinZoom()+1.5),{duration:.5}); if(m._icon){var el=m._icon.querySelector('.u-mk'); if(el) el.classList.add('sel');} }
+    var t=document.querySelector('.tile[data-id="'+uid+'"]'); if(t){ t.classList.add('sel'); t.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+    if(open) openUnit(uid);
+  }
+
+  /* ── UNITS LIST ── */
+  window.renderUnits=function(){
+    var list=P.units.filter(match), sort=$('sort').value;
+    if(sort==='price') list.sort(function(a,b){return (SP.num(a.price)||1e15)-(SP.num(b.price)||1e15);});
+    else if(sort==='area') list.sort(function(a,b){return SP.num(b.area)-SP.num(a.area);});
+    var titles={all:'كل ال'+K.units,available:'ال'+K.units+' المتاحة',reserved:'ال'+K.units+' المحجوزة',sold:'ال'+K.units+' المباعة'};
+    $('units-title').textContent=titles[_st]+' ('+list.length+')';
+    if(!list.length){ $('units').innerHTML='<div class="empty" style="grid-column:1/-1">لا توجد '+K.units+' مطابقة</div>'; $('more').style.display='none'; return; }
+    $('units').innerHTML=list.slice(0,_shown).map(function(u){
+      var st=stOf(u), c=ST[st];
+      return '<div class="uc" onclick="pickUnit(\''+esc(u.id)+'\')">'
+        +'<div class="uc-top"><div class="uc-no">'+esc(uLabel(u))+(u.block?'<small>بلوك '+esc(u.block)+'</small>':'')+'</div><span class="pill" style="background:'+c.bg+';color:'+c.color+'">'+c.label+'</span></div>'
+        +'<div class="uc-meta">'+(u.area?'<span>📐 '+SP.fmtNum(u.area)+' م²</span>':'')+(u.type?'<span>🏷️ '+esc(u.type)+'</span>':'')+(u.street?'<span>🛣️ شارع '+esc(u.street)+' م</span>':'')+(u.facing?'<span>🧭 '+esc(u.facing)+'</span>':'')+(u.beds?'<span>🛏 '+esc(u.beds)+' غرف</span>':'')+'</div>'
+        +(st==='available'?(u.price?'<div class="uc-price">'+SP.fmtPrice(u.price)+'</div>':'<div class="uc-price" style="font-size:13px">السعر عند التواصل</div>'):'')
+        +'</div>';
+    }).join('');
+    $('more').style.display=list.length>_shown?'block':'none';
+  };
+  window.pickUnit=function(uid){
+    var hasPlan=!!_planMarkers[uid]||!!document.querySelector('.tile[data-id="'+uid+'"]');
+    if(hasPlan){ $('s-plan').scrollIntoView({behavior:'smooth'}); setTimeout(function(){focusUnit(uid,true);},350); }
+    else openUnit(uid);
+  };
+
+  /* ── UNIT SHEET ── */
+  window.openUnit=function(uid){
+    var u=P.units.find(function(x){return x.id===uid;}); if(!u) return;
+    _sel=uid;
+    var st=stOf(u), c=ST[st], ppm=(SP.num(u.price)&&SP.num(u.area))?Math.round(SP.num(u.price)/SP.num(u.area)):0;
+    var cells=[
+      ['المساحة',u.area?SP.fmtNum(u.area)+' م²':''],['البلوك',u.block],['النوع / الاستخدام',u.type],
+      ['عرض الشارع',u.street?u.street+' م':''],['الواجهة',u.facing],['الغرف',u.beds],['دورات المياه',u.baths],
+      ['سعر المتر',ppm&&st==='available'?ppm.toLocaleString('ar-SA')+' ريال':'']
+    ].filter(function(x){return x[1];});
+    $('unit-body').innerHTML='<div class="us-tag">'+esc(P.name)+'</div>'
+      +'<div class="us-no">'+esc(uLabel(u))+'</div>'
+      +'<span class="pill" style="background:'+c.bg+';color:'+c.color+'">'+c.label+'</span>'
+      +(cells.length?'<div class="us-grid">'+cells.map(function(x){return '<div class="us-c"><div class="us-k">'+x[0]+'</div><div class="us-v">'+esc(x[1])+'</div></div>';}).join('')+'</div>':'<div style="height:14px"></div>')
+      +(u.note?'<p style="font-size:13px;color:var(--sub);line-height:1.8;margin-bottom:12px">'+esc(u.note)+'</p>':'')
+      +(st==='available'
+        ?'<div class="us-price"><span>السعر</span><b>'+(u.price?SP.fmtPrice(u.price):'عند التواصل')+'</b></div>'
+          +'<div class="us-acts"><button class="btn-gold" onclick="openBooking(\'book\',\''+esc(u.id)+'\')">احجز هذه ال'+esc(K.unit)+'</button>'
+          +'<button class="btn-out" onclick="openBooking(\'interest\',\''+esc(u.id)+'\')">سجّل اهتمامك</button>'
+          +'<button class="btn-wa" onclick="waProject(\''+esc(uLabel(u))+'\')">استفسر عبر واتساب</button></div>'
+        :'<div class="note-sold" style="background:'+c.bg+';color:'+c.color+'">الحالة: '+c.label+(st==='reserved'?' حالياً — سجّل اهتمامك وسنبلغك إذا أصبحت متاحة.':' — تصفّح ال'+esc(K.units)+' المتاحة في المخطط.')+'</div>'
+          +'<div class="us-acts">'+(st==='reserved'?'<button class="btn-out" onclick="openBooking(\'interest\',\''+esc(u.id)+'\')">أبلغني إذا توفرت</button>':'')
+          +'<button class="btn-gold" onclick="closeOv(\'ov-unit\');setSt(\'available\');$(\'s-plan\').scrollIntoView({behavior:\'smooth\'})">عرض ال'+esc(K.units)+' المتاحة</button></div>');
+    $('ov-unit').classList.add('open');
+  };
+  window.$=$;
+  window.closeOv=function(id){ $(id).classList.remove('open'); };
+
+  /* ── BOOKING ── */
+  window.openBooking=function(mode,uid){
+    closeOv('ov-unit');
+    var av=P.units.filter(function(u){return stOf(u)==='available';});
+    var opts='<option value="">'+(mode==='book'?'— اختر ال'+K.unit+' —':'غير محددة / أي '+K.unit+' مناسبة')+'</option>';
+    var pre=uid?P.units.find(function(u){return u.id===uid;}):null;
+    var list=av.slice(); if(pre&&list.indexOf(pre)<0) list.unshift(pre);
+    opts+=list.map(function(u){ return '<option value="'+esc(u.id)+'">'+esc(uLabel(u))+(u.block?' — بلوك '+esc(u.block):'')+(u.area?' — '+SP.fmtNum(u.area)+' م²':'')+(u.price&&stOf(u)==='available'?' — '+SP.fmtPrice(u.price):'')+'</option>'; }).join('');
+    $('bk-unit').innerHTML=opts; $('bk-unit').value=pre?pre.id:'';
+    $('bk-unit-l').textContent='ال'+K.unit;
+    $('bk-unit-row').style.display=P.units.length?'block':'none';
+    $('bk-sub').textContent=P.name+(P.city?' — '+P.city:'');
+    $('bk-form').style.display='block'; $('bk-ok').style.display='none';
+    setMode(mode==='book'&&av.length?'book':'interest');
+    $('ov-book').classList.add('open');
+  };
+  window.setMode=function(m){
+    _mode=m;
+    $('seg-book').classList.toggle('on',m==='book'); $('seg-int').classList.toggle('on',m==='interest');
+    $('bk-title').textContent=m==='book'?'طلب حجز':'تسجيل اهتمام';
+    $('bk-submit').textContent=m==='book'?'إرسال طلب الحجز':'تسجيل الاهتمام';
+    $('bk-disc').textContent=m==='book'?'الحجز مبدئي ويتم تأكيده بعد تواصل مستشارنا معك وإتمام الإجراءات.':'سنتواصل معك بآخر المستجدات والأسعار والقطع المتاحة في المشروع.';
+  };
+  window.submitBooking=function(){
+    var n=$('bk-name').value.trim(), ph=$('bk-phone').value.trim();
+    if(!n||!ph){ alert('الرجاء إدخال الاسم ورقم الجوال'); return; }
+    var u=P.units.find(function(x){return x.id===$('bk-unit').value;})||null;
+    if(_mode==='book'&&!u&&P.units.length){ alert('الرجاء اختيار ال'+K.unit+' التي تريد حجزها'); return; }
+    var title='مشروع - '+P.name;
+    var noteParts=[u?uLabel(u)+(u.block?' / بلوك '+u.block:'')+(u.area?' / '+u.area+' م²':'')+(u.price?' / '+SP.num(u.price).toLocaleString('en-US')+' ريال':''):'',
+      $('bk-pay').value?'طريقة الشراء: '+$('bk-pay').value:'', $('bk-time').value?'وقت التواصل: '+$('bk-time').value:'', $('bk-note').value.trim()].filter(Boolean);
+    var rec={name:n,phone:ph,type:'تسجيل اهتمام',
+      interest:(_mode==='book'?'طلب حجز':'تسجيل اهتمام')+(u?' — '+uLabel(u):''),
+      offer:title,offerName:title,offerTitle:title,offerId:P.id,
+      projectId:P.id,projectName:P.name,partner:P.partner||'',unitId:u?u.id:'',unitNo:u?String(u.no||''):'',
+      bookingMode:_mode,payment:$('bk-pay').value,note:noteParts.join(' — '),
+      source:_mode==='book'?'project-booking':'project-interest',date:nowAr()};
+    $('bk-submit').disabled=true;
+    Promise.resolve(window.SharkClients?SharkClients.save(rec):null).catch(function(){}).then(function(){
+      $('bk-submit').disabled=false;
+      $('bk-ok-t').textContent=_mode==='book'?'تم استلام طلب الحجز':'تم تسجيل اهتمامك';
+      $('bk-ok-p').textContent=_mode==='book'
+        ?'استلمنا طلب حجز '+(u?uLabel(u):'')+' في '+P.name+'. سيتواصل معك مستشارنا لتأكيد الحجز وإكمال الإجراءات.'
+        :'سيتواصل معك مستشار شارك العقارية بآخر المستجدات عن '+P.name+'.';
+      $('bk-form').style.display='none'; $('bk-ok').style.display='block';
+      ['bk-name','bk-phone','bk-note'].forEach(function(i){$(i).value='';});
+    });
+  };
+  window.waProject=function(extra){
+    var t='السلام عليكم، أنا مهتم بمشروع: '+(P?P.name:'')+(extra?' — '+extra:'');
+    window.open('https://wa.me/'+PHONE+'?text='+encodeURIComponent(t),'_blank');
+  };
+
+  /* ── GALLERY ── */
+  function renderGallery(){
+    var imgs=(P.coverImg?[P.coverImg]:[]).concat(MEDIA.gallery);
+    window._gal=imgs;
+    $('p-gal').innerHTML=MEDIA.gallery.map(function(s,i){return '<img src="'+s+'" loading="lazy" onclick="openGallery('+(i+(P.coverImg?1:0))+')">';}).join('');
+    if(imgs.length>1){ $('hero-gal').style.display='block'; $('hero-gal').textContent='📷 '+imgs.length+' صور'; }
+  }
+  window.openGallery=function(i){ var g=window._gal||[]; if(!g.length) return; $('lb-img').src=g[i]||g[0]; $('lb').style.display='flex'; };
+  window.closeLb=function(){ $('lb').style.display='none'; };
+  $('hero-img').onclick=function(){ openGallery(0); };
+
+  /* ── LOCATION ── */
+  function renderLoc(){
+    var lat=parseFloat(P.lat), lng=parseFloat(P.lng);
+    $('loc-txt').textContent='📍 '+([P.city,P.district].filter(Boolean).join(' — ')||'');
+    if(!isFinite(lat)||!isFinite(lng)){ $('loc-map').style.display='none'; $('gm-link').style.display=P.mapsUrl?'inline-block':'none'; if(P.mapsUrl) $('gm-link').href=P.mapsUrl; return; }
+    $('gm-link').href=P.mapsUrl||('https://www.google.com/maps?q='+lat+','+lng);
+    var m=L.map('loc-map',{scrollWheelZoom:false,attributionControl:false}).setView([lat,lng],14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(m);
+    L.marker([lat,lng],{icon:L.divIcon({className:'',iconSize:[40,48],iconAnchor:[20,46],
+      html:'<svg width="40" height="48" viewBox="0 0 40 48"><path d="M20 47s16-15.2 16-27A16 16 0 0 0 4 20c0 11.8 16 27 16 27z" fill="#c8a96e" stroke="#fff" stroke-width="2.5"/><path d="M13 27V16l7-4 7 4v11h-5v-5h-4v5z" fill="#1a1000"/></svg>'})}).addTo(m);
+  }
+
+  /* ── SECTION NAV highlight ── */
+  function setupNav(){
+    var links=[].slice.call(document.querySelectorAll('.snav a'));
+    function on(){
+      var y=window.scrollY+140, cur=links[0];
+      links.forEach(function(a){ var s=document.querySelector(a.getAttribute('href')); if(s&&s.offsetTop<=y) cur=a; });
+      links.forEach(function(a){a.classList.toggle('on',a===cur);});
+    }
+    window.addEventListener('scroll',on,{passive:true}); on();
+  }
+})();
+</script>
+</body>
+</html>

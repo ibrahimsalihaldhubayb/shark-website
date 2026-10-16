@@ -35,6 +35,8 @@ var SOURCE_LABELS = {
   interest: 'الموقع — اهتمام بعرض',
   landing:  'صفحة هبوط',
   promo:    'إعلان ترويجي',
+  'project-booking':  'الموقع — طلب حجز في مشروع',
+  'project-interest': 'الموقع — اهتمام بمشروع',
   website:  'الموقع'
 };
 

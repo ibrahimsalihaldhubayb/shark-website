@@ -10,6 +10,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="clients.js"></script>
+<script src="projects.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--gold:#c8a96e;--dark:#0b0b0c;--card:#16181d;--border:rgba(244,243,239,.1);--text:#f4f3ef;--sub:#a8a59d}
@@ -54,29 +56,36 @@ html,body{height:100%;font-family:'Cairo',Tahoma,Arial,sans-serif;direction:rtl;
 .list-card-price{font-size:13px;color:#c8a96e;font-weight:700;margin-top:2px}
 .list-card-tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(200,169,110,.12);border:1px solid rgba(200,169,110,.3);color:#b8922a;margin-bottom:3px}
 
-/* ── POPUP ── */
-.lf-popup .leaflet-popup-content-wrapper{background:#fff;border:none;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.18);padding:0;overflow:hidden}
-.lf-popup .leaflet-popup-tip-container{display:none}
-.lf-popup .leaflet-popup-content{margin:0;width:230px!important}
-.pop-inner{padding:14px}
-.pop-img{width:100%;height:120px;object-fit:cover}
-.pop-no-img{width:100%;height:80px;background:linear-gradient(135deg,#f5f0e8,#ede8d8);display:flex;align-items:center;justify-content:center;font-size:32px}
-.pop-tag{font-size:10px;font-weight:700;letter-spacing:.1em;color:#b8922a;margin-bottom:4px}
-.pop-name{font-size:14px;font-weight:800;margin-bottom:3px;color:#1a1a22}
-.pop-loc{font-size:11px;color:#888;margin-bottom:8px}
-.pop-price{font-size:15px;font-weight:900;color:#c8a96e;margin-bottom:10px}
-.pop-btn{width:100%;padding:9px;background:linear-gradient(135deg,#c8972e,#d4a83c 55%,#ba8420);color:#1a1000;border:none;border-radius:8px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:800;cursor:pointer}
+/* ── ICON MARKERS ── */
+.mk{position:relative;width:38px;height:46px;cursor:pointer;transition:transform .18s;transform-origin:50% 100%;filter:drop-shadow(0 3px 6px rgba(0,0,0,.28))}
+.mk:hover{transform:scale(1.12)}
+.mk.sel{transform:scale(1.25);z-index:1000}
+.mk svg.pin{position:absolute;inset:0;z-index:1}
+.mk .mk-ic{position:absolute;z-index:2;top:7px;left:50%;transform:translateX(-50%);width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:#fff}
+.mk.proj .mk-ic{color:#1a1000}
+.mk-lbl{position:absolute;z-index:3;top:-22px;left:50%;transform:translateX(-50%);white-space:nowrap;background:#fff;color:#1a1a22;border-radius:10px;padding:1px 8px;font-family:'Cairo',sans-serif;font-size:10.5px;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.18);pointer-events:none;opacity:0;transition:opacity .2s}
+.show-lbl .mk-lbl{opacity:1}
+.mk.proj .mk-lbl{background:#1a1a22;color:#f0d080}
 
-/* ── CLUSTER ── */
-.city-cluster{background:rgba(255,255,255,.95);border:2.5px solid #c8a96e;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#b8922a;font-family:'Cairo',sans-serif;font-weight:800;cursor:pointer;transition:.2s;box-shadow:0 4px 16px rgba(0,0,0,.18)}
-.city-cluster:hover{background:#c8a96e;color:#fff;transform:scale(1.1);border-color:#c8a96e}
-.city-cluster-inner{display:flex;flex-direction:column;align-items:center;line-height:1.1}
-.city-cluster-num{font-size:16px;font-weight:900}
-.city-cluster-name{font-size:9px;opacity:.8;white-space:nowrap}
-
-/* single pin */
-.pin-dot{width:16px;height:16px;background:#c8a96e;border:2.5px solid #fff;border-radius:50%;box-shadow:0 3px 10px rgba(200,169,110,.5),0 0 0 5px rgba(200,169,110,.15);cursor:pointer;transition:.2s}
-.pin-dot:hover{transform:scale(1.35)}
+/* ── FLOATING CARD ── */
+#mcard{position:fixed;z-index:2100;left:50%;bottom:76px;transform:translate(-50%,24px);width:min(380px,calc(100% - 24px));background:#fff;border-radius:18px;box-shadow:0 14px 44px rgba(0,0,0,.24);overflow:hidden;opacity:0;pointer-events:none;transition:transform .28s cubic-bezier(.32,.72,0,1),opacity .2s}
+#mcard.open{transform:translate(-50%,0);opacity:1;pointer-events:auto}
+.mc-x{position:absolute;top:10px;left:10px;z-index:2;width:30px;height:30px;border-radius:50%;border:none;background:rgba(0,0,0,.5);color:#fff;font-size:18px;line-height:1;cursor:pointer}
+.mc-row{display:flex;gap:12px;padding:12px}
+.mc-img{width:108px;height:108px;border-radius:12px;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,#f5f0e8,#ede8d8);display:flex;align-items:center;justify-content:center;font-size:30px}
+.mc-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.mc-tag{font-size:10px;font-weight:800;color:#b8922a;letter-spacing:.06em}
+.mc-name{font-size:15px;font-weight:800;color:#1a1a22;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mc-loc{font-size:11.5px;color:#888}
+.mc-price{font-size:15px;font-weight:900;color:#b8922a;margin-top:auto}
+.mc-meta{display:flex;gap:10px;font-size:11px;color:#666;flex-wrap:wrap}
+.mc-bar{display:flex;height:5px;border-radius:4px;overflow:hidden;background:#eee;margin-top:4px}
+.mc-acts{display:flex;gap:8px;padding:0 12px 12px}
+.mc-acts button{flex:1;padding:10px;border-radius:10px;font-family:'Cairo',sans-serif;font-size:12.5px;font-weight:800;cursor:pointer}
+.mc-pri{background:linear-gradient(135deg,#c8972e,#d4a83c 55%,#ba8420);color:#1a1000;border:none}
+.mc-sec{background:#fff;color:#1a1a22;border:1px solid rgba(0,0,0,.14)}
+.mc-wa{flex:0 0 44px!important;background:#25d366;color:#fff;border:none;display:flex;align-items:center;justify-content:center}
+.list-card-tag.proj{background:#1a1a22;border-color:#1a1a22;color:#f0d080}
 
 /* ── EMPTY ── */
 #empty-state{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1500;text-align:center;pointer-events:none;display:none;background:rgba(255,255,255,.9);border-radius:16px;padding:28px 32px;box-shadow:0 4px 24px rgba(0,0,0,.1)}
@@ -118,6 +127,7 @@ html,body{height:100%;font-family:'Cairo',Tahoma,Arial,sans-serif;direction:rtl;
     <button class="chip" onclick="setFilter('villa',this)">فلل</button>
     <button class="chip" onclick="setFilter('apartments',this)">شقق</button>
     <button class="chip" onclick="setFilter('commercial',this)">تجاري</button>
+    <button class="chip" onclick="setFilter('projects',this)">مشاريع شركائنا</button>
   </div>
 </div>
 
@@ -141,6 +151,9 @@ html,body{height:100%;font-family:'Cairo',Tahoma,Arial,sans-serif;direction:rtl;
   </div>
   <div id="panel-body"></div>
 </div>
+
+<!-- MARKER CARD -->
+<div id="mcard"><button class="mc-x" onclick="closeCard()">×</button><div id="mcard-body"></div></div>
 
 <!-- OFFER MODAL -->
 <div id="mod-offer" onclick="if(event.target===this)closeMod()">
@@ -199,18 +212,45 @@ html,body{height:100%;font-family:'Cairo',Tahoma,Arial,sans-serif;direction:rtl;
 
   /* ── DATA ── */
   var _allOffers=[];
+  var _projects=[];
   var _filter='all';
   var _search='';
-  var _markers=[];
+  var _markers={};
   var _panelOpen=false;
+  var _selKey=null;
 
-  function filteredOffers(){
-    return _allOffers.filter(function(o){
-      var typeOk=_filter==='all'||o.type===_filter;
-      var q=_search.trim().toLowerCase();
-      var searchOk=!q||(o.ar||o.name||'').toLowerCase().indexOf(q)>=0||(o.city||'').toLowerCase().indexOf(q)>=0||(o.district||'').toLowerCase().indexOf(q)>=0;
-      return typeOk&&searchOk;
-    });
+  /* أيقونات حسب النوع */
+  var IC={
+    house:'<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2 11.5h3V21h5.5v-6h3v6H19v-9.5h3z"/></svg>',
+    building:'<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M4 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v5h3a1 1 0 0 1 1 1v11h-6v-4h-4v4zm3-15v2h2V6zm4 0v2h2V6zm-4 4v2h2v-2zm4 0v2h2v-2zm-4 4v2h2v-2zm4 0v2h2v-2z"/></svg>',
+    store:'<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M3 4h18l1 5a3 3 0 0 1-5 2.2A3 3 0 0 1 12 11a3 3 0 0 1-5 .2A3 3 0 0 1 2 9zm1 9.5a4.9 4.9 0 0 0 3-.3 5 5 0 0 0 5 0 5 5 0 0 0 5 0 4.9 4.9 0 0 0 3 .3V21h-6v-5h-4v5H4z"/></svg>',
+    warehouse:'<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2 8v13h3V11h14v10h3V8zM7 13h10v2H7zm0 3h10v2H7zm0 3h10v2H7z"/></svg>',
+    land:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 7l6-3 6 3 6-3v13l-6 3-6-3-6 3z"/><path d="M9 4v13M15 7v13"/></svg>',
+    tree:'<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a6 6 0 0 0-5.6 8.2A5 5 0 0 0 9 19h2v3h2v-3h2a5 5 0 0 0 2.6-8.8A6 6 0 0 0 12 2z"/></svg>',
+    project:'<svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M2 21v-2h1V9l6-3v3l5-3v4h2V3h4v18h1v2zm4-9v2h2v-2zm0 4v2h2v-2zm4-4v2h2v-2zm4 0v2h2v-2zm-4 4v2h2v-2zm4 0v2h2v-2z"/></svg>'
+  };
+  var TYPE_IC={villa:'house',villas:'house',residential:'house',rest:'house',chalets:'house',apartments:'building',apartment:'building',commercial:'store',warehouses:'warehouse',lands:'land',land:'land',agricultural:'tree'};
+
+  function offerCoords(o){
+    var lat=parseFloat(o.lat),lng=parseFloat(o.lng);
+    if(isFinite(lat)&&isFinite(lng)&&(lat||lng)) return {c:[lat,lng],exact:true};
+    var cc=cityCoords(o.city);
+    return cc?{c:cc,exact:false}:null;
+  }
+
+  function filteredItems(){
+    var q=_search.trim().toLowerCase();
+    function qOk(name,city,district){return !q||(name||'').toLowerCase().indexOf(q)>=0||(city||'').toLowerCase().indexOf(q)>=0||(district||'').toLowerCase().indexOf(q)>=0;}
+    var out=[];
+    if(_filter==='all'||_filter==='projects'){
+      _projects.forEach(function(p){ if(qOk(p.name,p.city,p.district)) out.push({key:'p:'+p.id,kind:'project',d:p}); });
+    }
+    if(_filter!=='projects'){
+      _allOffers.forEach(function(o){
+        if((_filter==='all'||o.type===_filter)&&qOk(o.ar||o.name,o.city,o.district)) out.push({key:'o:'+o.id,kind:'offer',d:o});
+      });
+    }
+    return out;
   }
 
   function cityCoords(cityName){
@@ -221,109 +261,131 @@ html,body{height:100%;font-family:'Cairo',Tahoma,Arial,sans-serif;direction:rtl;
     return k?CC[k]:null;
   }
 
+  function shortPrice(n){
+    var v=Number(String(n||'').replace(/,/g,'')); if(!v) return '';
+    if(v>=1000000) return (v/1000000).toLocaleString('ar',{maximumFractionDigits:1})+' م';
+    if(v>=1000) return Math.round(v/1000).toLocaleString('ar')+' ألف';
+    return v.toLocaleString('ar');
+  }
+
+  function markerIcon(it){
+    var proj=it.kind==='project';
+    var fill=proj?'#c8a96e':'#1a1a22', stroke=proj?'#fff':'#c8a96e';
+    var ic=proj?IC.project:(IC[TYPE_IC[it.d.type]]||IC.house);
+    var lbl=proj?(it.d.name||''):(shortPrice(it.d.price)||'');
+    var sz=proj?[44,52]:[38,46];
+    return L.divIcon({className:'',iconSize:sz,iconAnchor:[sz[0]/2,sz[1]],
+      html:'<div class="mk'+(proj?' proj':'')+(_selKey===it.key?' sel':'')+'" style="width:'+sz[0]+'px;height:'+sz[1]+'px" data-key="'+esc(it.key)+'">'
+        +'<svg class="pin" width="'+sz[0]+'" height="'+sz[1]+'" viewBox="0 0 38 46"><path d="M19 44.5S35 30 35 18.5A16 16 0 0 0 3 18.5C3 30 19 44.5 19 44.5z" fill="'+fill+'" stroke="'+stroke+'" stroke-width="2.5"/></svg>'
+        +'<div class="mk-ic"'+(proj?' style="top:9px"':'')+'>'+ic+'</div>'
+        +(lbl?'<div class="mk-lbl">'+esc(lbl)+'</div>':'')
+        +'</div>'});
+  }
+
   function rebuildMarkers(){
-    /* clear old */
-    _markers.forEach(function(m){map.removeLayer(m);});
-    _markers=[];
-
-    var list=filteredOffers();
-    var withCoords=list.filter(function(o){return o.lat&&o.lng||cityCoords(o.city);});
-    var withoutCoords=list.filter(function(o){return !o.lat&&!o.lng&&!cityCoords(o.city);});
-
-    /* group by city for clustering */
-    var cities={};
-    withCoords.forEach(function(o){
-      var coords=(o.lat&&o.lng)?[parseFloat(o.lat),parseFloat(o.lng)]:cityCoords(o.city);
-      var key=o.city||coords.join(',');
-      if(!cities[key])cities[key]={coords:coords,offers:[]};
-      cities[key].offers.push(o);
-    });
-
-    Object.keys(cities).forEach(function(key){
-      var g=cities[key];
-      var count=g.offers.length;
-      var coords=g.coords;
-
-      if(count===1){
-        /* single pin */
-        var o=g.offers[0];
-        var icon=L.divIcon({
-          className:'',
-          html:'<div class="pin-dot"></div>',
-          iconSize:[14,14],iconAnchor:[7,7]
-        });
-        var m=L.marker(coords,{icon:icon}).addTo(map);
-        m.on('click',function(){showPopup(o,m);});
-        _markers.push(m);
-      } else {
-        /* cluster */
-        var sz=Math.min(70,44+count*4);
-        var icon=L.divIcon({
-          className:'',
-          html:'<div class="city-cluster" style="width:'+sz+'px;height:'+sz+'px"><div class="city-cluster-inner"><span class="city-cluster-num">'+count+'</span><span class="city-cluster-name">'+(g.offers[0].city||'')+'</span></div></div>',
-          iconSize:[sz,sz],iconAnchor:[sz/2,sz/2]
-        });
-        var m=L.marker(coords,{icon:icon}).addTo(map);
-        (function(offers,coord){
-          m.on('click',function(){
-            map.flyTo(coord,13,{duration:.8});
-            openPanel(offers);
-          });
-        })(g.offers,coords);
-        _markers.push(m);
+    Object.keys(_markers).forEach(function(k){map.removeLayer(_markers[k]);});
+    _markers={};
+    var list=filteredItems();
+    /* العروض بدون إحداثيات دقيقة توضع حول مركز مدينتها حتى لا تتراكب */
+    var perCity={};
+    list.forEach(function(it){
+      var pos=offerCoords(it.d); if(!pos) return;
+      var c=pos.c.slice();
+      if(!pos.exact){
+        var k=c.join(','), i=perCity[k]=(perCity[k]||0)+1;
+        var a=i*2.39996, r=0.012*Math.sqrt(i);
+        c=[c[0]+r*Math.cos(a), c[1]+r*Math.sin(a)];
       }
+      it.coords=c;
+      var m=L.marker(c,{icon:markerIcon(it),riseOnHover:true,zIndexOffset:it.kind==='project'?500:0}).addTo(map);
+      m.on('click',function(e){ L.DomEvent.stopPropagation(e); selectItem(it,false); });
+      _markers[it.key]=m;
     });
-
-    /* update count */
+    _lastList=list;
     document.getElementById('panel-num').textContent=list.length;
-
-    /* empty state */
     document.getElementById('empty-state').style.display=list.length?'none':'block';
-
-    /* rebuild panel list */
     rebuildPanelList(list);
+    updateLabels();
+  }
+  var _lastList=[];
+
+  function updateLabels(){ document.getElementById('map').classList.toggle('show-lbl',map.getZoom()>=12); }
+  map.on('zoomend',updateLabels);
+
+  function setSel(key){
+    if(_selKey&&_markers[_selKey]&&_markers[_selKey]._icon){ var o=_markers[_selKey]._icon.querySelector('.mk'); if(o) o.classList.remove('sel'); }
+    _selKey=key;
+    if(key&&_markers[key]&&_markers[key]._icon){ var n=_markers[key]._icon.querySelector('.mk'); if(n) n.classList.add('sel'); }
   }
 
-  var _popupLayer=null;
-  function showPopup(o,marker){
-    if(_popupLayer){map.removeLayer(_popupLayer);_popupLayer=null;}
-    var html='<div>'
-      +(o.coverImg?'<img class="pop-img" src="'+esc(o.coverImg)+'">':'<div class="pop-no-img">🏠</div>')
-      +'<div class="pop-inner">'
-      +'<div class="pop-tag">'+(TL[o.type]||o.type||'عقار')+'</div>'
-      +'<div class="pop-name">'+esc(o.ar||o.name||'عرض عقاري')+'</div>'
-      +'<div class="pop-loc">📍 '+esc((o.city||'')+(o.district?' · '+o.district:''))+'</div>'
-      +(o.price?'<div class="pop-price">'+fmt(o.price)+'</div>':'')
-      +'<button class="pop-btn" onclick="showMod(\''+esc(o.id)+'\')">تفاصيل العرض ←</button>'
-      +'</div></div>';
-    var popup=L.popup({className:'lf-popup',closeButton:false,offset:[0,-7],maxWidth:230,autoPan:true})
-      .setLatLng(marker.getLatLng())
-      .setContent(html)
-      .openOn(map);
-    _popupLayer=popup;
+  function selectItem(it,fly){
+    setSel(it.key);
+    if(_panelOpen){ _panelOpen=false; document.getElementById('panel').classList.add('collapsed'); }
+    if(it.coords){
+      if(fly) map.flyTo(it.coords,Math.max(map.getZoom(),14),{duration:.7});
+      else map.panTo(it.coords,{animate:true});
+    }
+    showCard(it);
   }
+
+  /* ── CARD ── */
+  function showCard(it){
+    var d=it.d, html;
+    if(it.kind==='project'){
+      var SP=window.SharkProjects, s=SP.stats(d), K=SP.kind(d);
+      html='<div class="mc-row">'
+        +(d.coverImg?'<img class="mc-img" src="'+esc(d.coverImg)+'">':'<div class="mc-img">🏗️</div>')
+        +'<div class="mc-info">'
+        +'<div class="mc-tag">مشاريع شركائنا · '+esc(K.label)+'</div>'
+        +'<div class="mc-name">'+esc(d.name)+'</div>'
+        +'<div class="mc-loc">📍 '+esc((d.city||'')+(d.district?' · '+d.district:''))+'</div>'
+        +(s.total?'<div class="mc-meta"><span style="color:#16a34a;font-weight:800">'+s.available+' '+K.units+' متاحة</span><span>من '+s.total+'</span></div>'
+          +'<div class="mc-bar"><span style="width:'+(s.available/s.total*100)+'%;background:#16a34a"></span><span style="width:'+(s.reserved/s.total*100)+'%;background:#d97706"></span><span style="width:'+(s.sold/s.total*100)+'%;background:#dc2626"></span></div>':'')
+        +(s.minPrice?'<div class="mc-price">تبدأ من '+fmt(s.minPrice)+'</div>':'')
+        +'</div></div>'
+        +'<div class="mc-acts"><button class="mc-pri" onclick="location.href=\'project.html?id='+encodeURIComponent(d.id)+'\'">عرض المشروع والمخطط</button>'
+        +'<button class="mc-sec" onclick="location.href=\'project.html?id='+encodeURIComponent(d.id)+'#book\'">احجز / سجّل اهتمامك</button></div>';
+    } else {
+      html='<div class="mc-row">'
+        +(d.coverImg?'<img class="mc-img" src="'+esc(d.coverImg)+'">':'<div class="mc-img">🏠</div>')
+        +'<div class="mc-info">'
+        +'<div class="mc-tag">'+(TL[d.type]||d.type||'عقار')+'</div>'
+        +'<div class="mc-name">'+esc(d.ar||d.name||'عرض عقاري')+'</div>'
+        +'<div class="mc-loc">📍 '+esc((d.city||'')+(d.district?' · '+d.district:''))+'</div>'
+        +((d.area||d.beds)?'<div class="mc-meta">'+(d.area?'<span>📐 '+d.area+' م²</span>':'')+(d.beds?'<span>🛏 '+d.beds+'</span>':'')+'</div>':'')
+        +(d.price?'<div class="mc-price">'+fmt(d.price)+'</div>':'')
+        +'</div></div>'
+        +'<div class="mc-acts"><button class="mc-pri" onclick="showMod(\''+esc(d.id)+'\')">تفاصيل العرض</button>'
+        +'<button class="mc-wa" title="واتساب" onclick="waOffer(\''+esc(d.ar||d.name||'')+'\')"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.533 5.847L.054 23.272a.5.5 0 0 0 .625.613l5.563-1.46A11.952 11.952 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg></button></div>';
+    }
+    document.getElementById('mcard-body').innerHTML=html;
+    document.getElementById('mcard').classList.add('open');
+  }
+  window.closeCard=function(){ document.getElementById('mcard').classList.remove('open'); setSel(null); };
 
   function rebuildPanelList(list){
     var el=document.getElementById('panel-body');
     if(!list.length){
-      el.innerHTML='<div style="text-align:center;padding:32px 12px;color:var(--sub);font-size:13px">لا توجد عروض في هذا التصفية</div>';
+      el.innerHTML='<div style="text-align:center;padding:32px 12px;color:var(--sub);font-size:13px">لا توجد نتائج في هذا التصفية</div>';
       return;
     }
-    el.innerHTML=list.map(function(o){
-      return '<div class="list-card" onclick="focusOffer(\''+esc(o.id)+'\')">'
-        +'<div class="list-card-img">'+(o.coverImg?'<img src="'+esc(o.coverImg)+'" loading="lazy">':'🏠')+'</div>'
+    el.innerHTML=list.map(function(it){
+      var d=it.d, proj=it.kind==='project';
+      var s=proj?window.SharkProjects.stats(d):null, K=proj?window.SharkProjects.kind(d):null;
+      return '<div class="list-card" onclick="focusItem(\''+esc(it.key)+'\')">'
+        +'<div class="list-card-img">'+(d.coverImg?'<img src="'+esc(d.coverImg)+'" loading="lazy">':(proj?'🏗️':'🏠'))+'</div>'
         +'<div class="list-card-info">'
-        +'<div class="list-card-tag">'+(TL[o.type]||o.type||'عقار')+'</div>'
-        +'<div class="list-card-name">'+esc(o.ar||o.name||'عرض عقاري')+'</div>'
-        +'<div class="list-card-loc">📍 '+esc((o.city||'')+(o.district?' · '+o.district:''))+'</div>'
-        +(o.price?'<div class="list-card-price">'+fmt(o.price)+'</div>':'')
+        +'<div class="list-card-tag'+(proj?' proj':'')+'">'+(proj?'مشروع شريك · '+K.label:(TL[d.type]||d.type||'عقار'))+'</div>'
+        +'<div class="list-card-name">'+esc(proj?d.name:(d.ar||d.name||'عرض عقاري'))+'</div>'
+        +'<div class="list-card-loc">📍 '+esc((d.city||'')+(d.district?' · '+d.district:''))+'</div>'
+        +(proj?(s.total?'<div class="list-card-price">'+s.available+' '+K.units+' متاحة من '+s.total+'</div>':'')
+          :(d.price?'<div class="list-card-price">'+fmt(d.price)+'</div>':''))
         +'</div></div>';
     }).join('');
   }
 
-  function openPanel(offers){
-    rebuildPanelList(offers||filteredOffers());
-    document.getElementById('panel-num').textContent=(offers||filteredOffers()).length;
+  function openPanel(){
+    rebuildPanelList(_lastList);
     document.getElementById('panel').classList.remove('collapsed');
     _panelOpen=true;
   }
@@ -331,18 +393,18 @@ html,body{height:100%;font-family:'Cairo',Tahoma,Arial,sans-serif;direction:rtl;
   window.togglePanel=function(){
     _panelOpen=!_panelOpen;
     document.getElementById('panel').classList.toggle('collapsed',!_panelOpen);
+    if(_panelOpen) closeCard();
   };
 
-  window.focusOffer=function(id){
-    var o=_allOffers.find(function(x){return x.id===id;});
-    if(!o) return;
-    var coords=(o.lat&&o.lng)?[parseFloat(o.lat),parseFloat(o.lng)]:cityCoords(o.city);
-    if(coords){
-      map.flyTo(coords,14,{duration:.7});
-      setTimeout(function(){showMod(id);},600);
-    } else {
-      showMod(id);
+  window.focusItem=function(key){
+    var it=_lastList.find(function(x){return x.key===key;});
+    if(!it) return;
+    if(!it.coords){
+      if(it.kind==='project') location.href='project.html?id='+encodeURIComponent(it.d.id);
+      else showMod(it.d.id);
+      return;
     }
+    selectItem(it,true);
   };
 
   /* ── OFFER MODAL ── */
@@ -375,11 +437,12 @@ html,body{height:100%;font-family:'Cairo',Tahoma,Arial,sans-serif;direction:rtl;
     _filter=type;
     document.querySelectorAll('.chip').forEach(function(c){c.classList.remove('on');});
     btn.classList.add('on');
+    closeCard();
     rebuildMarkers();
-    if(map.getPopup())map.closePopup();
   };
   window.onSearch=function(v){
     _search=v;
+    closeCard();
     rebuildMarkers();
   };
 
@@ -389,26 +452,31 @@ html,body{height:100%;font-family:'Cairo',Tahoma,Arial,sans-serif;direction:rtl;
     if(!firebase.apps.length) firebase.initializeApp(cfg);
     return firebase.firestore();
   }
-  try{
-    var fsdb=initFS();
-    fsdb.collection('offers').orderBy('_ts','desc').get()
-      .then(function(snap){
-        _allOffers=snap.docs.map(function(d){return d.data();});
-        if(!_allOffers.length) _allOffers=gs('shark_offers')||[];
-        rebuildMarkers();
-        if(_allOffers.length){ document.getElementById('panel').classList.remove('collapsed'); _panelOpen=true; }
-      })
-      .catch(function(){
-        _allOffers=gs('shark_offers')||[];
-        rebuildMarkers();
-      });
-  }catch(e){
-    _allOffers=gs('shark_offers')||[];
+  function afterLoad(){
     rebuildMarkers();
+    if(_lastList.length&&window.innerWidth>=700){ openPanel(); }
   }
+  var pOffers=new Promise(function(res){
+    try{
+      var fsdb=initFS();
+      fsdb.collection('offers').orderBy('_ts','desc').get()
+        .then(function(snap){
+          _allOffers=snap.docs.map(function(d){return d.data();});
+          if(!_allOffers.length) _allOffers=gs('shark_offers')||[];
+          res();
+        })
+        .catch(function(){ _allOffers=gs('shark_offers')||[]; res(); });
+    }catch(e){ _allOffers=gs('shark_offers')||[]; res(); }
+  });
+  var pProjects=window.SharkProjects?SharkProjects.loadPublished().then(function(l){_projects=l;}).catch(function(){}):Promise.resolve();
+  Promise.all([pOffers,pProjects]).then(function(){
+    var f=new URLSearchParams(location.search).get('filter');
+    if(f==='projects'){ var b=[].slice.call(document.querySelectorAll('.chip')).find(function(c){return c.textContent.indexOf('مشاريع')>=0;}); if(b){ setFilter('projects',b); } }
+    afterLoad();
+  });
 
-  /* close popup on map click */
-  map.on('click',function(){if(_popupLayer){map.removeLayer(_popupLayer);_popupLayer=null;}});
+  /* close card on map click */
+  map.on('click',function(){ closeCard(); });
 })();
 </script>
 </body>
