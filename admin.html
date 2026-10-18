@@ -1384,9 +1384,21 @@ function renderRequestsView(){ var listEl=$('requests-list-view'); if(!listEl) r
   };
   window.pjToggle=function(id){ var e=$(id); e.style.display=e.style.display==='none'?'block':'none'; };
   window.pjCoords=function(url){
-    var m=url.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/)||url.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/)||url.match(/ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/)||url.match(/!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/);
-    if(m){ $('pj-lat').value=m[1]; $('pj-lng').value=m[2]; $('pj-coords-st').textContent='تم استخراج الإحداثيات: '+m[1]+', '+m[2]; $('pj-coords-st').style.color='#10b981'; }
-    else if(url){ $('pj-coords-st').textContent='لم يتم التعرف على الإحداثيات — انسخ الرابط من شريط العنوان أو أدخلها يدوياً'; $('pj-coords-st').style.color='#f59e0b'; }
+    if(!url) return;
+    var res=_parseCoordsFromStr(url);
+    if(res){ $('pj-lat').value=res.lat; $('pj-lng').value=res.lng; $('pj-coords-st').textContent='✓ تم استخراج الإحداثيات: '+res.lat+', '+res.lng; $('pj-coords-st').style.color='#10b981'; return; }
+    if(/goo\.gl|maps\.app/i.test(url)){
+      window.open(url,'_blank','noopener');
+      $('pj-coords-st').innerHTML='<span style="font-weight:700;color:#f59e0b">📋 فُتح الرابط في تبويب جديد</span><br>انسخ الرابط الطويل من شريط العنوان والصقه هنا مجدداً';
+      $('pj-coords-st').style.color='#92600a';
+      fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url))
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          var r2=_parseCoordsFromStr((d&&d.status&&d.status.url)||'');
+          if(!r2){ var gm=((d&&d.contents)||'').match(/https?:\/\/(?:www\.)?google\.com\/maps\/[^\s"'<>\\]+/); if(gm) r2=_parseCoordsFromStr(gm[0]); }
+          if(r2){ $('pj-lat').value=r2.lat; $('pj-lng').value=r2.lng; $('pj-coords-st').textContent='✓ تم استخراج الإحداثيات: '+r2.lat+', '+r2.lng; $('pj-coords-st').style.color='#10b981'; }
+        }).catch(function(){});
+    } else { $('pj-coords-st').textContent='لم يتم التعرف — الصق الرابط الكامل من شريط العنوان أو أدخل الإحداثيات يدوياً'; $('pj-coords-st').style.color='#ef4444'; }
   };
 
   window.openProjectEditor=function(id){
