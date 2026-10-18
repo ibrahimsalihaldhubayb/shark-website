@@ -264,6 +264,15 @@ async function importUnits(){
     var existing=(p&&p.units)||[];
     var finalUnits;
 
+    // الحفاظ على رسم القطعة على الخريطة (g) وموقعها على المخطط (x,y) ومعرّفها عند تحديث بياناتها
+    var oldByKey={};
+    existing.forEach(function(u){ oldByKey[(u.no||'')+'|'+(u.block||'')]=u; });
+    _parsed.forEach(function(u){
+      var o=oldByKey[(u.no||'')+'|'+(u.block||'')]; if(!o) return;
+      if(o.id) u.id=o.id;
+      if(o.g&&!u.g) u.g=o.g;
+      if(o.x!=null&&u.x==null){ u.x=o.x; u.y=o.y; }
+    });
     if(replace){
       finalUnits=_parsed;
     } else {
