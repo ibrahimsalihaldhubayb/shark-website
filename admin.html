@@ -546,22 +546,43 @@ function handleGalleryPick(inp){ const files=Array.from(inp.files); if(!files.le
 function renderGalleryPreviews(){ $('of-gall-preview').innerHTML=_galleryB64.map((b,i)=>`<div style="position:relative"><img src="${b}" style="width:80px;height:60px;object-fit:cover;border-radius:6px"><button onclick="_galleryB64.splice(${i},1);renderGalleryPreviews()" style="position:absolute;top:-6px;right:-6px;background:#ef4444;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:pointer;line-height:1">×</button></div>`).join('');
 }
 function autoFillCityCoords(city){ var c=CITY_COORDS_ADM[city.trim()]; if(c){ $('of-lat').value=c[0]; $('of-lng').value=c[1]; $('coords-status').textContent=' تم استيراد إحداثيات '+city.trim(); $('coords-status').style.color='#10b981'; }
-} function extractCoordsFromUrl(url){ if(!url) return;
-  var lat=null,lng=null,m=null;
+} function _parseCoordsFromStr(url){
+  var m=null;
   m=m||url.match(/@(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/);
-  m=m||url.match(/!3d(-?\d{1,3}\.\d+).*!4d(-?\d{1,3}\.\d+)/);
+  m=m||url.match(/!3d(-?\d{1,3}\.\d+)[^]*?!4d(-?\d{1,3}\.\d+)/);
   m=m||url.match(/[?&]q=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/);
   m=m||url.match(/[?&]ll=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/);
   m=m||url.match(/center=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/);
   m=m||url.match(/\/(-?\d{1,3}\.\d{4,}),(-?\d{1,3}\.\d{4,})/);
-  if(m){ lat=parseFloat(m[1]); lng=parseFloat(m[2]);
-    if(lat>=-90&&lat<=90&&lng>=-180&&lng<=180){
-      $('of-lat').value=lat; $('of-lng').value=lng;
-      $('coords-status').textContent='✓ تم استخراج الإحداثيات: '+lat+', '+lng;
-      $('coords-status').style.color='#10b981';
-    } else { m=null; }
+  m=m||url.match(/maps\/place\/[^/@]*\/@?(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/);
+  m=m||url.match(/search\?[^#]*query=(-?\d{1,3}\.\d+)%2C(-?\d{1,3}\.\d+)/);
+  m=m||url.match(/search\?[^#]*query=(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/);
+  if(m){ var lat=parseFloat(m[1]),lng=parseFloat(m[2]);
+    if(lat>=-90&&lat<=90&&lng>=-180&&lng<=180) return {lat,lng};
   }
-  if(!m){ $('coords-status').textContent='لم يتم التعرف على الإحداثيات — الصق الرابط من شريط العنوان في قوقل ماب مباشرة'; $('coords-status').style.color='#ef4444'; }
+  return null;
+}
+function _applyCoordsResult(res){
+  if(res){ $('of-lat').value=res.lat; $('of-lng').value=res.lng;
+    $('coords-status').textContent='✓ تم استخراج الإحداثيات: '+res.lat+', '+res.lng;
+    $('coords-status').style.color='#10b981';
+  } else {
+    $('coords-status').innerHTML='لم يتم التعرف — إذا كان الرابط مختصراً (goo.gl) افتحه أولاً في المتصفح ثم انسخ الرابط الكامل من شريط العنوان، أو أدخل الإحداثيات يدوياً';
+    $('coords-status').style.color='#ef4444';
+  }
+}
+function extractCoordsFromUrl(url){ if(!url) return;
+  var res=_parseCoordsFromStr(url);
+  if(res){ _applyCoordsResult(res); return; }
+  // try following redirect for short URLs (maps.app.goo.gl etc.)
+  if(/goo\.gl|maps\.app/i.test(url)){
+    $('coords-status').textContent='جاري معالجة الرابط المختصر...';
+    $('coords-status').style.color='#f59e0b';
+    fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url))
+      .then(function(r){ return r.json(); })
+      .then(function(d){ var finalUrl=(d&&d.status&&d.status.url)||''; var r2=_parseCoordsFromStr(finalUrl)||_parseCoordsFromStr(d.contents||''); _applyCoordsResult(r2); })
+      .catch(function(){ _applyCoordsResult(null); });
+  } else { _applyCoordsResult(null); }
 } async function saveOffer(){ const name=$('of-name').value.trim(); if(!name){ alert('الرجاء إدخال اسم العرض'); return; } const features=[...document.querySelectorAll('[name="feat"]:checked')].map(cb=>cb.value); const editId=$('offer-edit-id').value; const rec={ id: editId||ouid(), ar:name, name:name, type:$('of-type').value, price:Number($('of-price').value.replace(/,/g,''))||0, area:Number($('of-area').value)||0, city:$('of-city').value.trim(), district:$('of-district').value.trim(), desc:$('of-desc').value.trim(), lat:$('of-lat').value||'', lng:$('of-lng').value||'', regaNo:$('of-rega').value.trim()||'', targetDate:$('of-target').value||'', ownerPhone:$('of-owner-phone').value.trim()||'', ownerName:$('of-owner-name')?$('of-owner-name').value.trim():'', responsibleEmp:$('of-responsible').value||'', exclusive:$('of-excl-btn')&&$('of-excl-btn').dataset.active!=='0', coverImg:$('of-cover-b64').value||'', gallery:_galleryB64.join('\n'), features, status:'available', published:$('of-published').checked, beds:0, baths:0, map:'', en:name, _ts: editId?(_offersCache.find(o=>o.id===editId)?._ts||Date.now()):Date.now() }; if(editId){ const idx=_offersCache.findIndex(o=>o.id===editId); if(idx>=0) _offersCache[idx]=rec; else _offersCache.unshift(rec); } else { _offersCache.unshift(rec); } closeModal('modal-offer'); renderOffers(); renderDeals(); showToast('جاري الحفظ...'); try{ await _db.collection('offers').doc(rec.id).set(rec); if(rec.published) syncOffersToSheet(rec); const agrNote = $('of-agreement-note').value.trim(); if(!editId && agrNote){ const author = (_currentUser&&(_currentUser.name||_currentUser.username))||'موظف'; const noteId = 'N-agree-'+Date.now(); await _db.collection('offer_notes').doc(noteId).set({ id: noteId, offerId: rec.id, text:' اتفاق: '+agrNote, author, date:nowAr(), _ts:Date.now() }); } showToast('تم حفظ العرض '); } catch(e){ console.error(e); showToast(' خطأ في الحفظ'); }
 }
 async function deleteOffer(id){ if(!confirm('هل تريد حذف هذا العرض؟')) return; _offersCache=_offersCache.filter(o=>o.id!==id); renderOffers(); renderDeals(); try{ await _db.collection('offers').doc(id).delete(); }catch(e){ console.error(e); }
