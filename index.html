@@ -925,7 +925,7 @@ body{background:var(--dark);color:var(--text)}
           +'<div class="prj-st"><b>'+s.total+'</b><span>إجمالي ال'+K.units+'</span></div>'
           +'<div class="prj-st"><b style="color:#22c55e">'+s.available+'</b><span>متاح</span></div>'
           +'<div class="prj-st"><b style="color:#f59e0b">'+(s.reserved+s.sold)+'</b><span>محجوز / مباع</span></div></div>'
-          +'<div class="prj-bar"><span style="width:'+(s.available/s.total*100)+'%;background:#16a34a"></span><span style="width:'+(s.reserved/s.total*100)+'%;background:#d97706"></span><span style="width:'+(s.sold/s.total*100)+'%;background:#dc2626"></span></div>':'')
+          +'<div class="prj-bar"><span style="width:'+(s.available/s.total*100)+'%;background:#4fa776"></span><span style="width:'+(s.reserved/s.total*100)+'%;background:#b3aea8"></span><span style="width:'+(s.sold/s.total*100)+'%;background:#c25b6e"></span></div>':'')
         +'<div class="prj-foot"><div class="prj-from">'+(s.minPrice?'تبدأ من<b>'+SP.fmtPrice(s.minPrice)+'</b>':(s.minArea?'المساحات<b>'+SP.fmtNum(s.minArea)+(s.maxArea>s.minArea?' – '+SP.fmtNum(s.maxArea):'')+' م²</b>':''))+'</div>'
         +'<button class="prj-go">عرض المشروع ←</button></div>'
         +'</div></div>';

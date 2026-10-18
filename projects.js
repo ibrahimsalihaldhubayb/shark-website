@@ -16,9 +16,9 @@
     warehouses: {label:'مستودعات',           unit:'مستودع', units:'مستودعات'}
   };
   var STATUS={
-    available:{label:'متاح',  color:'#16a34a', bg:'rgba(22,163,74,.12)'},
-    reserved: {label:'محجوز', color:'#d97706', bg:'rgba(217,119,6,.14)'},
-    sold:     {label:'مباع',  color:'#dc2626', bg:'rgba(220,38,38,.12)'}
+    available:{label:'متاح',  color:'#3f9b6b', bg:'rgba(79,167,118,.14)'},
+    reserved: {label:'محجوز', color:'#8c877f', bg:'rgba(179,174,168,.2)'},
+    sold:     {label:'مباع',  color:'#c25b6e', bg:'rgba(194,91,110,.14)'}
   };
 
   function kind(p){ return KINDS[p&&p.kind]||KINDS.lands; }

@@ -10,6 +10,9 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="clients.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="plotmap.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>:root{ --gold:#c8a96e;--gold2:#b8954f; --bg:#f4f5f7;--sidebar-w:240px; --white:#fff;--card:#fff; --text:#1a1a2e;--sub:#6b7280; --border:#e5e7eb;--border2:#d1d5db; --red:#ef4444;--green:#10b981;--warn:#f59e0b; --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04); --shadow-md:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06);
 }
@@ -1200,6 +1203,13 @@ function renderRequestsView(){ var listEl=$('requests-list-view'); if(!listEl) r
 .pj-card-row td{background:#fff!important;border-bottom:1px solid #f1f1f1!important}
 .pj-pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
 .pj-leads{width:100%;border-collapse:collapse;font-size:12.5px}
+.pjg-sum{font-size:12px;color:var(--sub);margin-bottom:6px}
+.pjg-box{background:#f9fafb;border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:12.5px;line-height:1.7}
+.pjg-on{background:#eff6ff;border-color:#bfdbfe}
+.pjg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:8px}
+.pjg-grid label{display:flex;flex-direction:column;font-size:11px;color:var(--sub);gap:3px}
+.pjg-grid input{padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:12px}
+.pjg-lbl span{display:block;transform:translate(-50%,-50%);font:800 10px Cairo,sans-serif;color:#fff;text-shadow:0 0 3px #000;white-space:nowrap}
 .pj-leads td,.pj-leads th{padding:8px 10px;border-bottom:1px solid #f1f1f1;background:#fff}
 </style>
 
@@ -1212,7 +1222,8 @@ function renderRequestsView(){ var listEl=$('requests-list-view'); if(!listEl) r
       <button class="pj-tab on" data-t="info" onclick="pjTab('info')">بيانات المشروع</button>
       <button class="pj-tab" data-t="units" onclick="pjTab('units')">القطع / الوحدات <span id="pj-units-count"></span></button>
       <button class="pj-tab" data-t="plan" onclick="pjTab('plan')">المخطط التفاعلي</button>
-      <button class="pj-tab" data-t="media" onclick="pjTab('media')">الصور</button>
+      <button class="pj-tab" data-t="geo" onclick="pjTab('geo')">على الخريطة</button>
+      <button class="pj-tab" data-t="media" onclick="pjTab('media')">الصور والشعار</button>
       <button class="pj-tab" data-t="leads" onclick="pjTab('leads')">المهتمين والحجوزات <span id="pj-leads-count"></span></button>
     </div>
 
@@ -1311,8 +1322,20 @@ function renderRequestsView(){ var listEl=$('requests-list-view'); if(!listEl) r
       <div class="pj-plan" id="pj-plan"><div id="pj-plan-empty" style="padding:40px;text-align:center;color:var(--sub);font-size:13px;cursor:default">لم يتم رفع مخطط — بدون مخطط تُعرض القطع في الموقع كشبكة تفاعلية ملوّنة حسب الحالة.</div></div>
     </div>
 
+    <!-- GEO -->
+    <div class="pj-pane" data-p="geo">
+      <div style="font-size:12px;color:var(--sub);margin-bottom:6px;line-height:1.7">ارسم قطع المشروع على الخريطة الحقيقية لتظهر للعملاء ملوّنة حسب الحالة (متاحة / محجوزة / مباعة) في خريطة الموقع وصفحة المشروع. الأسهل: ثبّت صورة المخطط فوق صورة القمر الصناعي، ثم ارسم كل بلوك بأربع ضغطات وحدد عدد القطع.</div>
+      <div id="pj-geo-tools"></div>
+      <div id="pj-geo-map" style="height:56vh;min-height:380px;border-radius:10px;border:1px solid var(--border);direction:ltr"></div>
+    </div>
+
     <!-- MEDIA -->
     <div class="pj-pane" data-p="media">
+      <div class="form-row"><label>شعار الشريك (يظهر على الخريطة مكان المشروع — يفضّل PNG بخلفية شفافة)</label>
+        <input type="file" id="pj-logo-pick" accept="image/*" style="display:none" onchange="pjLogoPick(this)">
+        <button class="pj-btn2" onclick="$('pj-logo-pick').click()">رفع الشعار</button>
+        <div class="pj-thumbs" id="pj-logo-prev"></div>
+      </div>
       <div class="form-row"><label>صورة الغلاف</label>
         <input type="file" id="pj-cover-pick" accept="image/*" style="display:none" onchange="pjCoverPick(this)">
         <button class="pj-btn2" onclick="$('pj-cover-pick').click()">رفع صورة الغلاف</button>
@@ -1380,6 +1403,7 @@ function renderRequestsView(){ var listEl=$('requests-list-view'); if(!listEl) r
     document.querySelectorAll('#modal-project .pj-tab').forEach(function(b){b.classList.toggle('on',b.dataset.t===t);});
     document.querySelectorAll('#modal-project .pj-pane').forEach(function(p){p.classList.toggle('on',p.dataset.p===t);});
     if(t==='plan') renderPlanEditor();
+    if(t==='geo'&&window.pjGeoOpen) pjGeoOpen();
     if(t==='leads') renderLeads();
   };
   window.pjToggle=function(id){ var e=$(id); e.style.display=e.style.display==='none'?'block':'none'; };
@@ -1412,9 +1436,10 @@ function renderRequestsView(){ var listEl=$('requests-list-view'); if(!listEl) r
     $('pj-published').checked=p?!!p.published:true;
     $('pj-coords-st').textContent='';
     _units=p&&p.units?JSON.parse(JSON.stringify(p.units)).sort(natCmp):[];
-    _media={plan:null,planW:p&&p.planW||0,planH:p&&p.planH||0,gallery:[],cover:p&&p.coverImg||''};
+    _media={plan:null,planW:p&&p.planW||0,planH:p&&p.planH||0,gallery:[],cover:p&&p.coverImg||'',logo:p&&p.partnerLogo||'',corners:p&&p.planCorners&&p.planCorners.length===6?p.planCorners.slice():null};
+    if(window.pjGeoReset) pjGeoReset();
     _mediaDirty={plan:false,gallery:false}; _selU=null; _zoom=1; _origGalCount=0;
-    renderUnitsEditor(); renderCover(); renderGal();
+    renderUnitsEditor(); renderCover(); renderGal(); renderLogo();
     $('pj-leads-count').textContent=p?'('+leadsOf(p.id).length+')':'';
     $('pj-view').style.display=p?'inline-block':'none';
     pjTab('info');
@@ -1536,6 +1561,17 @@ function renderRequestsView(){ var listEl=$('requests-list-view'); if(!listEl) r
   window.pjPlanRemove=function(){ if(!confirm('حذف صورة المخطط؟ (تبقى القطع)')) return; _media.plan=null; _media.planW=0; _media.planH=0; _mediaDirty.plan=true; renderPlanEditor(); };
 
   /* ── MEDIA ── */
+  function renderLogo(){ $('pj-logo-prev').innerHTML=_media.logo?'<div><img src="'+_media.logo+'" style="object-fit:contain;background:#fff"><button onclick="pjLogoDel()">×</button></div>':''; }
+  window.pjLogoPick=function(inp){
+    var f=inp.files[0]; if(!f) return;
+    var r=new FileReader(); r.onload=function(e){ var img=new Image(); img.onload=function(){
+      var mx=320, w=img.width, hh=img.height; if(w>mx||hh>mx){ if(w>hh){hh=Math.round(hh*mx/w);w=mx;}else{w=Math.round(w*mx/hh);hh=mx;} }
+      var c=document.createElement('canvas'); c.width=w; c.height=hh; c.getContext('2d').drawImage(img,0,0,w,hh);
+      var d=c.toDataURL('image/png'); if(d.length>150000) d=c.toDataURL('image/webp',.9); _media.logo=d; renderLogo(); inp.value='';
+    }; img.src=e.target.result; }; r.readAsDataURL(f);
+  };
+  window.pjLogoDel=function(){ _media.logo=''; renderLogo(); };
+  window._pjState=function(){ return {units:_units,media:_media,renderUnitsEditor:renderUnitsEditor,uuid:uuid}; };
   function renderCover(){ $('pj-cover-prev').innerHTML=_media.cover?'<div><img src="'+_media.cover+'"><button onclick="pjCoverDel()">×</button></div>':''; }
   window.pjCoverPick=function(inp){ var f=inp.files[0]; if(!f) return; fitImage(f,1200,250000,function(d){ _media.cover=d; renderCover(); inp.value=''; }); };
   window.pjCoverDel=function(){ _media.cover=''; renderCover(); };
@@ -1581,6 +1617,7 @@ function renderRequestsView(){ var listEl=$('requests-list-view'); if(!listEl) r
       var o={id:u.id||uuid('U-'),no:String(u.no||'').trim(),block:u.block||'',area:u.area?String(n(u.area)||u.area):'',price:u.price?String(n(u.price)||''):'',
         street:u.street||'',facing:u.facing||'',type:u.type||'',beds:u.beds||'',status:stOf(u)};
       if(u.x!=null&&u.x!==''){ o.x=u.x; o.y=u.y; }
+      if(u.g&&u.g.length>=6) o.g=u.g.map(Number);
       if(u.note) o.note=u.note;
       return o;
     }).filter(function(u){return u.no;});
@@ -1589,7 +1626,7 @@ function renderRequestsView(){ var listEl=$('requests-list-view'); if(!listEl) r
       lat:$('pj-lat').value.trim(),lng:$('pj-lng').value.trim(),contractNo:$('pj-contract').value.trim(),licenseNo:$('pj-license').value.trim(),
       desc:$('pj-desc').value.trim(),features:$('pj-feats').value.split(/\n/).map(function(x){return x.trim();}).filter(Boolean),
       priceFrom:$('pj-pricefrom').value.trim(),published:$('pj-published').checked,coverImg:_media.cover||'',
-      planW:_media.plan?_media.planW:0,planH:_media.plan?_media.planH:0,units:units,
+      planW:_media.planW||0,planH:_media.planH||0,units:units,partnerLogo:_media.logo||'',planCorners:_media.corners||null,
       createdBy:old&&old.createdBy||((typeof _currentUser!=='undefined'&&_currentUser)&&(_currentUser.name||_currentUser.username))||'',
       _ts:old&&old._ts||Date.now(),_updated:Date.now()};
     if(JSON.stringify(rec).length>990000){ alert('حجم بيانات المشروع كبير جداً — قلّل حجم صورة الغلاف أو عدد القطع'); return; }
@@ -1627,5 +1664,6 @@ function renderRequestsView(){ var listEl=$('requests-list-view'); if(!listEl) r
   window.pjViewSite=function(){ var id=$('pj-id').value; if(id) window.open('project.html?id='+encodeURIComponent(id),'_blank'); };
 })();
 </script>
+<script src="admin-geo.js"></script>
 </body>
 </html>
