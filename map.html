@@ -67,8 +67,18 @@ html,body{height:100%;font-family:'Cairo',Tahoma,Arial,sans-serif;direction:rtl;
 .show-lbl .mk-lbl{opacity:1}
 .mk.proj .mk-lbl{background:#1a1a22;color:#f0d080}
 
+/* ── OFFER CARD AT EXACT LOCATION ── */
+.ocard-pop .leaflet-popup-content-wrapper{padding:0;border-radius:16px;overflow:hidden;box-shadow:0 12px 36px rgba(0,0,0,.25)}
+.ocard-pop .leaflet-popup-content{margin:0;width:250px!important;font-family:'Cairo',sans-serif;direction:rtl;text-align:right;line-height:1.5}
+.ocard-pop .leaflet-popup-tip{box-shadow:none}
+.ocard-pop a.leaflet-popup-close-button{top:8px;left:8px;right:auto;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;font:18px/26px Arial;text-align:center;z-index:2}
+.oc-img{display:block;width:100%;height:130px;object-fit:cover;background:linear-gradient(135deg,#f5f0e8,#ede8d8)}
+div.oc-img{display:flex;align-items:center;justify-content:center;font-size:34px}
+.oc-body{padding:10px 12px 4px;display:flex;flex-direction:column;gap:2px}
+.ocard-pop .mc-acts{padding:8px 12px 12px}
+
 /* ── FLOATING CARD ── */
-#mcard{position:fixed;z-index:2100;left:50%;bottom:76px;transform:translate(-50%,24px);width:min(380px,calc(100% - 24px));background:#fff;border-radius:18px;box-shadow:0 14px 44px rgba(0,0,0,.24);overflow:hidden;opacity:0;pointer-events:none;transition:transform .28s cubic-bezier(.32,.72,0,1),opacity .2s}
+#mcard{position:fixed;z-index:2100;left:50%;top:66px;transform:translate(-50%,-24px);width:min(380px,calc(100% - 24px));background:#fff;border-radius:18px;box-shadow:0 14px 44px rgba(0,0,0,.24);overflow:hidden;opacity:0;pointer-events:none;transition:transform .28s cubic-bezier(.32,.72,0,1),opacity .2s}
 #mcard.open{transform:translate(-50%,0);opacity:1;pointer-events:auto}
 .mc-x{position:absolute;top:10px;left:10px;z-index:2;width:30px;height:30px;border-radius:50%;border:none;background:rgba(0,0,0,.5);color:#fff;font-size:18px;line-height:1;cursor:pointer}
 .mc-row{display:flex;gap:12px;padding:12px}
@@ -321,10 +331,12 @@ html,body{height:100%;font-family:'Cairo',Tahoma,Arial,sans-serif;direction:rtl;
   function selectItem(it,fly){
     setSel(it.key);
     if(_panelOpen){ _panelOpen=false; document.getElementById('panel').classList.add('collapsed'); }
-    if(it.coords){
-      if(fly) map.flyTo(it.coords,Math.max(map.getZoom(),14),{duration:.7});
-      else map.panTo(it.coords,{animate:true});
+    if(it.coords&&fly){
+      map.flyTo(it.coords,Math.max(map.getZoom(),14),{duration:.7});
+      map.once('moveend',function(){ showCard(it); });
+      return;
     }
+    if(it.coords&&it.kind==='project') map.panTo(it.coords,{animate:true});
     showCard(it);
   }
 
@@ -346,22 +358,36 @@ html,body{height:100%;font-family:'Cairo',Tahoma,Arial,sans-serif;direction:rtl;
         +'<div class="mc-acts"><button class="mc-pri" onclick="location.href=\'project.html?id='+encodeURIComponent(d.id)+'\'">عرض المشروع والمخطط</button>'
         +'<button class="mc-sec" onclick="location.href=\'project.html?id='+encodeURIComponent(d.id)+'#book\'">احجز / سجّل اهتمامك</button></div>';
     } else {
-      html='<div class="mc-row">'
-        +(d.coverImg?'<img class="mc-img" src="'+esc(d.coverImg)+'">':'<div class="mc-img">🏠</div>')
-        +'<div class="mc-info">'
+      html=(d.coverImg?'<img class="oc-img" src="'+esc(d.coverImg)+'">':'<div class="oc-img">🏠</div>')
+        +'<div class="oc-body">'
         +'<div class="mc-tag">'+(TL[d.type]||d.type||'عقار')+'</div>'
         +'<div class="mc-name">'+esc(d.ar||d.name||'عرض عقاري')+'</div>'
         +'<div class="mc-loc">📍 '+esc((d.city||'')+(d.district?' · '+d.district:''))+'</div>'
         +((d.area||d.beds)?'<div class="mc-meta">'+(d.area?'<span>📐 '+d.area+' م²</span>':'')+(d.beds?'<span>🛏 '+d.beds+'</span>':'')+'</div>':'')
         +(d.price?'<div class="mc-price">'+fmt(d.price)+'</div>':'')
-        +'</div></div>'
+        +'</div>'
         +'<div class="mc-acts"><button class="mc-pri" onclick="showMod(\''+esc(d.id)+'\')">تفاصيل العرض</button>'
         +'<button class="mc-wa" title="واتساب" onclick="waOffer(\''+esc(d.ar||d.name||'')+'\')"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.533 5.847L.054 23.272a.5.5 0 0 0 .625.613l5.563-1.46A11.952 11.952 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg></button></div>';
     }
-    document.getElementById('mcard-body').innerHTML=html;
-    document.getElementById('mcard').classList.add('open');
+    if(it.kind==='project'){
+      if(_offerPop){ map.closePopup(_offerPop); }
+      document.getElementById('mcard-body').innerHTML=html;
+      document.getElementById('mcard').classList.add('open');
+    } else {
+      document.getElementById('mcard').classList.remove('open');
+      if(!it.coords){ showMod(d.id); return; }
+      _offerPop=L.popup({className:'ocard-pop',offset:[0,-42],maxWidth:250,minWidth:250,autoPan:true,
+          autoPanPaddingTopLeft:L.point(12,70),autoPanPaddingBottomRight:L.point(12,80)})
+        .setLatLng(it.coords).setContent(html).openOn(map);
+      _offerPop.on('remove',function(){ if(_selKey===it.key) setSel(null); });
+    }
   }
-  window.closeCard=function(){ document.getElementById('mcard').classList.remove('open'); setSel(null); };
+  var _offerPop=null;
+  window.closeCard=function(){
+    document.getElementById('mcard').classList.remove('open');
+    if(_offerPop) map.closePopup(_offerPop);
+    setSel(null);
+  };
 
   function rebuildPanelList(list){
     var el=document.getElementById('panel-body');
