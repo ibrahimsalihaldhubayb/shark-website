@@ -131,13 +131,18 @@
     };
   }
 
-  /* طبقات الخريطة الأساسية */
+  /* طبقات الخريطة الأساسية — مصادر لا تحتاج مفتاح API */
   function baseLayers(){
+    if(!document.getElementById('shark-tiles-css')){
+      var st=document.createElement('style'); st.id='shark-tiles-css';
+      st.textContent='.tiles-soft{filter:saturate(.45) brightness(1.04) contrast(.94)}';
+      document.head.appendChild(st);
+    }
     return {
-      light:L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:20,subdomains:'abcd',attribution:'© OpenStreetMap © CARTO'}),
+      light:L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:20,maxNativeZoom:19,className:'tiles-soft',attribution:'© OpenStreetMap'}),
       sat:L.layerGroup([
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:20,maxNativeZoom:19,attribution:'© Esri'}),
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',{maxZoom:20,subdomains:'abcd'})
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:20,maxNativeZoom:19})
       ])
     };
   }
