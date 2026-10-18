@@ -567,21 +567,45 @@ function _applyCoordsResult(res){
     $('coords-status').textContent='✓ تم استخراج الإحداثيات: '+res.lat+', '+res.lng;
     $('coords-status').style.color='#10b981';
   } else {
-    $('coords-status').innerHTML='لم يتم التعرف — إذا كان الرابط مختصراً (goo.gl) افتحه أولاً في المتصفح ثم انسخ الرابط الكامل من شريط العنوان، أو أدخل الإحداثيات يدوياً';
+    $('coords-status').innerHTML='لم يتم التعرف على الإحداثيات — <a href="#" onclick="return false" style="color:#3b82f6;text-decoration:underline" id="coords-help-link">اضغط هنا للمساعدة</a>';
     $('coords-status').style.color='#ef4444';
+    var lnk=$('coords-help-link');
+    if(lnk) lnk.onclick=function(){ alert('كيف تحصل على الإحداثيات:\n\n1. افتح قوقل ماب على الجهاز\n2. اضغط مطولاً على الموقع حتى يظهر الدبوس\n3. انسخ الرابط من شريط العنوان (في المتصفح وليس التطبيق)\n   أو اضغط على الإحداثيات التي تظهر أسفل الشاشة ثم انسخها\n\nمثال على رابط صحيح:\nhttps://www.google.com/maps/@24.688,46.722,17z\n\nأو أدخل خط العرض وخط الطول يدوياً في الخانات أدناه'); return false; };
   }
 }
 function extractCoordsFromUrl(url){ if(!url) return;
   var res=_parseCoordsFromStr(url);
   if(res){ _applyCoordsResult(res); return; }
-  // try following redirect for short URLs (maps.app.goo.gl etc.)
   if(/goo\.gl|maps\.app/i.test(url)){
-    $('coords-status').textContent='جاري معالجة الرابط المختصر...';
+    $('coords-status').textContent='رابط مختصر — جاري المعالجة...';
     $('coords-status').style.color='#f59e0b';
-    fetch('https://api.allorigins.win/get?url='+encodeURIComponent(url))
-      .then(function(r){ return r.json(); })
-      .then(function(d){ var finalUrl=(d&&d.status&&d.status.url)||''; var r2=_parseCoordsFromStr(finalUrl)||_parseCoordsFromStr(d.contents||''); _applyCoordsResult(r2); })
-      .catch(function(){ _applyCoordsResult(null); });
+    // try unshorten via two proxies
+    var tried=0;
+    function tryProxy(proxyUrl){
+      fetch(proxyUrl).then(function(r){ return r.json(); })
+        .then(function(d){
+          var candidates=[
+            (d&&d.status&&d.status.url)||'',
+            (d&&d.url)||'',
+            (d&&d.destination)||''
+          ];
+          // also scan page body for coords
+          var bodyText=(d&&(d.contents||d.body||d.result))||'';
+          var r2=null;
+          candidates.forEach(function(c){ if(!r2&&c) r2=_parseCoordsFromStr(c); });
+          if(!r2&&bodyText){
+            // extract any google maps URL from body
+            var gm=bodyText.match(/https?:\/\/(?:www\.)?google\.com\/maps\/[^\s"'<>]+/);
+            if(gm) r2=_parseCoordsFromStr(gm[0]);
+          }
+          if(r2){ _applyCoordsResult(r2); }
+          else if(++tried<2){
+            tryProxy('https://corsproxy.io/?'+encodeURIComponent('https://unshorten.me/s/'+encodeURIComponent(url)));
+          } else { _applyCoordsResult(null); }
+        })
+        .catch(function(){ if(++tried<2){ tryProxy('https://corsproxy.io/?'+encodeURIComponent('https://unshorten.me/s/'+encodeURIComponent(url))); } else { _applyCoordsResult(null); } });
+    }
+    tryProxy('https://api.allorigins.win/get?url='+encodeURIComponent(url));
   } else { _applyCoordsResult(null); }
 } async function saveOffer(){ const name=$('of-name').value.trim(); if(!name){ alert('الرجاء إدخال اسم العرض'); return; } const features=[...document.querySelectorAll('[name="feat"]:checked')].map(cb=>cb.value); const editId=$('offer-edit-id').value; const rec={ id: editId||ouid(), ar:name, name:name, type:$('of-type').value, price:Number($('of-price').value.replace(/,/g,''))||0, area:Number($('of-area').value)||0, city:$('of-city').value.trim(), district:$('of-district').value.trim(), desc:$('of-desc').value.trim(), lat:$('of-lat').value||'', lng:$('of-lng').value||'', regaNo:$('of-rega').value.trim()||'', targetDate:$('of-target').value||'', ownerPhone:$('of-owner-phone').value.trim()||'', ownerName:$('of-owner-name')?$('of-owner-name').value.trim():'', responsibleEmp:$('of-responsible').value||'', exclusive:$('of-excl-btn')&&$('of-excl-btn').dataset.active!=='0', coverImg:$('of-cover-b64').value||'', gallery:_galleryB64.join('\n'), features, status:'available', published:$('of-published').checked, beds:0, baths:0, map:'', en:name, _ts: editId?(_offersCache.find(o=>o.id===editId)?._ts||Date.now()):Date.now() }; if(editId){ const idx=_offersCache.findIndex(o=>o.id===editId); if(idx>=0) _offersCache[idx]=rec; else _offersCache.unshift(rec); } else { _offersCache.unshift(rec); } closeModal('modal-offer'); renderOffers(); renderDeals(); showToast('جاري الحفظ...'); try{ await _db.collection('offers').doc(rec.id).set(rec); if(rec.published) syncOffersToSheet(rec); const agrNote = $('of-agreement-note').value.trim(); if(!editId && agrNote){ const author = (_currentUser&&(_currentUser.name||_currentUser.username))||'موظف'; const noteId = 'N-agree-'+Date.now(); await _db.collection('offer_notes').doc(noteId).set({ id: noteId, offerId: rec.id, text:' اتفاق: '+agrNote, author, date:nowAr(), _ts:Date.now() }); } showToast('تم حفظ العرض '); } catch(e){ console.error(e); showToast(' خطأ في الحفظ'); }
 }
