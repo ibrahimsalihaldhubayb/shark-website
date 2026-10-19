@@ -132,7 +132,9 @@ div.oc-img img{width:110px;opacity:.5}
 .ps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:12px 0}
 .ps-c{background:#f6f4f0;border-radius:10px;padding:8px 10px}
 .ps-k{font-size:10.5px;color:var(--sub)}
-.ps-v{font-size:13px;font-weight:800}
+.ps-v{font-size:13px;font-weight:800;direction:rtl;unicode-bidi:plaintext}
+.ps-crq{border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:0 0 12px;background:#fcfbf8}
+.ps-crq-h{font-size:12px;font-weight:900;margin-bottom:4px}
 .ps-price{display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(200,169,110,.4);background:#fffaf0;border-radius:12px;padding:10px 14px}
 .ps-price b{font-size:19px;color:var(--gold2);font-weight:900}
 #sheet .acts{padding:12px 0 0}
@@ -420,13 +422,16 @@ body.list #fabs,body.list #legend{display:none!important}
     _selPlot={p:p.id,u:u.id}; if(_plots[p.id]) _plots[p.id].select(u.id);
     if(_selKey!=='p:'+p.id){ setSel('p:'+p.id); }
     $('pcard').classList.remove('open');
-    var K=SP.kind(p), st=PM.status(u), C=SP.STATUS[st], ppm=(SP.num(u.price)&&SP.num(u.area))?Math.round(SP.num(u.price)/SP.num(u.area)):0;
-    var cells=[['المساحة',u.area?SP.fmtNum(u.area)+' م²':''],['البلوك',u.block],['عرض الشارع',u.street?u.street+' م':''],['الواجهة',u.facing],['الاستخدام',u.type],['سعر المتر',ppm&&st==='available'?ppm.toLocaleString('ar-SA')+' ريال':'']].filter(function(c){return c[1];});
+    var K=SP.kind(p), st=PM.status(u), C=SP.STATUS[st], D=PM.dims(p,u,p.units||[]);
+    var area=SP.num(u.area)||(D?Math.round(D.area):0), ppm=(SP.num(u.price)&&area)?Math.round(SP.num(u.price)/area):0;
+    var wd=D&&D.edges.length===4?PM.fmtLen(Math.min(D.edges[0].len,D.edges[1].len))+' × '+PM.fmtLen(Math.max(D.edges[0].len,D.edges[1].len)):'';
+    var cells=[['المساحة',area?SP.fmtNum(area)+' م²':''],['الأبعاد',wd],['الواجهات',D?(D.streets===1?'شارع واحد':D.streets===2?'زاوية (شارعين)':D.streets>2?D.streets+' شوارع':'—'):''],['البلوك',u.block],['عرض الشارع',u.street?u.street+' م':''],['الواجهة',u.facing],['الاستخدام',u.type],['سعر المتر',ppm&&st==='available'?ppm.toLocaleString('ar-SA')+' ريال':'']].filter(function(c){return c[1];});
     var href='project.html?id='+encodeURIComponent(p.id)+'&unit='+encodeURIComponent(u.id);
     $('sheet-body').innerHTML='<div class="ps-head">'+logoBox(p,'ps-logo')
       +'<div style="flex:1;min-width:0"><div class="tag">'+esc(p.name)+'</div><div class="ps-no">'+esc(K.unit)+' '+esc(u.no)+'</div></div>'
       +'<span class="pill" style="background:'+C.bg+';color:'+C.color+'">'+PM.COLORS[st].label+'</span></div>'
       +(cells.length?'<div class="ps-grid">'+cells.map(function(c){return '<div class="ps-c"><div class="ps-k">'+c[0]+'</div><div class="ps-v">'+esc(c[1])+'</div></div>';}).join('')+'</div>':'')
+      +(D?'<div class="ps-crq"><div class="ps-crq-h">كروكي القطعة والأطوال</div>'+PM.croquisSVG(D,u)+PM.dimsTable(D,u)+'</div>':'')
       +(st==='available'
         ?'<div class="ps-price"><span style="font-size:12px;color:var(--sub)">السعر</span><b>'+(u.price?fmt(u.price):'عند التواصل')+'</b></div>'
           +'<div class="acts"><button class="b-pri" onclick="location.href=\''+href+'#book\'">احجز هذه ال'+esc(K.unit)+'</button>'

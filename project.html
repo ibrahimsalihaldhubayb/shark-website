@@ -151,6 +151,9 @@ button{font-family:'Cairo',sans-serif}
 .us-c{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
 .us-k{font-size:11px;color:var(--sub)}
 .us-v{font-size:14px;font-weight:800;margin-top:2px}
+.us-crq{background:#f7f5f0;color:#1a1a22;border-radius:12px;padding:10px 12px;margin-bottom:14px}
+.us-crq .us-k{color:#57524b}
+.us-v{unicode-bidi:plaintext}
 .us-price{background:rgba(200,169,110,.08);border:1px solid rgba(200,169,110,.3);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .us-price b{font-size:20px;color:var(--gold);font-weight:900}
 .us-price span{font-size:11px;color:var(--sub)}
@@ -565,9 +568,11 @@ button{font-family:'Cairo',sans-serif}
   window.openUnit=function(uid){
     var u=P.units.find(function(x){return x.id===uid;}); if(!u) return;
     _sel=uid;
-    var st=stOf(u), c=ST[st], ppm=(SP.num(u.price)&&SP.num(u.area))?Math.round(SP.num(u.price)/SP.num(u.area)):0;
+    var D=PM?PM.dims(P,u,P.units):null, area=SP.num(u.area)||(D?Math.round(D.area):0);
+    var st=stOf(u), c=ST[st], ppm=(SP.num(u.price)&&area)?Math.round(SP.num(u.price)/area):0;
+    var wd=D&&D.edges.length===4?PM.fmtLen(Math.min(D.edges[0].len,D.edges[1].len))+' × '+PM.fmtLen(Math.max(D.edges[0].len,D.edges[1].len)):'';
     var cells=[
-      ['المساحة',u.area?SP.fmtNum(u.area)+' م²':''],['البلوك',u.block],['النوع / الاستخدام',u.type],
+      ['المساحة',area?SP.fmtNum(area)+' م²':''],['الأبعاد',wd],['الواجهات',D?(D.streets===1?'شارع واحد':D.streets===2?'زاوية (شارعين)':D.streets>2?D.streets+' شوارع':''):''],['البلوك',u.block],['النوع / الاستخدام',u.type],
       ['عرض الشارع',u.street?u.street+' م':''],['الواجهة',u.facing],['الغرف',u.beds],['دورات المياه',u.baths],
       ['سعر المتر',ppm&&st==='available'?ppm.toLocaleString('ar-SA')+' ريال':'']
     ].filter(function(x){return x[1];});
@@ -575,6 +580,7 @@ button{font-family:'Cairo',sans-serif}
       +'<div class="us-no">'+esc(uLabel(u))+'</div>'
       +'<span class="pill" style="background:'+c.bg+';color:'+c.color+'">'+c.label+'</span>'
       +(cells.length?'<div class="us-grid">'+cells.map(function(x){return '<div class="us-c"><div class="us-k">'+x[0]+'</div><div class="us-v">'+esc(x[1])+'</div></div>';}).join('')+'</div>':'<div style="height:14px"></div>')
+      +(D?'<div class="us-crq"><div class="us-k" style="margin-bottom:4px;font-weight:800">كروكي ال'+esc(K.unit)+' والأطوال</div>'+PM.croquisSVG(D,u)+PM.dimsTable(D,u)+'</div>':'')
       +(u.note?'<p style="font-size:13px;color:var(--sub);line-height:1.8;margin-bottom:12px">'+esc(u.note)+'</p>':'')
       +(st==='available'
         ?'<div class="us-price"><span>السعر</span><b>'+(u.price?SP.fmtPrice(u.price):'عند التواصل')+'</b></div>'

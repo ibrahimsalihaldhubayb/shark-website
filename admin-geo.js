@@ -25,11 +25,11 @@
   /* مساحة مضلع بالمتر المربع */
   function areaM2(ll){
     if(ll.length<3) return 0;
-    var lat0=ll[0][0]*Math.PI/180, kx=111320*Math.cos(lat0), ky=110540, a=0;
+    var k=PM.mPerDeg(ll[0][0]), kx=k.x, ky=k.y, a=0;
     for(var i=0;i<ll.length;i++){ var p=ll[i], q=ll[(i+1)%ll.length]; a+=(p[1]*kx)*(q[0]*ky)-(q[1]*kx)*(p[0]*ky); }
     return Math.abs(a/2);
   }
-  function flat(ll){ var g=[]; ll.forEach(function(p){ g.push(r7(p[0]),r7(p[1])); }); return g; }
+  function flat(ll){ var g=[]; ll.forEach(function(p){ g.push(+(+p[0]).toFixed(9),+(+p[1]).toFixed(9)); }); return g; }
 
   window.pjGeoReset=function(){ mode=null; pts=[]; selId=null; if(map){ map.remove(); map=null; } plots=labels=overlay=tmp=null; handles=[]; };
 
@@ -212,50 +212,185 @@
     return '';
   }
   function ringLatLng(ring){ var a=ring.map(function(p){ return [+p[1],+p[0]]; }); if(a.length>1&&a[0][0]===a[a.length-1][0]&&a[0][1]===a[a.length-1][1]) a.pop(); return a; }
+  /* ── تحويل إحداثيات UTM (المخططات الهندسية) إلى خطوط الطول والعرض ── */
+  var ELL={wgs:{a:6378137,f:1/298.257223563},intl:{a:6378388,f:1/297}};
+  function utmToGeo(E,N,zone,el){
+    var a=el.a,f=el.f,e2=f*(2-f),ep2=e2/(1-e2),k0=.9996,x=E-500000,y=N;
+    var M=y/k0, mu=M/(a*(1-e2/4-3*e2*e2/64-5*e2*e2*e2/256));
+    var e1=(1-Math.sqrt(1-e2))/(1+Math.sqrt(1-e2));
+    var p1=mu+(3*e1/2-27*Math.pow(e1,3)/32)*Math.sin(2*mu)+(21*e1*e1/16-55*Math.pow(e1,4)/32)*Math.sin(4*mu)+(151*Math.pow(e1,3)/96)*Math.sin(6*mu)+(1097*Math.pow(e1,4)/512)*Math.sin(8*mu);
+    var s=Math.sin(p1),c=Math.cos(p1),t=Math.tan(p1),C1=ep2*c*c,T1=t*t,N1=a/Math.sqrt(1-e2*s*s),R1=a*(1-e2)/Math.pow(1-e2*s*s,1.5),D=x/(N1*k0);
+    var lat=p1-(N1*t/R1)*(D*D/2-(5+3*T1+10*C1-4*C1*C1-9*ep2)*Math.pow(D,4)/24+(61+90*T1+298*C1+45*T1*T1-252*ep2-3*C1*C1)*Math.pow(D,6)/720);
+    var lng=(D-(1+2*T1+C1)*Math.pow(D,3)/6+(5-2*C1+28*T1-3*C1*C1+8*ep2+24*T1*T1)*Math.pow(D,5)/120)/c;
+    return [lat*180/Math.PI,(zone-1)*6-180+3+lng*180/Math.PI];
+  }
+  function geoToEcef(lat,lng,el){ var a=el.a,e2=el.f*(2-el.f),la=lat*Math.PI/180,lo=lng*Math.PI/180,N=a/Math.sqrt(1-e2*Math.sin(la)*Math.sin(la));
+    return [N*Math.cos(la)*Math.cos(lo),N*Math.cos(la)*Math.sin(lo),N*(1-e2)*Math.sin(la)]; }
+  function ecefToGeo(X,Y,Z,el){ var a=el.a,e2=el.f*(2-el.f),p=Math.sqrt(X*X+Y*Y),lo=Math.atan2(Y,X),la=Math.atan2(Z,p*(1-e2));
+    for(var i=0;i<6;i++){ var N=a/Math.sqrt(1-e2*Math.sin(la)*Math.sin(la)); la=Math.atan2(Z+e2*N*Math.sin(la),p); }
+    return [la*180/Math.PI,lo*180/Math.PI]; }
+  /* datum: wgs = WGS84 / KSA-GRF17 ، ain = عين العبد 1970 */
+  function projToLatLng(x,y,zone,datum){
+    if(datum==='ain'){ var g=utmToGeo(x,y,zone,ELL.intl), X=geoToEcef(g[0],g[1],ELL.intl); return ecefToGeo(X[0]-143,X[1]-236,X[2]+7,ELL.wgs); }
+    return utmToGeo(x,y,zone,ELL.wgs);
+  }
+
+  /* ── قراءة ملف DXF (أوتوكاد): المضلعات المغلقة + أرقام القطع ── */
+  function cleanTxt(t){ return String(t||'').replace(/\\[A-Za-z][^;\\]*;/g,'').replace(/\\P/g,' ').replace(/[{}]/g,'').replace(/[٠-٩]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d);}).trim(); }
+  function parseDXF(txt){
+    var L=txt.split(/\r?\n/), ents=[], cur=null, sec='', i;
+    for(i=0;i+1<L.length;i+=2){
+      var code=parseInt(L[i],10), val=L[i+1];
+      if(code===0){
+        var v=val.trim();
+        if(v==='SECTION'){ sec='?'; cur=null; continue; }
+        if(v==='ENDSEC'){ sec=''; cur=null; continue; }
+        if(sec==='ENTITIES'||sec==='BLOCKS'){ cur={type:v,c:[]}; if(sec==='ENTITIES') ents.push(cur); else cur=null; }
+        continue;
+      }
+      if(code===2&&sec==='?'){ sec=val.trim(); continue; }
+      if(cur) cur.c.push([code,val]);
+    }
+    var polys=[], texts=[], openPoly=null;
+    function g(e,code){ for(var k=0;k<e.c.length;k++) if(e.c[k][0]===code) return e.c[k][1]; return null; }
+    ents.forEach(function(e){
+      var layer=(g(e,8)||'').trim();
+      if(e.type==='LWPOLYLINE'){
+        var pts=[], x=null;
+        e.c.forEach(function(p){ if(p[0]===10) x=parseFloat(p[1]); else if(p[0]===20&&x!=null){ pts.push([x,parseFloat(p[1])]); x=null; } });
+        var closed=(parseInt(g(e,70)||'0',10)&1)===1;
+        polys.push({pts:pts,closed:closed,layer:layer});
+      } else if(e.type==='POLYLINE'){
+        openPoly={pts:[],closed:(parseInt(g(e,70)||'0',10)&1)===1,layer:layer}; polys.push(openPoly);
+      } else if(e.type==='VERTEX'&&openPoly){
+        var vx=parseFloat(g(e,10)), vy=parseFloat(g(e,20)); if(isFinite(vx)&&isFinite(vy)) openPoly.pts.push([vx,vy]);
+      } else if(e.type==='SEQEND'){ openPoly=null; }
+      else if(e.type==='TEXT'||e.type==='MTEXT'||e.type==='ATTRIB'){
+        var t=e.c.filter(function(p){return p[0]===1||p[0]===3;}).map(function(p){return p[1];}).join('');
+        var tx=parseFloat(g(e,10)), ty=parseFloat(g(e,20));
+        // TEXT بمحاذاة: نقطة المحاذاة الثانية أدق
+        var ax=parseFloat(g(e,11)), ay=parseFloat(g(e,21)); if(e.type!=='MTEXT'&&isFinite(ax)&&isFinite(ay)&&(ax||ay)){ tx=ax; ty=ay; }
+        if(isFinite(tx)&&isFinite(ty)) texts.push({t:cleanTxt(t),x:tx,y:ty,layer:layer});
+      }
+    });
+    polys=polys.filter(function(p){
+      var n=p.pts.length; if(n<3) return false;
+      var f=p.pts[0], l=p.pts[n-1];
+      if(Math.abs(f[0]-l[0])<1e-6&&Math.abs(f[1]-l[1])<1e-6){ p.pts.pop(); p.closed=true; }
+      return p.closed&&p.pts.length>=3;
+    });
+    return {polys:polys,texts:texts};
+  }
+  function areaPlanar(pts){ var a=0; for(var i=0;i<pts.length;i++){ var p=pts[i],q=pts[(i+1)%pts.length]; a+=p[0]*q[1]-q[0]*p[1]; } return Math.abs(a/2); }
+  function inPoly(x,y,pts){ var c=false; for(var i=0,j=pts.length-1;i<pts.length;j=i++){ var a=pts[i],b=pts[j]; if(((a[1]>y)!==(b[1]>y))&&(x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])) c=!c; } return c; }
+  /* ربط كل رقم بأصغر مضلع يحتويه = القطعة */
+  function dxfPlots(d){
+    var numRe=/^\d{1,5}[A-Za-zء-ي]?$/;
+    d.polys.forEach(function(p){ p.area=areaPlanar(p.pts); p.no=null; p.nd=Infinity; var cx=0,cy=0; p.pts.forEach(function(q){cx+=q[0];cy+=q[1];}); p.c=[cx/p.pts.length,cy/p.pts.length]; });
+    var cand=d.polys.filter(function(p){ return p.area>=40&&p.area<=60000; });
+    d.texts.forEach(function(t){
+      if(!numRe.test(t.t.replace(/\s+/g,''))) return;
+      var best=null;
+      cand.forEach(function(p){ if(inPoly(t.x,t.y,p.pts)&&(!best||p.area<best.area)) best=p; });
+      if(!best) return;
+      var dd=Math.hypot(t.x-best.c[0],t.y-best.c[1]);
+      if(dd<best.nd){ best.no=t.t.replace(/\s+/g,''); best.nd=dd; }
+    });
+    // مضلع يحتوي مضلعات مرقّمة أخرى = بلوك وليس قطعة
+    var plots=cand.filter(function(p){ return p.no; });
+    return plots.filter(function(p){ return !plots.some(function(q){ return q!==p&&q.area<p.area&&inPoly(q.c[0],q.c[1],p.pts); }); });
+  }
+
+  /* ── الاستيراد: يجهّز الملف ثم يعرض لوحة الخيارات ── */
+  var _pending=null;
+  function guessZone(){ var lng=parseFloat($('pj-lng').value); if(!isFinite(lng)&&map) lng=map.getCenter().lng; return isFinite(lng)?Math.max(36,Math.min(40,Math.floor((lng+180)/6)+1)):38; }
+  function isUTM(xy){ return xy[0]>100000&&xy[0]<900000&&xy[1]>1000000&&xy[1]<4000000; }
+  function isLL(xy){ return Math.abs(xy[0])<=180&&Math.abs(xy[1])<=90; }
   window.pjGeoImport=function(inp){
     var f=inp.files[0]; if(!f) return;
     var rd=new FileReader();
     rd.onload=function(){
-      var feats=[];
+      var feats=[], txt=rd.result, src='';
       try{
-        var txt=rd.result;
-        if(/\.kml$/i.test(f.name)||/<kml/i.test(txt)){
+        if(/\.dxf$/i.test(f.name)||/^\s*0\s*[\r\n]+\s*SECTION/.test(txt)){
+          src='dxf';
+          var d=parseDXF(txt), pl=dxfPlots(d);
+          if(!d.polys.length){ alert('لم يتم العثور على خطوط مغلقة (Polyline) في الملف.\nتأكد أن حدود القطع مرسومة كـ Polyline مغلقة.'); inp.value=''; return; }
+          if(!pl.length){ alert('تم العثور على '+d.polys.length+' شكل مغلق لكن لم يتم ربطها بأرقام القطع.\nتأكد أن رقم كل قطعة مكتوب كنص (Text) داخل حدودها.'); inp.value=''; return; }
+          feats=pl.map(function(p){ return {xy:p.pts,props:{no:p.no,area:String(Math.round(p.area))},layer:p.layer}; });
+        } else if(/\.kml$/i.test(f.name)||/<kml/i.test(txt)){
+          src='kml';
           var xml=new DOMParser().parseFromString(txt,'text/xml');
           [].slice.call(xml.getElementsByTagName('Placemark')).forEach(function(pm){
             var co=pm.getElementsByTagName('coordinates')[0]; if(!co) return;
-            var ring=co.textContent.trim().split(/\s+/).map(function(t){ return t.split(',').map(Number); });
+            var ring=co.textContent.trim().split(/\s+/).map(function(t){ return t.split(',').map(Number).slice(0,2); });
             var nm=pm.getElementsByTagName('name')[0], props={name:nm?nm.textContent:''};
-            [].slice.call(pm.getElementsByTagName('Data')).forEach(function(d){ var v=d.getElementsByTagName('value')[0]; props[d.getAttribute('name')]=v?v.textContent:''; });
-            [].slice.call(pm.getElementsByTagName('SimpleData')).forEach(function(d){ props[d.getAttribute('name')]=d.textContent; });
-            if(ring.length>=3) feats.push({props:props,ll:ringLatLng(ring)});
+            [].slice.call(pm.getElementsByTagName('Data')).forEach(function(dd){ var v=dd.getElementsByTagName('value')[0]; props[dd.getAttribute('name')]=v?v.textContent:''; });
+            [].slice.call(pm.getElementsByTagName('SimpleData')).forEach(function(dd){ props[dd.getAttribute('name')]=dd.textContent; });
+            if(ring.length>=3) feats.push({xy:ring,props:props,layer:''});
           });
         } else {
+          src='geojson';
           var gj=JSON.parse(txt), list=gj.type==='FeatureCollection'?gj.features:(gj.type==='Feature'?[gj]:[]);
           list.forEach(function(ft){
-            var g=ft.geometry; if(!g) return;
-            var ring=g.type==='Polygon'?g.coordinates[0]:(g.type==='MultiPolygon'?g.coordinates[0][0]:null);
-            if(ring&&ring.length>=3) feats.push({props:ft.properties||{},ll:ringLatLng(ring)});
+            var gm=ft.geometry; if(!gm) return;
+            var ring=gm.type==='Polygon'?gm.coordinates[0]:(gm.type==='MultiPolygon'?gm.coordinates[0][0]:null);
+            if(ring&&ring.length>=3) feats.push({xy:ring.map(function(q){return [+q[0],+q[1]];}),props:ft.properties||{},layer:''});
           });
         }
-      }catch(e){ alert('تعذّر قراءة الملف: '+e.message); return; }
-      if(!feats.length){ alert('لم يتم العثور على مضلعات في الملف'); return; }
-      var big=feats.some(function(x){ return Math.abs(x.ll[0][0])>90; });
-      if(big){ alert('إحداثيات الملف ليست بنظام WGS84 (خطوط الطول والعرض) — صدّر الملف بنظام EPSG:4326'); return; }
-      var made=0, linked=0, next=natNext();
-      feats.forEach(function(ft){
-        var no=pick(ft.props,NO_KEYS)||String(next++), blk=pick(ft.props,BLK_KEYS), ar=pick(ft.props,AREA_KEYS);
-        var u=units().find(function(x){ return String(x.no)===no&&(!blk||String(x.block||'')===blk); });
-        if(u) linked++;
-        else { u={id:S().uuid('U-'),no:no,block:blk,area:'',price:'',street:'',facing:'',type:'',beds:'',status:'available'}; units().push(u); made++; }
-        u.g=flat(ft.ll); delete u.x; delete u.y;
-        if(!u.area) u.area=ar?String(Math.round(parseFloat(ar))||ar):String(Math.round(areaM2(ft.ll)));
-      });
-      S().renderUnitsEditor(); draw();
-      var b=PM.bounds(fakeProject()); if(b) map.fitBounds(b,{padding:[30,30]});
-      toast('تم الاستيراد: '+made+' قطعة جديدة، '+linked+' قطعة موجودة');
-      inp.value=''; renderTools();
+      }catch(e){ alert('تعذّر قراءة الملف: '+e.message); inp.value=''; return; }
+      inp.value='';
+      if(!feats.length){ alert('لم يتم العثور على قطع في الملف'); return; }
+      feats.forEach(function(ft){ var r=ft.xy; if(r.length>1&&r[0][0]===r[r.length-1][0]&&r[0][1]===r[r.length-1][1]) r.pop(); });
+      var s0=feats[0].xy[0], kind=isLL(s0)?'ll':(isUTM(s0)?'utm':'local');
+      if(kind==='local'){ alert('إحداثيات الملف محلية (غير مرتبطة بموقع حقيقي).\nاطلب من المطوّر ملف المخطط بإحداثيات UTM، أو استخدم «تثبيت صورة المخطط» ثم «رسم بلوك».'); return; }
+      _pending={feats:feats,kind:kind,src:src,name:f.name};
+      renderTools();
     };
     rd.readAsText(f);
+  };
+  window.pjGeoImportCancel=function(){ _pending=null; renderTools(); };
+  window.pjGeoImportGo=function(){
+    if(!_pending) return;
+    var zone=parseInt(($('pjg-zone')||{}).value||guessZone(),10), datum=($('pjg-datum')||{}).value||'wgs', layer=($('pjg-layer')||{}).value||'';
+    var feats=_pending.feats.filter(function(f){ return !layer||f.layer===layer; });
+    var made=0, linked=0, next=natNext();
+    feats.forEach(function(ft){
+      var ll=ft.xy.map(function(q){ return _pending.kind==='utm'?projToLatLng(q[0],q[1],zone,datum):[q[1],q[0]]; });
+      var no=pick(ft.props,NO_KEYS)||String(next++), blk=pick(ft.props,BLK_KEYS), ar=pick(ft.props,AREA_KEYS);
+      var u=units().find(function(x){ return String(x.no)===no&&(!blk||String(x.block||'')===blk); });
+      if(u) linked++;
+      else { u={id:S().uuid('U-'),no:no,block:blk,area:'',price:'',street:'',facing:'',type:'',beds:'',status:'available'}; units().push(u); made++; }
+      u.g=flat(ll); delete u.x; delete u.y;
+      if(!u.area) u.area=ar?String(Math.round(parseFloat(ar))||ar):String(Math.round(areaM2(ll)));
+    });
+    _pending=null;
+    S().renderUnitsEditor(); draw();
+    var b=PM.bounds(fakeProject()); if(b) map.fitBounds(b,{padding:[30,30]});
+    if(!$('pj-lat').value&&b){ var c=b.getCenter(); $('pj-lat').value=c.lat.toFixed(6); $('pj-lng').value=c.lng.toFixed(6); }
+    renderTools();
+    toast('تم الاستيراد: '+made+' قطعة جديدة، '+linked+' قطعة موجودة — قارن مع صورة القمر الصناعي');
+  };
+  function importPanel(){
+    if(!_pending) return '';
+    var p=_pending, layers={};
+    p.feats.forEach(function(f){ if(f.layer) layers[f.layer]=(layers[f.layer]||0)+1; });
+    var lk=Object.keys(layers);
+    var h2='<div class="pjg-box pjg-on"><b>استيراد «'+h(p.name)+'»:</b> تم التعرف على <b>'+p.feats.length+'</b> قطعة'+(p.src==='dxf'?' (أشكال مغلقة بداخلها رقم)':'')+'.';
+    if(lk.length>1) h2+='<div style="margin-top:6px">الطبقة (Layer): <select id="pjg-layer" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-family:inherit"><option value="">كل الطبقات</option>'+lk.map(function(k){return '<option value="'+h(k)+'">'+h(k)+' ('+layers[k]+')</option>';}).join('')+'</select></div>';
+    if(p.kind==='utm'){
+      var z=guessZone();
+      h2+='<div class="pjg-grid" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">'
+        +'<label>نطاق UTM<select id="pjg-zone" style="padding:6px;border:1px solid var(--border);border-radius:6px;font-family:inherit">'+[36,37,38,39,40].map(function(n){return '<option value="'+n+'"'+(n===z?' selected':'')+'>'+n+' شمال'+(n===37?' (جدة، المدينة)':n===38?' (الرياض، القصيم)':n===39?' (الشرقية)':'')+'</option>';}).join('')+'</select></label>'
+        +'<label>المرجع الجيوديسي<select id="pjg-datum" style="padding:6px;border:1px solid var(--border);border-radius:6px;font-family:inherit"><option value="wgs">KSA-GRF17 / WGS84 (الحديث)</option><option value="ain">عين العبد 1970 (المخططات القديمة)</option></select></label></div>'
+        +'<div style="font-size:11.5px;color:var(--sub);margin-top:4px">الملف بإحداثيات هندسية (UTM). إذا ظهرت القطع مزاحة عن الشوارع بحوالي 200 متر، احذفها وأعد الاستيراد بالمرجع الآخر.</div>';
+    }
+    h2+='<div style="display:flex;gap:8px;margin-top:8px"><button class="btn-primary" onclick="pjGeoImportGo()">استيراد القطع</button><button class="pj-mini" onclick="pjGeoImportCancel()">إلغاء</button></div></div>';
+    return h2;
+  }
+  window.pjGeoClearAll=function(){
+    if(!confirm('حذف رسم كل القطع من الخريطة؟ (تبقى القطع وبياناتها)')) return;
+    units().forEach(function(u){ delete u.g; }); S().renderUnitsEditor(); draw(); renderTools();
   };
 
   /* ── القطعة المحددة ── */
@@ -294,13 +429,15 @@
       html+='<div class="pjg-box pjg-on"><b>رسم القطعة '+h(u?u.no:'')+':</b> اضغط على زوايا القطعة واحدة تلو الأخرى، ثم اضغط على النقطة الأولى أو «إنهاء». ('+pts.length+' نقاط)'
         +'<div style="margin-top:6px;display:flex;gap:6px"><button class="btn-primary" onclick="pjGeoFinishPlot()" '+(pts.length>=3?'':'disabled')+'>إنهاء</button><button class="pj-mini" onclick="pjGeoUndo()">تراجع</button><button class="pj-mini" onclick="pjGeoCancel()">إلغاء</button></div></div>';
     }
+    html+=importPanel();
     // toolbar
     html+='<div class="pj-bar" style="margin:8px 0">'
       +'<button class="pj-btn2" onclick="pjGeoMode(\'block\')">▦ رسم بلوك وتقسيمه</button>'
       +'<button class="pj-btn2" onclick="pjGeoMode(\'plot\')">✎ رسم قطعة</button>'
       +'<button class="pj-btn2" onclick="pjGeoAlign()">🗺️ '+(c?'تعديل تثبيت المخطط':'تثبيت صورة المخطط')+'</button>'
       +(c?'<button class="pj-mini" style="color:#ef4444" onclick="pjGeoUnalign()">إزالة التثبيت</button>':'')
-      +'<label class="pj-btn2" style="display:inline-block">⇪ استيراد GeoJSON / KML<input type="file" accept=".geojson,.json,.kml" style="display:none" onchange="pjGeoImport(this)"></label>'
+      +'<label class="pj-btn2" style="display:inline-block;cursor:pointer">⇪ استيراد ملف المخطط (DXF / KML / GeoJSON)<input type="file" accept=".dxf,.geojson,.json,.kml" style="display:none" onchange="pjGeoImport(this)"></label>'
+      +(placed?'<button class="pj-mini" style="color:#ef4444" onclick="pjGeoClearAll()">حذف كل الرسم</button>':'')
       +'<span style="flex:1"></span><button class="pj-mini" onclick="pjGeoFit()">عرض الكل</button><button class="pj-mini" id="pjg-base" onclick="pjGeoBase()">'+(baseK==='sat'?'خريطة عادية':'قمر صناعي')+'</button></div>';
     // selected unit
     var su=unitById(selId);
