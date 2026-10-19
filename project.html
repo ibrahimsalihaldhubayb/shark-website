@@ -572,7 +572,7 @@ button{font-family:'Cairo',sans-serif}
     var st=stOf(u), c=ST[st], ppm=(SP.num(u.price)&&area)?Math.round(SP.num(u.price)/area):0;
     var wd=D&&D.edges.length===4?PM.fmtLen(Math.min(D.edges[0].len,D.edges[1].len))+' × '+PM.fmtLen(Math.max(D.edges[0].len,D.edges[1].len)):'';
     var cells=[
-      ['المساحة',area?SP.fmtNum(area)+' م²':''],['الأبعاد',wd],['الواجهات',D?(D.streets===1?'شارع واحد':D.streets===2?'زاوية (شارعين)':D.streets>2?D.streets+' شوارع':''):''],['البلوك',u.block],['النوع / الاستخدام',u.type],
+      ['المساحة',area?SP.fmtNum(area)+' م²':''],['الأبعاد',wd],['الواجهات',D&&!D.large?(D.streets===1?'شارع واحد':D.streets===2?'زاوية (شارعين)':D.streets>2?D.streets+' شوارع':''):''],['البلوك',u.block],['النوع / الاستخدام',u.type],
       ['عرض الشارع',u.street?u.street+' م':''],['الواجهة',u.facing],['الغرف',u.beds],['دورات المياه',u.baths],
       ['سعر المتر',ppm&&st==='available'?ppm.toLocaleString('ar-SA')+' ريال':'']
     ].filter(function(x){return x[1];});

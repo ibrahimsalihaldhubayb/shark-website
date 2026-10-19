@@ -76,7 +76,20 @@
   var DIRS=[{k:'n',ar:'شمال',arx:'شمالاً'},{k:'e',ar:'شرق',arx:'شرقاً'},{k:'s',ar:'جنوب',arx:'جنوباً'},{k:'w',ar:'غرب',arx:'غرباً'}];
   /* أمتار لكل درجة عند خط العرض (دقيقة على الإهليلج) */
   function mPerDeg(lat){ var r=lat*Math.PI/180; return {y:111132.954-559.822*Math.cos(2*r)+1.175*Math.cos(4*r), x:111412.84*Math.cos(r)-93.5*Math.cos(3*r)+.118*Math.cos(5*r)}; }
-  function toXY(ll,lat0){ var k=mPerDeg(lat0); return ll.map(function(q){ return [q[1]*k.x,q[0]*k.y]; }); }
+  /* إسقاط UTM (WGS84) — نفس نظام المخططات الهندسية والصكوك، فتطابق الأطوال والمساحات أرقام المخطط */
+  function utm(lat,lng,zone){
+    var a=6378137,f=1/298.257223563,e2=f*(2-f),ep2=e2/(1-e2),k0=.9996;
+    var la=lat*Math.PI/180, lo=lng*Math.PI/180, lo0=((zone-1)*6-180+3)*Math.PI/180;
+    var N=a/Math.sqrt(1-e2*Math.sin(la)*Math.sin(la)), T=Math.tan(la)*Math.tan(la), C=ep2*Math.cos(la)*Math.cos(la), A=Math.cos(la)*(lo-lo0);
+    var M=a*((1-e2/4-3*e2*e2/64-5*e2*e2*e2/256)*la-(3*e2/8+3*e2*e2/32+45*e2*e2*e2/1024)*Math.sin(2*la)+(15*e2*e2/256+45*e2*e2*e2/1024)*Math.sin(4*la)-(35*e2*e2*e2/3072)*Math.sin(6*la));
+    var x=k0*N*(A+(1-T+C)*A*A*A/6+(5-18*T+T*T+72*C-58*ep2)*Math.pow(A,5)/120)+500000;
+    var y=k0*(M+N*Math.tan(la)*(A*A/2+(5-T+9*C+4*C*C)*Math.pow(A,4)/24+(61-58*T+T*T+600*C-330*ep2)*Math.pow(A,6)/720));
+    return [x,y];
+  }
+  function toXY(ll,lat0,zone){
+    if(!zone){ var lg=0; ll.forEach(function(q){lg+=q[1];}); zone=Math.floor((lg/ll.length+180)/6)+1; }
+    return ll.map(function(q){ return utm(q[0],q[1],zone); });
+  }
   function areaXY(xy){ var a=0; for(var i=0;i<xy.length;i++){ var p=xy[i],q=xy[(i+1)%xy.length]; a+=p[0]*q[1]-q[0]*p[1]; } return Math.abs(a/2); }
   function segDist(p,a,b){ var dx=b[0]-a[0],dy=b[1]-a[1],L=dx*dx+dy*dy,t=L?((p[0]-a[0])*dx+(p[1]-a[1])*dy)/L:0; t=Math.max(0,Math.min(1,t)); var x=a[0]+t*dx-p[0],y=a[1]+t*dy-p[1]; return Math.sqrt(x*x+y*y); }
   /**
@@ -85,10 +98,10 @@
    */
   function dims(p,u,all){
     var s=unitShape(p,u); if(!s||s.type!=='poly') return null;
-    var ll=s.latlngs, lat0=ll[0][0], xy=toXY(ll,lat0), n=xy.length;
+    var ll=s.latlngs, lat0=ll[0][0], zn=Math.floor((ll[0][1]+180)/6)+1, xy=toXY(ll,lat0,zn), n=xy.length;
     var cx=0,cy=0; xy.forEach(function(q){cx+=q[0];cy+=q[1];}); cx/=n; cy/=n;
     var others=[];
-    (all||[]).forEach(function(o){ if(o===u||o.id===u.id) return; var so=unitShape(p,o); if(so&&so.type==='poly') others.push({u:o,xy:toXY(so.latlngs,lat0)}); });
+    (all||[]).forEach(function(o){ if(o===u||o.id===u.id) return; var so=unitShape(p,o); if(so&&so.type==='poly') others.push({u:o,xy:toXY(so.latlngs,lat0,zn)}); });
     var edges=[];
     for(var i=0;i<n;i++){
       var a=xy[i], b=xy[(i+1)%n], len=Math.hypot(b[0]-a[0],b[1]-a[1]);
@@ -101,13 +114,15 @@
       var eang=Math.abs(Math.atan2(b[1]-a[1],b[0]-a[0])*180/Math.PI)%90;
       edges.push({len:len,dir:dir,neighbor:nb,a:a,b:b,ll:[ll[i],ll[(i+1)%n]],chamfer:!nb&&len<7&&eang>20&&eang<70});
     }
-    var streets=edges.filter(function(e){return !e.neighbor&&!e.chamfer;}).length;
-    return {edges:edges,area:areaXY(xy),xy:xy,c:[cx,cy],streets:streets};
+    var area=areaXY(xy), large=area>10000||edges.length>10;
+    var streets=large?null:edges.filter(function(e){return !e.neighbor&&!e.chamfer;}).length;
+    return {edges:edges,area:area,xy:xy,c:[cx,cy],streets:streets,large:large,per:edges.reduce(function(a,e){return a+e.len;},0)};
   }
   function fmtLen(v){ return (Math.round(v*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
   function borderText(e,u,d){
-    if(e.chamfer) return 'شطفة';
     if(e.neighbor) return 'قطعة '+e.neighbor.no;
+    if(d&&d.large) return '—';
+    if(e.chamfer) return 'شطفة';
     return 'شارع'+(u.street&&d&&d.streets===1?' عرض '+u.street+' م':'');
   }
   /* كروكي SVG للقطعة (الشمال للأعلى) */
@@ -126,11 +141,12 @@
       var vx=mx-C[0], vy=my-C[1], vl=Math.hypot(vx,vy)||1; vx/=vl; vy/=vl;
       // اتجاه عمودي على الضلع للخارج
       var ex=b[0]-a[0], ey=b[1]-a[1], el=Math.hypot(ex,ey)||1, nx=-ey/el, ny=ex/el; if(nx*vx+ny*vy<0){ nx=-nx; ny=-ny; }
+      if(d.edges.length>8&&e.len<d.per*.07) return;
       var big=e.len>=7||!e.chamfer, side=Math.abs(nx)>Math.abs(ny), t1x,t1y,t2x,t2y;
       if(side){ var off=big?34:22; t1x=t2x=mx+nx*off; t1y=my-3; t2y=my+11; }
       else { t1x=t2x=mx+nx*8; if(ny>0){ t1y=my+17; t2y=my+30; } else { t1y=my-7; t2y=my-21; } }
       svg+='<text x="'+t1x.toFixed(1)+'" y="'+t1y.toFixed(1)+'" text-anchor="middle" font-size="'+(big?12:10)+'" font-weight="800" fill="#1a1a22" direction="rtl">'+fmtLen(e.len)+' م</text>';
-      if(big||!e.chamfer) svg+='<text x="'+t2x.toFixed(1)+'" y="'+t2y.toFixed(1)+'" text-anchor="middle" font-size="10" fill="'+(e.neighbor?'#7a7670':'#2563eb')+'" direction="rtl">'+esc(borderText(e,u,d))+'</text>';
+      if((big||!e.chamfer)&&!d.large) svg+='<text x="'+t2x.toFixed(1)+'" y="'+t2y.toFixed(1)+'" text-anchor="middle" font-size="10" fill="'+(e.neighbor?'#7a7670':'#2563eb')+'" direction="rtl">'+esc(borderText(e,u,d))+'</text>';
     });
     svg+='<text x="'+C[0].toFixed(1)+'" y="'+(C[1]-2).toFixed(1)+'" text-anchor="middle" font-size="16" font-weight="900" fill="#1a1a22">'+esc(u.no)+'</text>';
     svg+='<text x="'+C[0].toFixed(1)+'" y="'+(C[1]+15).toFixed(1)+'" text-anchor="middle" font-size="11" fill="#57524b">'+fmtLen(d.area)+' م²</text>';
@@ -234,6 +250,6 @@
     };
   }
 
-  window.SharkPlotMap={mPerDeg:mPerDeg,dims:dims,croquisSVG:croquisSVG,dimsTable:dimsTable,fmtLen:fmtLen,COLORS:COL,status:st,corners:corners,imgToLatLng:imgToLatLng,unitShape:unitShape,centroid:centroid,
+  window.SharkPlotMap={utm:utm,mPerDeg:mPerDeg,dims:dims,croquisSVG:croquisSVG,dimsTable:dimsTable,fmtLen:fmtLen,COLORS:COL,status:st,corners:corners,imgToLatLng:imgToLatLng,unitShape:unitShape,centroid:centroid,
     hasGeo:hasGeo,bounds:bounds,RotatedImage:RotatedImage,render:render,baseLayers:baseLayers};
 })();

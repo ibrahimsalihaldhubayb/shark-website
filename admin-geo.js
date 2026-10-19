@@ -25,8 +25,8 @@
   /* مساحة مضلع بالمتر المربع */
   function areaM2(ll){
     if(ll.length<3) return 0;
-    var k=PM.mPerDeg(ll[0][0]), kx=k.x, ky=k.y, a=0;
-    for(var i=0;i<ll.length;i++){ var p=ll[i], q=ll[(i+1)%ll.length]; a+=(p[1]*kx)*(q[0]*ky)-(q[1]*kx)*(p[0]*ky); }
+    var z=Math.floor((ll[0][1]+180)/6)+1, xy=ll.map(function(q){ return PM.utm(q[0],q[1],z); }), a=0;
+    for(var i=0;i<xy.length;i++){ var p=xy[i], q=xy[(i+1)%xy.length]; a+=p[0]*q[1]-q[0]*p[1]; }
     return Math.abs(a/2);
   }
   function flat(ll){ var g=[]; ll.forEach(function(p){ g.push(+(+p[0]).toFixed(9),+(+p[1]).toFixed(9)); }); return g; }
@@ -306,18 +306,73 @@
   function guessZone(){ var lng=parseFloat($('pj-lng').value); if(!isFinite(lng)&&map) lng=map.getCenter().lng; return isFinite(lng)?Math.max(36,Math.min(40,Math.floor((lng+180)/6)+1)):38; }
   function isUTM(xy){ return xy[0]>100000&&xy[0]<900000&&xy[1]>1000000&&xy[1]<4000000; }
   function isLL(xy){ return Math.abs(xy[0])<=180&&Math.abs(xy[1])<=90; }
+  /* ── قراءة DWG مباشرة (LibreDWG — يُحمَّل عند الحاجة فقط) ── */
+  var LDW_VER='0.8.1', LDW_BASE='https://cdn.jsdelivr.net/npm/@mlightcad/libredwg-web@'+LDW_VER+'/', _ldw=null;
+  function loadLibreDwg(){
+    if(!_ldw) _ldw=import(LDW_BASE+'dist/libredwg-web.js').then(function(m){ return m.LibreDwg.create(LDW_BASE+'wasm/').then(function(lib){ return {m:m,lib:lib}; }); });
+    _ldw.catch(function(){ _ldw=null; });
+    return _ldw;
+  }
+  function readDWG(buf){
+    return loadLibreDwg().then(function(L){
+      var dwg=L.lib.dwg_read_data(new Uint8Array(buf),L.m.Dwg_File_Type.DWG);
+      if(!dwg) throw new Error('تعذّر فتح ملف DWG');
+      var db=L.lib.convert(dwg); try{ L.lib.dwg_free(dwg); }catch(e){}
+      var polys=[], texts=[];
+      (db.entities||[]).forEach(function(e){
+        var layer=e.layer||'';
+        if(e.type==='LWPOLYLINE'){
+          var pts=(e.vertices||[]).map(function(v){ return [v.x,v.y]; });
+          polys.push({pts:pts,closed:!!(e.flag&512),layer:layer});
+        } else if(e.type==='POLYLINE2D'||e.type==='POLYLINE'){
+          var pv=(e.vertices||[]).map(function(v){ return [v.x,v.y]; });
+          polys.push({pts:pv,closed:!!(e.flag&1),layer:layer});
+        } else if(e.type==='TEXT'||e.type==='MTEXT'||e.type==='ATTRIB'){
+          var pt=e.insertionPoint||e.startPoint; if(!pt) return;
+          if(e.type==='TEXT'&&e.endPoint&&(e.endPoint.x||e.endPoint.y)&&(e.halign||e.valign)) pt=e.endPoint;
+          texts.push({t:cleanTxt(e.text),x:pt.x,y:pt.y,layer:layer});
+        }
+      });
+      return finishPolys({polys:polys,texts:texts});
+    });
+  }
+  function finishPolys(d){
+    d.polys=d.polys.filter(function(p){
+      var n=p.pts.length; if(n<3) return false;
+      var f=p.pts[0], l=p.pts[n-1];
+      if(Math.abs(f[0]-l[0])<1e-6&&Math.abs(f[1]-l[1])<1e-6){ p.pts.pop(); p.closed=true; }
+      return p.closed&&p.pts.length>=3;
+    });
+    return d;
+  }
+  /* من ملف هندسي (DXF/DWG) إلى قطع: بأرقامها، أو حدود بدون أرقام (مثل حد الصك) */
+  function cadFeats(d){
+    if(!d.polys.length) throw new Error('لم يتم العثور على خطوط مغلقة (Polyline) في الملف.\nتأكد أن حدود القطع أو الأرض مرسومة كـ Polyline مغلقة.');
+    var pl=dxfPlots(d);
+    if(pl.length) return {numbered:true,feats:pl.map(function(p){ return {xy:p.pts,props:{no:p.no,area:String(Math.round(p.area))},layer:p.layer}; })};
+    var all=d.polys.filter(function(p){ return areaPlanar(p.pts)>=40; });
+    return {numbered:false,feats:all.map(function(p){ return {xy:p.pts,props:{area:String(Math.round(areaPlanar(p.pts)))},layer:p.layer}; })};
+  }
   window.pjGeoImport=function(inp){
     var f=inp.files[0]; if(!f) return;
+    inp.value='';
+    if(/\.dwg$/i.test(f.name)){
+      toast('جاري قراءة ملف الأوتوكاد...');
+      var rb=new FileReader();
+      rb.onload=function(){
+        readDWG(rb.result).then(function(d){ var r=cadFeats(d); afterParse(r.feats,'dwg',f.name,r.numbered); })
+          .catch(function(e){ alert('تعذّر قراءة ملف DWG: '+(e&&e.message||e)+'\nجرّب حفظه بصيغة DXF من أوتوكاد (Save As ← DXF) ثم استورده.'); });
+      };
+      rb.readAsArrayBuffer(f);
+      return;
+    }
     var rd=new FileReader();
     rd.onload=function(){
-      var feats=[], txt=rd.result, src='';
+      var feats=[], txt=rd.result, src='', numbered=true;
       try{
         if(/\.dxf$/i.test(f.name)||/^\s*0\s*[\r\n]+\s*SECTION/.test(txt)){
           src='dxf';
-          var d=parseDXF(txt), pl=dxfPlots(d);
-          if(!d.polys.length){ alert('لم يتم العثور على خطوط مغلقة (Polyline) في الملف.\nتأكد أن حدود القطع مرسومة كـ Polyline مغلقة.'); inp.value=''; return; }
-          if(!pl.length){ alert('تم العثور على '+d.polys.length+' شكل مغلق لكن لم يتم ربطها بأرقام القطع.\nتأكد أن رقم كل قطعة مكتوب كنص (Text) داخل حدودها.'); inp.value=''; return; }
-          feats=pl.map(function(p){ return {xy:p.pts,props:{no:p.no,area:String(Math.round(p.area))},layer:p.layer}; });
+          var r=cadFeats(finishPolys(parseDXF(txt))); feats=r.feats; numbered=r.numbered;
         } else if(/\.kml$/i.test(f.name)||/<kml/i.test(txt)){
           src='kml';
           var xml=new DOMParser().parseFromString(txt,'text/xml');
@@ -338,17 +393,20 @@
             if(ring&&ring.length>=3) feats.push({xy:ring.map(function(q){return [+q[0],+q[1]];}),props:ft.properties||{},layer:''});
           });
         }
-      }catch(e){ alert('تعذّر قراءة الملف: '+e.message); inp.value=''; return; }
-      inp.value='';
-      if(!feats.length){ alert('لم يتم العثور على قطع في الملف'); return; }
-      feats.forEach(function(ft){ var r=ft.xy; if(r.length>1&&r[0][0]===r[r.length-1][0]&&r[0][1]===r[r.length-1][1]) r.pop(); });
-      var s0=feats[0].xy[0], kind=isLL(s0)?'ll':(isUTM(s0)?'utm':'local');
-      if(kind==='local'){ alert('إحداثيات الملف محلية (غير مرتبطة بموقع حقيقي).\nاطلب من المطوّر ملف المخطط بإحداثيات UTM، أو استخدم «تثبيت صورة المخطط» ثم «رسم بلوك».'); return; }
-      _pending={feats:feats,kind:kind,src:src,name:f.name};
-      renderTools();
+      }catch(e){ alert('تعذّر قراءة الملف: '+e.message); return; }
+      afterParse(feats,src,f.name,numbered);
     };
     rd.readAsText(f);
   };
+  function afterParse(feats,src,name,numbered){
+    if(!feats.length){ alert('لم يتم العثور على قطع في الملف'); return; }
+    feats.forEach(function(ft){ var r=ft.xy; if(r.length>1&&r[0][0]===r[r.length-1][0]&&r[0][1]===r[r.length-1][1]) r.pop(); });
+    var s0=feats[0].xy[0], kind=isLL(s0)?'ll':(isUTM(s0)?'utm':'local');
+    if(kind==='local'){ alert('إحداثيات الملف محلية (غير مرتبطة بموقع حقيقي).\nاطلب من المطوّر ملف المخطط بإحداثيات UTM، أو استخدم «تثبيت صورة المخطط» ثم «رسم بلوك».'); return; }
+    if(kind==='utm') feats=feats.filter(function(f){ return isUTM(f.xy[0]); });
+    _pending={feats:feats,kind:kind,src:src,name:name,numbered:numbered!==false};
+    renderTools();
+  }
   window.pjGeoImportCancel=function(){ _pending=null; renderTools(); };
   window.pjGeoImportGo=function(){
     if(!_pending) return;
@@ -376,8 +434,12 @@
     var p=_pending, layers={};
     p.feats.forEach(function(f){ if(f.layer) layers[f.layer]=(layers[f.layer]||0)+1; });
     var lk=Object.keys(layers);
-    var h2='<div class="pjg-box pjg-on"><b>استيراد «'+h(p.name)+'»:</b> تم التعرف على <b>'+p.feats.length+'</b> قطعة'+(p.src==='dxf'?' (أشكال مغلقة بداخلها رقم)':'')+'.';
-    if(lk.length>1) h2+='<div style="margin-top:6px">الطبقة (Layer): <select id="pjg-layer" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-family:inherit"><option value="">كل الطبقات</option>'+lk.map(function(k){return '<option value="'+h(k)+'">'+h(k)+' ('+layers[k]+')</option>';}).join('')+'</select></div>';
+    var def=lk.filter(function(k){ return /صك|حد|boundary|parcel|plot|قطع|ملكية/i.test(k); })[0]||'';
+    var cad=p.src==='dxf'||p.src==='dwg';
+    var h2='<div class="pjg-box pjg-on"><b>استيراد «'+h(p.name)+'»:</b> '
+      +(p.numbered?'تم التعرف على <b>'+p.feats.length+'</b> قطعة'+(cad?' (أشكال مغلقة بداخلها رقم)':'')+'.'
+        :'الملف لا يحتوي أرقام قطع داخل الحدود — وُجد <b>'+p.feats.length+'</b> شكل مغلق. اختر طبقة الحدود (مثل «حد الصك») وتُرقّم تلقائياً 1، 2، 3…');
+    if(lk.length>1||(!p.numbered&&lk.length)) h2+='<div style="margin-top:6px">الطبقة (Layer): <select id="pjg-layer" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-family:inherit"><option value="">كل الطبقات ('+p.feats.length+')</option>'+lk.map(function(k){return '<option value="'+h(k)+'"'+(k===def?' selected':'')+'>'+h(k)+' ('+layers[k]+')</option>';}).join('')+'</select></div>';
     if(p.kind==='utm'){
       var z=guessZone();
       h2+='<div class="pjg-grid" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">'
@@ -436,7 +498,7 @@
       +'<button class="pj-btn2" onclick="pjGeoMode(\'plot\')">✎ رسم قطعة</button>'
       +'<button class="pj-btn2" onclick="pjGeoAlign()">🗺️ '+(c?'تعديل تثبيت المخطط':'تثبيت صورة المخطط')+'</button>'
       +(c?'<button class="pj-mini" style="color:#ef4444" onclick="pjGeoUnalign()">إزالة التثبيت</button>':'')
-      +'<label class="pj-btn2" style="display:inline-block;cursor:pointer">⇪ استيراد ملف المخطط (DXF / KML / GeoJSON)<input type="file" accept=".dxf,.geojson,.json,.kml" style="display:none" onchange="pjGeoImport(this)"></label>'
+      +'<label class="pj-btn2" style="display:inline-block;cursor:pointer">⇪ استيراد ملف المخطط (DWG / DXF / KML)<input type="file" accept=".dwg,.dxf,.geojson,.json,.kml" style="display:none" onchange="pjGeoImport(this)"></label>'
       +(placed?'<button class="pj-mini" style="color:#ef4444" onclick="pjGeoClearAll()">حذف كل الرسم</button>':'')
       +'<span style="flex:1"></span><button class="pj-mini" onclick="pjGeoFit()">عرض الكل</button><button class="pj-mini" id="pjg-base" onclick="pjGeoBase()">'+(baseK==='sat'?'خريطة عادية':'قمر صناعي')+'</button></div>';
     // selected unit

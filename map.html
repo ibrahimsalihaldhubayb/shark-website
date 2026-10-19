@@ -425,7 +425,7 @@ body.list #fabs,body.list #legend{display:none!important}
     var K=SP.kind(p), st=PM.status(u), C=SP.STATUS[st], D=PM.dims(p,u,p.units||[]);
     var area=SP.num(u.area)||(D?Math.round(D.area):0), ppm=(SP.num(u.price)&&area)?Math.round(SP.num(u.price)/area):0;
     var wd=D&&D.edges.length===4?PM.fmtLen(Math.min(D.edges[0].len,D.edges[1].len))+' × '+PM.fmtLen(Math.max(D.edges[0].len,D.edges[1].len)):'';
-    var cells=[['المساحة',area?SP.fmtNum(area)+' م²':''],['الأبعاد',wd],['الواجهات',D?(D.streets===1?'شارع واحد':D.streets===2?'زاوية (شارعين)':D.streets>2?D.streets+' شوارع':'—'):''],['البلوك',u.block],['عرض الشارع',u.street?u.street+' م':''],['الواجهة',u.facing],['الاستخدام',u.type],['سعر المتر',ppm&&st==='available'?ppm.toLocaleString('ar-SA')+' ريال':'']].filter(function(c){return c[1];});
+    var cells=[['المساحة',area?SP.fmtNum(area)+' م²':''],['الأبعاد',wd],['الواجهات',D&&!D.large?(D.streets===1?'شارع واحد':D.streets===2?'زاوية (شارعين)':D.streets>2?D.streets+' شوارع':'—'):''],['البلوك',u.block],['عرض الشارع',u.street?u.street+' م':''],['الواجهة',u.facing],['الاستخدام',u.type],['سعر المتر',ppm&&st==='available'?ppm.toLocaleString('ar-SA')+' ريال':'']].filter(function(c){return c[1];});
     var href='project.html?id='+encodeURIComponent(p.id)+'&unit='+encodeURIComponent(u.id);
     $('sheet-body').innerHTML='<div class="ps-head">'+logoBox(p,'ps-logo')
       +'<div style="flex:1;min-width:0"><div class="tag">'+esc(p.name)+'</div><div class="ps-no">'+esc(K.unit)+' '+esc(u.no)+'</div></div>'
