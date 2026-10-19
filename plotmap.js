@@ -152,7 +152,7 @@
       var vx=mx-C[0], vy=my-C[1], vl=Math.hypot(vx,vy)||1; vx/=vl; vy/=vl;
       // اتجاه عمودي على الضلع للخارج
       var ex=b[0]-a[0], ey=b[1]-a[1], el=Math.hypot(ex,ey)||1, nx=-ey/el, ny=ex/el; if(nx*vx+ny*vy<0){ nx=-nx; ny=-ny; }
-      if(d.edges.length>8&&e.len<d.per*.07) return;
+      if(d.edges.length>6&&e.len<d.per*.07) return;
       var big=e.len>=7||!e.chamfer, side=Math.abs(nx)>Math.abs(ny), t1x,t1y,t2x,t2y;
       if(side){ var off=big?34:22; t1x=t2x=mx+nx*off; t1y=my-3; t2y=my+11; }
       else { t1x=t2x=mx+nx*8; if(ny>0){ t1y=my+17; t2y=my+30; } else { t1y=my-7; t2y=my-21; } }
