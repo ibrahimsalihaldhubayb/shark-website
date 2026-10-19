@@ -331,7 +331,7 @@ body.list #fabs,body.list #legend{display:none!important}
     _items=[];
     _projects.filter(projOk).forEach(function(p){
       var c=projCoords(p); var it={key:'p:'+p.id,kind:'project',d:p,coords:c}; _items.push(it);
-      if(PM.hasGeo(p)) _plots[p.id]=PM.render(map,p,{minZoom:14,labelZoom:18,onClick:function(u){ openPlot(p,u); }});
+      if(PM.hasGeo(p)) _plots[p.id]=PM.render(map,p,{minZoom:14,labelZoom:18,boundaryMinZoom:11,onClick:function(u){ openPlot(p,u); },onBoundary:function(){ closeSheet(); setSel('p:'+p.id); showProjectCard(p); }});
       if(c){
         var m=L.marker(c,{icon:projIcon(p,_selKey===it.key),zIndexOffset:1000,riseOnHover:true}).addTo(map);
         m.on('click',function(e){ L.DomEvent.stopPropagation(e); focusProject(p,true); });
@@ -358,7 +358,7 @@ body.list #fabs,body.list #legend{display:none!important}
     var z=map.getZoom();
     $('map').classList.toggle('show-lbl',z>=13);
     $('map').classList.toggle('hide-pm',z>=17);
-    var vb=map.getBounds(), plotsOn=z>=14&&Object.keys(_plots).some(function(k){ var b=_plots[k].bounds(); return b&&vb.intersects(b); });
+    var vb=map.getBounds(), plotsOn=z>=14&&Object.keys(_plots).some(function(k){ var b=_plots[k].bounds(); return _plots[k].count>0&&b&&vb.intersects(b); });
     $('legend').classList.toggle('on',plotsOn&&_view==='map');
   }
   map.on('zoomend moveend',onZoom);
@@ -400,7 +400,7 @@ body.list #fabs,body.list #legend{display:none!important}
   }
   function showProjectCard(p){
     var s=SP.stats(p), K=SP.kind(p), href='project.html?id='+encodeURIComponent(p.id);
-    var hasPlots=!!_plots[p.id];
+    var hasPlots=!!_plots[p.id]&&_plots[p.id].count>0;
     $('pcard-body').innerHTML='<div class="pc-row">'+logoBox(p,'pc-logo')
       +'<div class="pc-info">'
       +'<div class="tag">مشاريع الشركاء · '+esc(K.label)+'</div>'
@@ -410,6 +410,7 @@ body.list #fabs,body.list #legend{display:none!important}
       +'</div></div>'
       +(s.total?'<div class="bar"><span style="width:'+(s.available/s.total*100)+'%;background:var(--av)"></span><span style="width:'+(s.reserved/s.total*100)+'%;background:var(--rs)"></span><span style="width:'+(s.sold/s.total*100)+'%;background:var(--sd)"></span></div>':'')
       +(hasPlots?'<div class="pc-hint">اضغط على أي '+esc(K.unit)+' في المخطط لعرض تفاصيلها'+(s.minPrice?' · الأسعار تبدأ من '+fmt(s.minPrice):'')+'</div>':(s.minPrice?'<div class="pc-hint">الأسعار تبدأ من '+fmt(s.minPrice)+'</div>':''))
+      +(PM.boundaryRings(p).length?'<div class="pc-hint" style="padding-top:8px"><button class="b-sec" style="width:100%;padding:8px;border-radius:10px;font-weight:800;cursor:pointer" onclick="openLand(\''+esc(p.id)+'\',0)">📐 كروكي الأرض وأطوال الحدود — '+SP.fmtNum(Math.round(PM.boundaryDims(p,0).area))+' م²</button></div>':'')
       +'<div class="acts"><button class="b-pri" onclick="location.href=\''+href+'\'">تفاصيل المشروع</button>'
       +'<button class="b-sec" onclick="location.href=\''+href+'#book\'">احجز / سجّل اهتمامك</button></div>';
     $('pcard').classList.add('open');
@@ -444,6 +445,22 @@ body.list #fabs,body.list #legend{display:none!important}
     var c=_plots[p.id]&&_plots[p.id].center(u.id);
     if(c&&!map.getBounds().pad(-.2).contains(c)) map.panTo(c);
   }
+  window.openLand=function(pid,i){
+    var p=_projects.find(function(x){return x.id===pid;}); if(!p) return;
+    var rings=PM.boundaryRings(p), D=PM.boundaryDims(p,i||0); if(!D) return;
+    $('pcard').classList.remove('open');
+    var ha=D.area/10000;
+    $('sheet-body').innerHTML='<div class="ps-head">'+logoBox(p,'ps-logo')
+      +'<div style="flex:1;min-width:0"><div class="tag">'+esc(p.name)+'</div><div class="ps-no">حدود الأرض'+(rings.length>1?' '+((i||0)+1):'')+'</div></div></div>'
+      +'<div class="ps-grid"><div class="ps-c"><div class="ps-k">المساحة</div><div class="ps-v">'+SP.fmtNum(Math.round(D.area))+' م²</div></div>'
+      +'<div class="ps-c"><div class="ps-k">بالهكتار</div><div class="ps-v">'+ha.toLocaleString('ar-SA',{maximumFractionDigits:2})+'</div></div>'
+      +'<div class="ps-c"><div class="ps-k">المحيط</div><div class="ps-v">'+SP.fmtNum(Math.round(D.per))+' م</div></div></div>'
+      +(rings.length>1?'<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">'+rings.map(function(r,j){ return '<button class="b-sec" style="padding:6px 12px;border-radius:10px;font-weight:800;cursor:pointer;'+(j===(i||0)?'background:#1a1a22;color:#fff':'')+'" onclick="openLand(\''+esc(p.id)+'\','+j+')">الأرض '+(j+1)+'</button>'; }).join('')+'</div>':'')
+      +'<div class="ps-crq"><div class="ps-crq-h">كروكي الأرض وأطوال الحدود</div>'+PM.croquisSVG(D,{no:'',status:'available'},{w:340,h:280})+PM.dimsTable(D,{no:''})+'</div>'
+      +'<div class="acts"><button class="b-pri" onclick="location.href=\'project.html?id='+encodeURIComponent(p.id)+'\'">تفاصيل المشروع</button>'
+      +'<button class="b-wa" onclick="waText(\''+esc('السلام عليكم، أنا مهتم بمشروع '+p.name)+'\')">'+WA_SVG+'</button></div>';
+    $('sheet').classList.add('open');
+  };
   window.closeSheet=function(){
     $('sheet').classList.remove('open');
     if(_selPlot&&_plots[_selPlot.p]) _plots[_selPlot.p].select(null);

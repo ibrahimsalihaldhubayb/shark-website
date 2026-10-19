@@ -1436,7 +1436,7 @@ function renderRequestsView(){ var listEl=$('requests-list-view'); if(!listEl) r
     $('pj-published').checked=p?!!p.published:true;
     $('pj-coords-st').textContent='';
     _units=p&&p.units?JSON.parse(JSON.stringify(p.units)).sort(natCmp):[];
-    _media={plan:null,planW:p&&p.planW||0,planH:p&&p.planH||0,gallery:[],cover:p&&p.coverImg||'',logo:p&&p.partnerLogo||'',corners:p&&p.planCorners&&p.planCorners.length===6?p.planCorners.slice():null};
+    _media={plan:null,planW:p&&p.planW||0,planH:p&&p.planH||0,gallery:[],cover:p&&p.coverImg||'',logo:p&&p.partnerLogo||'',corners:p&&p.planCorners&&p.planCorners.length===6?p.planCorners.slice():null,boundary:p&&p.boundary?JSON.parse(JSON.stringify(p.boundary)):[]};
     if(window.pjGeoReset) pjGeoReset();
     _mediaDirty={plan:false,gallery:false}; _selU=null; _zoom=1; _origGalCount=0;
     renderUnitsEditor(); renderCover(); renderGal(); renderLogo();
@@ -1626,7 +1626,7 @@ function renderRequestsView(){ var listEl=$('requests-list-view'); if(!listEl) r
       lat:$('pj-lat').value.trim(),lng:$('pj-lng').value.trim(),contractNo:$('pj-contract').value.trim(),licenseNo:$('pj-license').value.trim(),
       desc:$('pj-desc').value.trim(),features:$('pj-feats').value.split(/\n/).map(function(x){return x.trim();}).filter(Boolean),
       priceFrom:$('pj-pricefrom').value.trim(),published:$('pj-published').checked,coverImg:_media.cover||'',
-      planW:_media.planW||0,planH:_media.planH||0,units:units,partnerLogo:_media.logo||'',planCorners:_media.corners||null,
+      planW:_media.planW||0,planH:_media.planH||0,units:units,partnerLogo:_media.logo||'',planCorners:_media.corners||null,boundary:(_media.boundary||[]).filter(function(b){return b&&b.g&&b.g.length>=6;}),
       createdBy:old&&old.createdBy||((typeof _currentUser!=='undefined'&&_currentUser)&&(_currentUser.name||_currentUser.username))||'',
       _ts:old&&old._ts||Date.now(),_updated:Date.now()};
     if(JSON.stringify(rec).length>990000){ alert('حجم بيانات المشروع كبير جداً — قلّل حجم صورة الغلاف أو عدد القطع'); return; }

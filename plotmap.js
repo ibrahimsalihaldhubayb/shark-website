@@ -31,13 +31,19 @@
     return null;
   }
   function centroid(ll){ var a=0,b=0; ll.forEach(function(q){a+=q[0];b+=q[1];}); return [a/ll.length,b/ll.length]; }
-  function hasGeo(p){ return !!(p&&(p.units||[]).some(function(u){return !!unitShape(p,u);})); }
+  /* حدود المشروع / الصك: p.boundary = [{g:[lat,lng,...], name}] */
+  function boundaryRings(p){
+    return ((p&&p.boundary)||[]).map(function(b){ var g=b.g||[], a=[]; for(var i=0;i+1<g.length;i+=2) a.push([Number(g[i]),Number(g[i+1])]); return a; }).filter(function(a){ return a.length>=3; });
+  }
+  function hasPlots(p){ return !!(p&&(p.units||[]).some(function(u){return !!unitShape(p,u);})); }
+  function hasGeo(p){ return hasPlots(p)||boundaryRings(p).length>0; }
 
   /* حدود المشروع على الخريطة */
   function bounds(p){
     var pts=[];
     (p.units||[]).forEach(function(u){ var s=unitShape(p,u); if(!s) return; if(s.type==='poly') pts=pts.concat(s.latlngs); else pts.push(s.latlng); });
     var c=corners(p); if(c){ pts.push(c.tl,c.tr,c.bl,[c.tr[0]+c.bl[0]-c.tl[0],c.tr[1]+c.bl[1]-c.tl[1]]); }
+    boundaryRings(p).forEach(function(r){ pts=pts.concat(r); });
     return pts.length?L.latLngBounds(pts):null;
   }
 
@@ -98,7 +104,12 @@
    */
   function dims(p,u,all){
     var s=unitShape(p,u); if(!s||s.type!=='poly') return null;
-    var ll=s.latlngs, lat0=ll[0][0], zn=Math.floor((ll[0][1]+180)/6)+1, xy=toXY(ll,lat0,zn), n=xy.length;
+    return ringDims(s.latlngs,p,u,all);
+  }
+  /* أطوال حدود الأرض (الصك) */
+  function boundaryDims(p,i){ var r=boundaryRings(p)[i||0]; if(!r) return null; var d=ringDims(r,p,{id:'__b'+i,no:''},null); d.large=true; d.streets=null; return d; }
+  function ringDims(ll,p,u,all){
+    var lat0=ll[0][0], zn=Math.floor((ll[0][1]+180)/6)+1, xy=toXY(ll,lat0,zn), n=xy.length;
     var cx=0,cy=0; xy.forEach(function(q){cx+=q[0];cy+=q[1];}); cx/=n; cy/=n;
     var others=[];
     (all||[]).forEach(function(o){ if(o===u||o.id===u.id) return; var so=unitShape(p,o); if(so&&so.type==='poly') others.push({u:o,xy:toXY(so.latlngs,lat0,zn)}); });
@@ -215,22 +226,45 @@
         dimL.addLayer(L.marker(m,{interactive:false,keyboard:false,icon:L.divIcon({className:'plot-dim',iconSize:null,html:'<span>'+fmtLen(e.len)+'م</span>'})}));
       });
     }
-    if(!document.getElementById('shark-dim-css')){ var dcs=document.createElement('style'); dcs.id='shark-dim-css'; dcs.textContent='.plot-dim span{display:block;transform:translate(-50%,-50%);background:#1a1a22;color:#fff;font:800 10px Cairo,Tahoma,sans-serif;padding:1px 6px;border-radius:8px;white-space:nowrap;direction:rtl;pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,.3)}'; document.head.appendChild(dcs); }
+    if(!document.getElementById('shark-dim-css')){ var dcs=document.createElement('style'); dcs.id='shark-dim-css'; dcs.textContent='.plot-dim span{display:block;transform:translate(-50%,-50%);background:#1a1a22;color:#fff;font:800 10px Cairo,Tahoma,sans-serif;padding:1px 6px;border-radius:8px;white-space:nowrap;direction:rtl;pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,.3)}.plot-dim.bnd span{background:#b8922a;color:#fff}'; document.head.appendChild(dcs); }
     function vis(){
       var want=map.getZoom()>=(opts.minZoom||0);
       if(want&&!shown){ if(overlay) overlay.addTo(map); group.addTo(map); labels.addTo(map); dimL.addTo(map); shown=true; }
       else if(!want&&shown){ if(overlay) map.removeLayer(overlay); map.removeLayer(group); map.removeLayer(labels); map.removeLayer(dimL); shown=false; }
       updLabels(); updDims();
     }
+    /* حدود الأرض: خط ذهبي متقطع + أطوال الأضلاع الرئيسية */
+    var bGroup=L.featureGroup(), bLbl=L.layerGroup(), bShown=false, rings=boundaryRings(p);
+    rings.forEach(function(r,i){
+      var poly=L.polygon(r,{color:'#b8922a',weight:3,dashArray:'10 7',fillColor:'#c8a96e',fillOpacity:hasPlots(p)?.04:.14,interactive:!!opts.onBoundary});
+      if(opts.onBoundary) poly.on('click',function(e){ L.DomEvent.stopPropagation(e); opts.onBoundary(i); });
+      bGroup.addLayer(poly);
+    });
+    function updB(){
+      var want=rings.length&&map.getZoom()>=(opts.boundaryMinZoom||11);
+      if(want&&!bShown){ bGroup.addTo(map); bLbl.addTo(map); if(bGroup.bringToBack) bGroup.bringToBack(); bShown=true; }
+      else if(!want&&bShown){ map.removeLayer(bGroup); map.removeLayer(bLbl); bShown=false; }
+      bLbl.clearLayers();
+      if(!bShown||map.getZoom()<(opts.boundaryLabelZoom||15)) return;
+      rings.forEach(function(r,i){
+        var d=boundaryDims(p,i); if(!d) return;
+        d.edges.forEach(function(e){ if(e.len<d.per*.05) return;
+          var m=[(e.ll[0][0]+e.ll[1][0])/2,(e.ll[0][1]+e.ll[1][1])/2];
+          bLbl.addLayer(L.marker(m,{interactive:false,keyboard:false,icon:L.divIcon({className:'plot-dim bnd',iconSize:null,html:'<span>'+fmtLen(e.len)+'م</span>'})}));
+        });
+      });
+    }
+    map.on('zoomend moveend',updB); updB();
     map.on('zoomend moveend',vis); vis();
 
     return {
+      boundary:bGroup, rings:rings,
       group:group, byId:byId, overlay:overlay, count:Object.keys(byId).length,
       bounds:function(){ return bounds(p); },
       center:function(id){ return centers[id]; },
       setFilter:function(fn){ _dim=fn; Object.keys(byId).forEach(restyle); },
       select:function(id){ var old=_sel; _sel=id||null; if(old) restyle(old); if(_sel) restyle(_sel); updDims(); },
-      remove:function(){ map.off('zoomend moveend',vis); if(overlay) map.removeLayer(overlay); map.removeLayer(group); map.removeLayer(labels); map.removeLayer(dimL); }
+      remove:function(){ map.off('zoomend moveend',updB); if(bShown){ map.removeLayer(bGroup); map.removeLayer(bLbl); } map.off('zoomend moveend',vis); if(overlay) map.removeLayer(overlay); map.removeLayer(group); map.removeLayer(labels); map.removeLayer(dimL); }
     };
   }
 
@@ -250,6 +284,6 @@
     };
   }
 
-  window.SharkPlotMap={utm:utm,mPerDeg:mPerDeg,dims:dims,croquisSVG:croquisSVG,dimsTable:dimsTable,fmtLen:fmtLen,COLORS:COL,status:st,corners:corners,imgToLatLng:imgToLatLng,unitShape:unitShape,centroid:centroid,
+  window.SharkPlotMap={boundaryRings:boundaryRings,boundaryDims:boundaryDims,hasPlots:hasPlots,ringDims:ringDims,utm:utm,mPerDeg:mPerDeg,dims:dims,croquisSVG:croquisSVG,dimsTable:dimsTable,fmtLen:fmtLen,COLORS:COL,status:st,corners:corners,imgToLatLng:imgToLatLng,unitShape:unitShape,centroid:centroid,
     hasGeo:hasGeo,bounds:bounds,RotatedImage:RotatedImage,render:render,baseLayers:baseLayers};
 })();

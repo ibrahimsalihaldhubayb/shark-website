@@ -19,7 +19,7 @@
   function unitById(id){ return units().find(function(u){return u.id===id;}); }
   function cornersObj(){ var c=S().media.corners; return c&&c.length===6?{tl:[c[0],c[1]],tr:[c[2],c[3]],bl:[c[4],c[5]]}:null; }
   function setCorners(o){ S().media.corners=[r7(o.tl[0]),r7(o.tl[1]),r7(o.tr[0]),r7(o.tr[1]),r7(o.bl[0]),r7(o.bl[1])]; }
-  function fakeProject(){ return {units:units(),planCorners:S().media.corners}; }
+  function fakeProject(){ return {units:units(),planCorners:S().media.corners,boundary:S().media.boundary||[]}; }
   function natNext(){ var mx=0; units().forEach(function(u){ var v=parseInt(u.no,10); if(v>mx) mx=v; }); return mx+1; }
 
   /* مساحة مضلع بالمتر المربع */
@@ -64,6 +64,7 @@
       lyr.on('click',function(e){ L.DomEvent.stopPropagation(e); select(u.id); });
       plots.addLayer(lyr);
     });
+    PM.boundaryRings(fp).forEach(function(r){ plots.addLayer(L.polygon(r,{color:'#b8922a',weight:3,dashArray:'10 7',fillColor:'#c8a96e',fillOpacity:.08,interactive:false})); });
     drawOverlay(); drawLabels();
   }
   function drawLabels(){
@@ -412,6 +413,14 @@
     if(!_pending) return;
     var zone=parseInt(($('pjg-zone')||{}).value||guessZone(),10), datum=($('pjg-datum')||{}).value||'wgs', layer=($('pjg-layer')||{}).value||'';
     var feats=_pending.feats.filter(function(f){ return !layer||f.layer===layer; });
+    var asB=$('pjg-asb')&&$('pjg-asb').value==='boundary';
+    if(asB){
+      var bs=feats.map(function(ft,i){ return {g:flat(ft.xy.map(function(q){ return _pending.kind==='utm'?projToLatLng(q[0],q[1],zone,datum):[q[1],q[0]]; })),name:'حد '+(i+1)}; });
+      S().media.boundary=bs; _pending=null; draw();
+      var bb=PM.bounds(fakeProject()); if(bb) map.fitBounds(bb,{padding:[30,30]});
+      if(!$('pj-lat').value&&bb){ var cc=bb.getCenter(); $('pj-lat').value=cc.lat.toFixed(6); $('pj-lng').value=cc.lng.toFixed(6); }
+      renderTools(); toast('تم حفظ '+bs.length+' حد للأرض — اضغط «حفظ المشروع»'); return;
+    }
     var made=0, linked=0, next=natNext();
     feats.forEach(function(ft){
       var ll=ft.xy.map(function(q){ return _pending.kind==='utm'?projToLatLng(q[0],q[1],zone,datum):[q[1],q[0]]; });
@@ -440,6 +449,7 @@
       +(p.numbered?'تم التعرف على <b>'+p.feats.length+'</b> قطعة'+(cad?' (أشكال مغلقة بداخلها رقم)':'')+'.'
         :'الملف لا يحتوي أرقام قطع داخل الحدود — وُجد <b>'+p.feats.length+'</b> شكل مغلق. اختر طبقة الحدود (مثل «حد الصك») وتُرقّم تلقائياً 1، 2، 3…');
     if(lk.length>1||(!p.numbered&&lk.length)) h2+='<div style="margin-top:6px">الطبقة (Layer): <select id="pjg-layer" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-family:inherit"><option value="">كل الطبقات ('+p.feats.length+')</option>'+lk.map(function(k){return '<option value="'+h(k)+'"'+(k===def?' selected':'')+'>'+h(k)+' ('+layers[k]+')</option>';}).join('')+'</select></div>';
+    h2+='<div style="margin-top:6px">استيراد كـ: <select id="pjg-asb" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-family:inherit"><option value="boundary"'+(p.numbered?'':' selected')+'>حدود المشروع / الصك (لا تمس القطع)</option><option value="plots"'+(p.numbered?' selected':'')+'>قطع المخطط</option></select></div>';
     if(p.kind==='utm'){
       var z=guessZone();
       h2+='<div class="pjg-grid" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">'
@@ -450,6 +460,23 @@
     h2+='<div style="display:flex;gap:8px;margin-top:8px"><button class="btn-primary" onclick="pjGeoImportGo()">استيراد القطع</button><button class="pj-mini" onclick="pjGeoImportCancel()">إلغاء</button></div></div>';
     return h2;
   }
+  /* تبديل المرجع الجيوديسي لكل الرسم (للتصحيح إذا ظهر مزاحاً) */
+  function shiftDatum(g,toAin){
+    var out=[]; for(var i=0;i+1<g.length;i+=2){
+      var lat=+g[i], lng=+g[i+1], z=Math.floor((lng+180)/6)+1, ll;
+      if(toAin){ var e=PM.utm(lat,lng,z); ll=projToLatLng(e[0],e[1],z,'ain'); }
+      else { // عكسي: نقطة محسوبة بعين العبد ← نعيدها كأنها WGS
+        var a=PM.utm(lat,lng,z), b=projToLatLng(a[0],a[1],z,'ain'), dLa=b[0]-lat, dLo=b[1]-lng; ll=[lat-dLa,lng-dLo]; }
+      out.push(+ll[0].toFixed(9),+ll[1].toFixed(9));
+    } return out;
+  }
+  window.pjGeoDatum=function(toAin){
+    if(!confirm(toAin?'تحويل كل الرسم إلى مرجع «عين العبد 1970»؟ (يتحرك تقريباً 70–200 م)':'إرجاع كل الرسم إلى المرجع الحديث (KSA-GRF17)؟')) return;
+    units().forEach(function(u){ if(u.g) u.g=shiftDatum(u.g,toAin); });
+    (S().media.boundary||[]).forEach(function(b){ b.g=shiftDatum(b.g,toAin); });
+    S().media.datum=toAin?'ain':'wgs'; draw(); renderTools(); toast('تم — قارن مع صورة القمر الصناعي ثم احفظ المشروع');
+  };
+  window.pjGeoClearBoundary=function(){ if(!confirm('حذف حدود الأرض من الخريطة؟')) return; S().media.boundary=[]; draw(); renderTools(); };
   window.pjGeoClearAll=function(){
     if(!confirm('حذف رسم كل القطع من الخريطة؟ (تبقى القطع وبياناتها)')) return;
     units().forEach(function(u){ delete u.g; }); S().renderUnitsEditor(); draw(); renderTools();
@@ -466,7 +493,7 @@
     var m=S().media, c=cornersObj(), placed=units().filter(function(u){ return !!PM.unitShape(fakeProject(),u); }).length;
     var html='';
     // status line
-    html+='<div class="pjg-sum">على الخريطة: <b>'+placed+'</b> من '+units().length+' قطعة'+(c?' · المخطط مثبت ✓':'')+'</div>';
+    html+='<div class="pjg-sum">على الخريطة: <b>'+placed+'</b> من '+units().length+' قطعة'+((S().media.boundary||[]).length?' · حدود الأرض ✓ ('+S().media.boundary.length+')':'')+(c?' · المخطط مثبت ✓':'')+'</div>';
     if(mode==='align'){
       html+='<div class="pjg-box pjg-on"><b>تثبيت المخطط:</b> اسحب النقاط ١ (أعلى يسار الصورة) و٢ (أعلى يمين) و٣ (أسفل يسار) لتطابق الشوارع في صورة القمر الصناعي، واسحب ✥ لتحريك المخطط كاملاً.'
         +'<div style="display:flex;gap:8px;align-items:center;margin-top:8px"><span>الشفافية</span><input type="range" id="pjg-op" min=".1" max="1" step=".05" value="'+(overlay?overlay.options.opacity:.6)+'" oninput="pjGeoOpacity(this.value)" style="flex:1"><button class="btn-primary" onclick="pjGeoAlign()">تم</button></div></div>';
@@ -500,6 +527,8 @@
       +(c?'<button class="pj-mini" style="color:#ef4444" onclick="pjGeoUnalign()">إزالة التثبيت</button>':'')
       +'<label class="pj-btn2" style="display:inline-block;cursor:pointer">⇪ استيراد ملف المخطط (DWG / DXF / KML)<input type="file" accept=".dwg,.dxf,.geojson,.json,.kml" style="display:none" onchange="pjGeoImport(this)"></label>'
       +(placed?'<button class="pj-mini" style="color:#ef4444" onclick="pjGeoClearAll()">حذف كل الرسم</button>':'')
+      +((S().media.boundary||[]).length?'<button class="pj-mini" style="color:#ef4444" onclick="pjGeoClearBoundary()">حذف حدود الأرض</button>':'')
+      +((placed||(S().media.boundary||[]).length)?'<button class="pj-mini" title="إذا ظهر الرسم مزاحاً عن الشوارع" onclick="pjGeoDatum(true)">↔ تحويل لعين العبد</button><button class="pj-mini" onclick="pjGeoDatum(false)">↔ إرجاع للحديث</button>':'')
       +'<span style="flex:1"></span><button class="pj-mini" onclick="pjGeoFit()">عرض الكل</button><button class="pj-mini" id="pjg-base" onclick="pjGeoBase()">'+(baseK==='sat'?'خريطة عادية':'قمر صناعي')+'</button></div>';
     // selected unit
     var su=unitById(selId);

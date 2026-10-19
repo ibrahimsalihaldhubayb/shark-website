@@ -151,6 +151,11 @@ button{font-family:'Cairo',sans-serif}
 .us-c{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
 .us-k{font-size:11px;color:var(--sub)}
 .us-v{font-size:14px;font-weight:800;margin-top:2px}
+.land-box{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(340px,100%),1fr));gap:10px;margin-top:12px}
+.land-c{background:#f7f5f0;color:#1a1a22;border-radius:14px;padding:12px}
+.land-h{font-size:14px;font-weight:900;margin-bottom:4px}
+.land-h span{font-size:12px;font-weight:700;color:#7a7670}
+.land-c summary{cursor:pointer;font-size:12.5px;font-weight:800;margin-top:6px}
 .us-crq{background:#f7f5f0;color:#1a1a22;border-radius:12px;padding:10px 12px;margin-bottom:14px}
 .us-crq .us-k{color:#57524b}
 .us-v{unicode-bidi:plaintext}
@@ -453,7 +458,7 @@ button{font-family:'Cairo',sans-serif}
     var box=$('plan-box');
     if(_geo){ _geo.remove(); _geo=null; }
     if(_planMap){ _planMap.remove(); _planMap=null; _planMarkers={}; }
-    if(!P.units.length){ box.innerHTML='<div class="empty">سيتم إضافة ال'+K.units+' قريباً — سجّل اهتمامك ليصلك التحديث أولاً.</div>'; return; }
+    if(!P.units.length&&!(PM&&PM.boundaryRings(P).length)){ box.innerHTML='<div class="empty">سيتم إضافة ال'+K.units+' قريباً — سجّل اهتمامك ليصلك التحديث أولاً.</div>'; return; }
     var placed=P.units.filter(function(u){return u.x!=null&&u.y!=null&&u.x!==''&&u.y!=='';});
     if(PM&&PM.hasGeo(P)){ planGeo(box); }
     else if(MEDIA.plan&&P.planW&&P.planH){ planImage(box,placed); }
@@ -472,9 +477,17 @@ button{font-family:'Cairo',sans-serif}
     _planMap=map;
     _geo=PM.render(map,P,{labelZoom:18,planUrl:MEDIA.plan&&P.planW?MEDIA.plan:null,planOpacity:.5,onClick:function(u){ focusUnit(u.id,true); }});
     var b=_geo.bounds(); if(b) map.fitBounds(b,{padding:[12,12],maxZoom:19}); else map.setView([24.7,46.7],12);
+    var rings=PM.boundaryRings(P);
+    if(rings.length){
+      box.insertAdjacentHTML('beforeend','<div class="land-box">'+rings.map(function(r,i){ var D=PM.boundaryDims(P,i);
+        return '<div class="land-c"><div class="land-h">حدود الأرض'+(rings.length>1?' '+(i+1):'')+' <span>'+SP.fmtNum(Math.round(D.area))+' م² · '+(D.area/10000).toLocaleString('ar-SA',{maximumFractionDigits:2})+' هكتار</span></div>'
+          +PM.croquisSVG(D,{no:'',status:'available'},{w:340,h:280})
+          +'<details><summary>أطوال جميع الحدود ('+D.edges.length+')</summary>'+PM.dimsTable(D,{no:''})+'</details></div>'; }).join('')+'</div>');
+    }
     var rest=P.units.filter(function(u){return !PM.unitShape(P,u);});
+    if(!P.units.length) box.insertAdjacentHTML('beforeend','<div class="empty" style="margin-top:10px">سيتم إضافة ال'+K.units+' قريباً — سجّل اهتمامك ليصلك التحديث أولاً.</div>');
     if(rest.length){
-      box.insertAdjacentHTML('beforeend','<div style="font-size:12px;color:var(--sub);margin:10px 0 4px">'+K.units+' غير محددة على الخريطة:</div><div class="grid-plan">'+blocksHtml(rest)+'</div>');
+      box.insertAdjacentHTML('beforeend','<div style="font-size:12px;color:var(--sub);margin:10px 0 4px">'+(PM.hasPlots(P)?K.units+' غير محددة على الخريطة:':'ال'+K.units+' (تُرسم على الخريطة بعد إضافة المخطط التفصيلي):')+'</div><div class="grid-plan">'+blocksHtml(rest)+'</div>');
     }
   }
   window.togglePlanSat=function(){
