@@ -88,6 +88,7 @@ body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:var(--dark);color
 .skeleton{background:linear-gradient(90deg,rgba(255,255,255,.05) 0%,rgba(255,255,255,.1) 50%,rgba(255,255,255,.05) 100%);background-size:400% 100%;animation:sk 1.4s ease infinite;border-radius:8px}
 @keyframes sk{0%{background-position:100% 50%}100%{background-position:0% 50%}}
 </style>
+<script src="clients.js"></script>
 </head>
 <body>
 
@@ -310,21 +311,12 @@ body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:var(--dark);color
     if(!name||!phone){ alert('الرجاء إدخال الاسم ورقم الجوال'); return; }
     var rec = {
       name:name, phone:phone,
-      type:'اهتمام بعرض', interest:document.getElementById('f-intent').value,
+      type:'تسجيل اهتمام', interest:document.getElementById('f-intent').value,
       note:(document.getElementById('f-note').value.trim()||'')+(offer?' | العرض: '+offerTitle:''),
-      offerId:offer?offer.id:'', offerTitle:offerTitle,
-      source:'landing', date:new Date().toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'}),
-      id:'SK-'+(Date.now()%100000)
+      offerId:offer?offer.id:'', offerTitle:offerTitle, offerName:offerTitle,
+      source:'landing'
     };
-    try{
-      var arr=JSON.parse(localStorage.getItem('shark_admin_clients')||'[]');
-      arr.unshift(rec);
-      localStorage.setItem('shark_admin_clients',JSON.stringify(arr));
-    }catch(e){}
-    /* send to Google Sheets */
-    try{
-      fetch('https://script.google.com/macros/s/AKfycbyHVwZPpmNrCOrXjbzlrrkz1tYcA1v7MXvDfwlPFYKUMzV3ICTmpYsNP22HH6dsF7k/exec',{method:'POST',mode:'no-cors',body:JSON.stringify(rec)});
-    }catch(e){}
+    SharkClients.save(rec);
     document.getElementById('cta-form-wrap').style.display='none';
     document.getElementById('success-box').style.display='block';
   };
