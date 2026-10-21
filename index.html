@@ -10,42 +10,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="clients.js"></script>
-<script src="projects.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{--gold:#c8a96e;--gold2:#f0d080;--dark:#0b0b0c;--card:#16181d;--border:rgba(244,243,239,.1);--border2:rgba(244,243,239,.18);--text:#f4f3ef;--sub:#a8a59d}
 html,body{height:100%;font-family:'Cairo',Tahoma,Arial,sans-serif;direction:rtl;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 body{background:var(--dark);color:var(--text)}
-
-/* ═══ PARTNER PROJECTS ═══ */
-.prj-bg{background:linear-gradient(180deg,#0b0b0c,#101114 40%,#0b0b0c)}
-.prj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:18px}
-.prj-card{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s,border-color .2s;display:flex;flex-direction:column}
-.prj-card:hover{transform:translateY(-4px);box-shadow:0 14px 40px rgba(0,0,0,.5);border-color:rgba(200,169,110,.35)}
-.prj-img{position:relative;height:200px;background:linear-gradient(135deg,#1a1a1f,#1e1a0e)}
-.prj-img img{width:100%;height:100%;object-fit:cover}
-.prj-img .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:44px;opacity:.35}
-.prj-img::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(22,24,29,.95),transparent 55%)}
-.prj-badge{position:absolute;top:12px;right:12px;z-index:2;padding:4px 11px;border-radius:14px;background:rgba(11,11,12,.75);border:1px solid rgba(200,169,110,.45);color:var(--gold2);font-size:10.5px;font-weight:800;backdrop-filter:blur(6px)}
-.prj-kind{position:absolute;bottom:12px;right:14px;z-index:2;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.06em}
-.prj-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
-.prj-name{font-size:18px;font-weight:900;line-height:1.3}
-.prj-loc{font-size:12px;color:var(--sub)}
-.prj-partner{font-size:11.5px;color:var(--sub)}
-.prj-partner b{color:var(--text);font-weight:700}
-.prj-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
-.prj-st{background:rgba(255,255,255,.04);border-radius:10px;padding:8px 4px;text-align:center}
-.prj-st b{display:block;font-size:17px;font-weight:900}
-.prj-st span{font-size:10.5px;color:var(--sub)}
-.prj-bar{display:flex;height:6px;border-radius:4px;overflow:hidden;background:rgba(255,255,255,.06);margin-top:4px}
-.prj-foot{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:10px}
-.prj-from{font-size:11px;color:var(--sub)}
-.prj-from b{display:block;font-size:15px;color:var(--gold);font-weight:900}
-.prj-go{padding:8px 14px;border-radius:10px;background:linear-gradient(135deg,#c8972e,#d4a83c 55%,#ba8420);color:#1a1000;font-size:12px;font-weight:800;border:none;cursor:pointer;font-family:'Cairo',sans-serif}
-.prj-empty{text-align:center;padding:40px 16px;color:var(--sub);font-size:14px;border:1px dashed var(--border2);border-radius:16px}
-.prj-map-link{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:1px solid var(--border2);border-radius:20px;color:var(--text);font-size:12px;font-weight:700;text-decoration:none;margin-top:4px}
-.prj-map-link:hover{border-color:var(--gold);color:var(--gold)}
 
 /* ═══ NAV ═══ */
 .nav{position:fixed;top:0;left:0;right:0;z-index:1000;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:linear-gradient(to bottom,rgba(11,11,12,.9),transparent);pointer-events:none}
@@ -254,22 +223,51 @@ body{background:var(--dark);color:var(--text)}
 .m-ok h4{font-size:17px;font-weight:800;color:var(--gold);margin-bottom:7px}
 .m-ok p{font-size:13px;color:var(--sub);line-height:1.7}
 
-/* offer detail */
-#mod-offer .modal{max-width:520px}
-.od-img{width:100%;height:220px;object-fit:cover;border-radius:12px;margin-bottom:18px;cursor:pointer}
-.od-noimg{width:100%;height:160px;border-radius:12px;background:linear-gradient(135deg,#1a1a1f,#1e1a0e);display:flex;align-items:center;justify-content:center;font-size:44px;margin-bottom:18px}
-.od-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
-.od-s{background:rgba(255,255,255,.05);border-radius:9px;padding:10px;text-align:center}
-.od-sv{font-size:14px;font-weight:700;color:var(--gold)}
-.od-sk{font-size:11px;color:var(--sub);margin-top:2px}
-.od-feats{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
-.od-feat{font-size:12px;padding:4px 11px;border-radius:18px;background:rgba(200,169,110,.09);border:1px solid var(--border);color:var(--sub)}
-.od-gall{display:flex;gap:7px;overflow-x:auto;margin:10px 0 16px;scrollbar-width:none}
+/* offer detail — AI artistic redesign */
+#mod-offer{padding:0}
+#mod-offer .modal{max-width:560px;padding:0;background:linear-gradient(160deg,#0d0f16 0%,#12141c 60%,#0e1119 100%);border:1px solid rgba(200,169,110,.18);overflow:hidden;position:relative}
+#mod-offer .modal::before{content:'';position:absolute;top:-80px;right:-80px;width:260px;height:260px;background:radial-gradient(circle,rgba(200,169,110,.1) 0%,transparent 70%);pointer-events:none;z-index:0}
+#mod-offer .modal::after{content:'';position:absolute;bottom:-60px;left:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(99,102,241,.07) 0%,transparent 70%);pointer-events:none;z-index:0}
+#od-body{position:relative;z-index:1}
+.od-hero{position:relative;width:100%;height:240px;overflow:hidden;background:linear-gradient(135deg,#0d0f16,#1a1309)}
+.od-hero img{width:100%;height:100%;object-fit:cover;cursor:pointer;transition:transform .4s;display:block}
+.od-hero img:hover{transform:scale(1.03)}
+.od-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(13,15,22,.95) 0%,rgba(13,15,22,.2) 50%,transparent 100%)}
+.od-hero-noimg{width:100%;height:180px;background:linear-gradient(135deg,#0d0f16,#1a1309,#0d0f16);display:flex;align-items:center;justify-content:center;font-size:52px}
+.od-hero-badge{position:absolute;top:14px;right:14px;background:rgba(13,15,22,.8);border:1px solid rgba(200,169,110,.35);color:var(--gold);font-size:11px;font-weight:700;padding:5px 13px;border-radius:20px;backdrop-filter:blur(8px)}
+.od-share-btn{position:absolute;top:14px;left:14px;background:rgba(13,15,22,.7);border:1px solid rgba(255,255,255,.15);color:#fff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;backdrop-filter:blur(8px);cursor:pointer;display:flex;align-items:center;gap:5px;transition:border-color .2s,background .2s}
+.od-share-btn:hover{border-color:rgba(200,169,110,.5);background:rgba(200,169,110,.1)}
+.od-content{padding:20px 20px 24px}
+.od-title-row{margin-bottom:14px}
+.od-type-tag{font-size:10.5px;font-weight:700;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;margin-bottom:6px;opacity:.8}
+.od-title{font-size:19px;font-weight:900;line-height:1.3;margin-bottom:5px}
+.od-loc{font-size:12.5px;color:var(--sub);display:flex;align-items:center;gap:5px}
+.od-price-row{background:linear-gradient(135deg,rgba(200,169,110,.07),rgba(200,169,110,.03));border:1px solid rgba(200,169,110,.14);border-radius:14px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.od-price-label{font-size:10.5px;color:var(--sub);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.od-price-val{font-size:22px;font-weight:900;color:var(--gold);line-height:1;margin-top:3px}
+.od-price-unit{font-size:11px;color:var(--sub);margin-top:2px}
+.od-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:16px}
+.od-s{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:11px 8px;text-align:center;transition:background .2s}
+.od-s:hover{background:rgba(255,255,255,.06)}
+.od-sv{font-size:14px;font-weight:800;color:var(--text)}
+.od-sk{font-size:10.5px;color:var(--sub);margin-top:3px}
+.od-desc{font-size:13px;color:var(--sub);line-height:1.85;margin-bottom:15px;padding:12px 14px;background:rgba(255,255,255,.025);border-radius:10px;border-right:2px solid rgba(200,169,110,.3)}
+.od-feats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.od-feat{font-size:11.5px;padding:4px 12px;border-radius:18px;background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.15);color:var(--gold)}
+.od-gall{display:flex;gap:7px;overflow-x:auto;margin:0 0 16px;scrollbar-width:none;padding-bottom:2px}
 .od-gall::-webkit-scrollbar{display:none}
-.od-gall img{height:68px;width:104px;object-fit:cover;border-radius:8px;flex-shrink:0;cursor:pointer;opacity:.75;transition:opacity .2s}
-.od-gall img:hover{opacity:1}
-.btn-wa-od{width:100%;padding:13px;background:#25d366;color:#fff;border:none;border-radius:9px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:9px}
-.btn-int-od{width:100%;padding:13px;background:linear-gradient(135deg,#c8972e,#d4a83c 55%,#ba8420);color:#1a1000;border:none;border-radius:9px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:800;cursor:pointer}
+.od-gall img{height:72px;width:108px;object-fit:cover;border-radius:9px;flex-shrink:0;cursor:pointer;opacity:.7;transition:opacity .2s,transform .2s;border:1px solid rgba(255,255,255,.07)}
+.od-gall img:hover{opacity:1;transform:scale(1.03)}
+.od-map-wrap{margin-bottom:16px}
+.od-map-label{font-size:10.5px;color:var(--sub);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.od-map-label::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px rgba(200,169,110,.6)}
+.od-btns{display:flex;flex-direction:column;gap:9px}
+.btn-wa-od{width:100%;padding:13px;background:linear-gradient(135deg,#128c7e,#25d366);color:#fff;border:none;border-radius:10px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(37,211,102,.2);transition:opacity .2s}
+.btn-wa-od:hover{opacity:.88}
+.btn-int-od{width:100%;padding:13px;background:linear-gradient(135deg,rgba(200,169,110,.15),rgba(200,169,110,.08));color:var(--gold);border:1px solid rgba(200,169,110,.3);border-radius:10px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:background .2s,border-color .2s}
+.btn-int-od:hover{background:linear-gradient(135deg,rgba(200,169,110,.22),rgba(200,169,110,.12));border-color:rgba(200,169,110,.5)}
+@keyframes od-glow{0%,100%{box-shadow:0 0 18px rgba(200,169,110,.08)}50%{box-shadow:0 0 30px rgba(200,169,110,.15)}}
+#mod-offer .modal{animation:od-glow 3s ease-in-out infinite}
 
 /* FABs — banner style */
 #fab{position:fixed;bottom:0;left:0;right:0;z-index:8000;pointer-events:none}
@@ -437,22 +435,6 @@ body{background:var(--dark);color:var(--text)}
   </div>
 </section>
 
-<!-- PARTNER PROJECTS -->
-<section class="section prj-bg" id="projects">
-  <div class="section-inner">
-    <div class="s-head">
-      <div class="s-tag">المشاريع العقارية</div>
-      <h2 class="s-title">مشاريع شركائنا</h2>
-      <p class="s-sub">مشاريع جاهزة ومخططات أراضي نسوّقها بالشراكة مع المطوّرين — اختر قطعتك من المخطط واحجز مباشرة.</p>
-      <a class="prj-map-link" href="map.html?filter=projects">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l6-3 6 3 6-3v13l-6 3-6-3-6 3z"/><path d="M9 4v13M15 7v13"/></svg>
-        عرض المشاريع على الخريطة
-      </a>
-    </div>
-    <div class="prj-grid" id="prj-grid"><div class="prj-empty">جاري تحميل المشاريع...</div></div>
-  </div>
-</section>
-
 <!-- SERVICES -->
 <section class="section srv-bg" id="services">
   <div class="section-inner">
@@ -478,11 +460,11 @@ body{background:var(--dark);color:var(--text)}
         </div>
         <div class="srv-arr">←</div>
       </div>
-      <div class="srv-row" onclick="document.getElementById('projects').scrollIntoView({behavior:'smooth'})">
+      <div class="srv-row" onclick="document.getElementById('offers').scrollIntoView({behavior:'smooth'})">
         <div class="srv-num">03</div>
         <div class="srv-info">
           <div class="srv-name">مهتم بالمشاريع العقارية</div>
-          <div class="srv-desc">اطّلع على مشاريع شركائنا — مخططات أراضي ومشاريع جاهزة، واحجز قطعتك من المخطط مباشرة.</div>
+          <div class="srv-desc">اطّلع على مشاريعنا القائمة والمتاحة للبيع — مستودعات، أراضي، فلل، وأكثر.</div>
         </div>
         <div class="srv-arr">←</div>
       </div>
@@ -607,7 +589,6 @@ body{background:var(--dark);color:var(--text)}
       <h5>روابط سريعة</h5>
       <ul>
         <li onclick="document.getElementById('offers').scrollIntoView({behavior:'smooth'})">العروض</li>
-        <li onclick="document.getElementById('projects').scrollIntoView({behavior:'smooth'})">مشاريع شركائنا</li>
         <li onclick="document.getElementById('services').scrollIntoView({behavior:'smooth'})">خدماتنا</li>
         <li onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})">من نحن</li>
       </ul>
@@ -678,7 +659,7 @@ body{background:var(--dark);color:var(--text)}
 <!-- MODAL: offer detail -->
 <div class="modal-bg" id="mod-offer">
   <div class="modal" style="max-width:520px">
-    <button class="m-close" onclick="closeM('mod-offer')">×</button>
+    <button class="m-close" onclick="closeM('mod-offer');history.replaceState(null,'',location.pathname)">×</button>
     <div id="od-body"></div>
   </div>
 </div>
@@ -723,23 +704,6 @@ body{background:var(--dark);color:var(--text)}
   </div>
 </div>
 
-<!-- AI Chat Widget -->
-<div id="ai-chat-btn" onclick="toggleAIChat()" style="position:fixed;bottom:90px;left:24px;width:54px;height:54px;background:linear-gradient(135deg,#1a1a2e,#c8a96e);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.3);z-index:9000;font-size:24px;transition:transform .2s" onmouseenter="this.style.transform='scale(1.1)'" onmouseleave="this.style.transform='scale(1)'">🤖</div>
-
-<div id="ai-chat-panel" style="display:none;position:fixed;bottom:160px;left:24px;width:340px;max-height:500px;background:#fff;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,0.2);z-index:9001;flex-direction:column;overflow:hidden">
-  <div style="background:linear-gradient(135deg,#1a1a2e,#c8a96e);color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between">
-    <div>
-      <div style="font-weight:700;font-size:15px">🤖 مساعد شارك العقاري</div>
-      <div style="font-size:11px;opacity:.8">اسألني عن أي عقار أو استفسار</div>
-    </div>
-    <button onclick="toggleAIChat()" style="background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:16px">×</button>
-  </div>
-  <div id="ai-msgs" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:200px;max-height:320px"></div>
-  <div style="padding:10px 12px;border-top:1px solid #eee;display:flex;gap:8px">
-    <input id="ai-inp" type="text" placeholder="اكتب سؤالك هنا..." style="flex:1;padding:9px 12px;border:1px solid #ddd;border-radius:20px;font-family:inherit;font-size:13px;outline:none" onkeydown="if(event.key==='Enter')sendAIMsg()">
-    <button onclick="sendAIMsg()" style="background:linear-gradient(135deg,#1a1a2e,#c8a96e);color:#fff;border:none;border-radius:50%;width:38px;height:38px;cursor:pointer;font-size:16px">↑</button>
-  </div>
-</div>
 
 <script>
 (function(){
@@ -749,8 +713,13 @@ body{background:var(--dark);color:var(--text)}
   var CC={'الرياض':[24.7136,46.6753],'جدة':[21.4858,39.1925],'مكة المكرمة':[21.3891,39.8579],'المدينة المنورة':[24.5247,39.5692],'الدمام':[26.4207,50.0888],'الخبر':[26.2172,50.1971],'الأحساء':[25.3814,49.5875],'تبوك':[28.3998,36.5700],'أبها':[18.2164,42.5053],'بريدة':[26.3292,43.9749],'حائل':[27.5219,41.7087],'نجران':[17.5656,44.2289],'جازان':[16.8892,42.5511],'ينبع':[24.0895,38.0618],'خميس مشيط':[18.3000,42.7333],'الجبيل':[27.0025,49.6603]};
 
   function gs(k){try{return JSON.parse(localStorage.getItem(k)||'null');}catch(e){return null;}}
-  /* الحفظ في قاعدة البيانات والشيت يتم عبر clients.js */
-  function save(r){ return SharkClients.save(r); }
+  function send(r){try{fetch(SHEETS,{method:'POST',mode:'no-cors',body:JSON.stringify(r)});}catch(e){}}
+  function save(r){
+    try{var a=gs('shark_admin_clients')||[];a.unshift(r);localStorage.setItem('shark_admin_clients',JSON.stringify(a));}catch(e){}
+    try{
+      if(_fsdb){ r._ts=Date.now(); _fsdb.collection('clients').doc(r.id).set(r); }
+    }catch(e){}
+  }
   function now(){return new Date().toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'});}
   function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
   function fmt(n){if(!n)return'—';var v=Number(String(n).replace(/,/g,''));if(!v)return n;if(v>=1000000)return(v/1000000).toLocaleString('ar',{maximumFractionDigits:2})+' مليون ريال';return v.toLocaleString('ar-SA')+' ريال';}
@@ -764,25 +733,24 @@ body{background:var(--dark);color:var(--text)}
   window.subInv=function(){
     var n=document.getElementById('si-name').value.trim(),p=document.getElementById('si-phone').value.trim();
     if(!n||!p){alert('الرجاء إدخال الاسم ورقم الجوال');return;}
-    var r={name:n,phone:p,type:'رغبة استثمار',interest:document.getElementById('si-type').value,note:document.getElementById('si-note').value.trim(),source:'invest',date:now()};
-    save(r);
+    var r={name:n,phone:p,type:'رغبة استثمار',interest:document.getElementById('si-type').value,note:document.getElementById('si-note').value.trim(),source:'invest',date:now(),id:'SK-'+(Date.now()%100000)};
+    save(r);send(r);
     document.getElementById('inv-f').style.display='none';document.getElementById('inv-ok').style.display='block';
     setTimeout(function(){closeM('mod-inv');document.getElementById('inv-f').style.display='block';document.getElementById('inv-ok').style.display='none';['si-name','si-phone','si-note'].forEach(function(i){document.getElementById(i).value='';});},3000);
   };
   window.subMkt=function(){
     var n=document.getElementById('sm-name').value.trim(),p=document.getElementById('sm-phone').value.trim();
     if(!n||!p){alert('الرجاء إدخال الاسم ورقم الجوال');return;}
-    var r={name:n,phone:p,type:'عرض عقار',interest:document.getElementById('sm-kind').value,note:document.getElementById('sm-note').value.trim(),source:'marketing',date:now()};
-    save(r);
+    var r={name:n,phone:p,type:'عرض عقار',interest:document.getElementById('sm-kind').value,note:document.getElementById('sm-note').value.trim(),source:'marketing',date:now(),id:'SK-'+(Date.now()%100000)};
+    save(r);send(r);
     document.getElementById('mkt-f').style.display='none';document.getElementById('mkt-ok').style.display='block';
     setTimeout(function(){closeM('mod-mkt');document.getElementById('mkt-f').style.display='block';document.getElementById('mkt-ok').style.display='none';['sm-name','sm-phone','sm-note'].forEach(function(i){document.getElementById(i).value='';});},3000);
   };
 
-  window.openInterest=function(offerName,offerId){
+  window.openInterest=function(offerName){
     closeM('mod-offer');
     document.getElementById('int-offer-name').textContent=offerName?'العرض: '+offerName:'';
     document.getElementById('int-offer-name').dataset.offer=offerName||'';
-    document.getElementById('int-offer-name').dataset.offerId=offerId||'';
     document.getElementById('int-f').style.display='block';
     document.getElementById('int-ok').style.display='none';
     ['int-name','int-phone','int-note'].forEach(function(i){document.getElementById(i).value='';});
@@ -792,9 +760,8 @@ body{background:var(--dark);color:var(--text)}
     var n=document.getElementById('int-name').value.trim(),p=document.getElementById('int-phone').value.trim();
     if(!n||!p){alert('الرجاء إدخال الاسم ورقم الجوال');return;}
     var offer=document.getElementById('int-offer-name').dataset.offer||'';
-    var offerId=document.getElementById('int-offer-name').dataset.offerId||'';
-    var r={name:n,phone:p,type:'تسجيل اهتمام',offer:offer,offerName:offer,offerTitle:offer,offerId:offerId,note:document.getElementById('int-note').value.trim(),source:'interest',date:now()};
-    save(r);
+    var r={name:n,phone:p,type:'تسجيل اهتمام',offer:offer,note:document.getElementById('int-note').value.trim(),source:'interest',sheet:'تسجيل الاهتمام',date:now(),id:'SK-'+(Date.now()%100000)};
+    save(r);send(r);
     document.getElementById('int-f').style.display='none';document.getElementById('int-ok').style.display='block';
     setTimeout(function(){closeM('mod-interest');},3000);
   };
@@ -845,7 +812,7 @@ body{background:var(--dark);color:var(--text)}
         +'<div class="o-loc"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>'+esc((o.city||'')+(o.district?' · '+o.district:''))+'</div>'
         +'<div class="o-price">'+fmt(o.price)+'</div>'
         +((o.area||o.beds)?'<div class="o-meta">'+(o.area?'<span>📐 '+o.area+' م²</span>':'')+(o.beds?'<span>🛏 '+o.beds+'</span>':'')+'</div>':'')
-        +'<div class="o-card-actions"><button class="o-int-btn" onclick="event.stopPropagation();openInterest(\''+esc(o.ar||o.name||'')+'\',\''+esc(o.id||'')+'\')" >تسجيل اهتمام</button></div>'
+        +'<div class="o-card-actions"><button class="o-int-btn" onclick="event.stopPropagation();openInterest(\''+esc(o.ar||o.name||'')+'\')" >تسجيل اهتمام</button></div>'
         +'</div></div>';
     }).join('');
   }
@@ -853,25 +820,39 @@ body{background:var(--dark);color:var(--text)}
   window.showOffer=function(id){
     var o=_offers.find(function(x){return x.id===id;}); if(!o) return;
     var imgs=o.gallery?o.gallery.split('\n').filter(Boolean):[];
+    var TL2={warehouses:'مستودع',land:'أرض',villa:'فيلا',apartment:'شقة',commercial:'تجاري',office:'مكتب'};
+    var typeLabel=TL2[o.type]||o.type||'عقار';
+    var heroHTML=o.coverImg
+      ?'<div class="od-hero"><img src="'+esc(o.coverImg)+'" onclick="openLb(\''+esc(o.coverImg)+'\')" loading="lazy"><div class="od-hero-overlay"></div><div class="od-hero-badge">'+typeLabel+'</div><button class="od-share-btn" onclick="shareOffer(\''+esc(id)+'\')" type="button"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>مشاركة</button></div>'
+      :'<div class="od-hero-noimg">🏠</div>';
+    var priceVal=o.price?Number(o.price).toLocaleString('ar-SA'):'—';
+    var priceHTML='<div class="od-price-row"><div><div class="od-price-label">السعر</div><div class="od-price-val">'+priceVal+'</div><div class="od-price-unit">ريال سعودي</div></div>'+(o.price&&o.area?'<div style="text-align:left"><div class="od-price-label">سعر المتر</div><div style="font-size:15px;font-weight:800;color:var(--sub)">'+Math.round(Number(o.price)/Number(o.area)).toLocaleString('ar-SA')+'</div><div class="od-price-unit">ريال/م²</div></div>':'')+'</div>';
+    var statsHTML='<div class="od-stats">'+(o.area?'<div class="od-s"><div class="od-sv">'+o.area+'</div><div class="od-sk">المساحة م²</div></div>':'')+(o.beds?'<div class="od-s"><div class="od-sv">'+o.beds+'</div><div class="od-sk">الغرف</div></div>':'')+(o.baths?'<div class="od-s"><div class="od-sv">'+o.baths+'</div><div class="od-sk">الحمامات</div></div>':'')+(o.floor?'<div class="od-s"><div class="od-sv">'+o.floor+'</div><div class="od-sk">الدور</div></div>':'')+(o.age?'<div class="od-s"><div class="od-sv">'+o.age+'</div><div class="od-sk">العمر</div></div>':'')+'</div>';
+    var descHTML=o.desc?'<div class="od-desc">'+esc(o.desc)+'</div>':'';
+    var featsArr=o.features?(Array.isArray(o.features)?o.features:o.features.split(',').map(function(f){return f.trim();})).filter(Boolean):[];
+    var featsHTML=featsArr.length?'<div class="od-feats">'+featsArr.map(function(f){return'<span class="od-feat">'+esc(f)+'</span>';}).join('')+'</div>':'';
+    var gallHTML=imgs.length>1?'<div class="od-gall">'+imgs.slice(1).map(function(u){return'<img src="'+esc(u)+'" onclick="openLb(\''+esc(u)+'\')">';}).join('')+'</div>':'';
+    var mapHTML='';
+    if(o.lat&&o.lng){mapHTML='<div class="od-map-wrap"><div class="od-map-label">الموقع على الخريطة</div><iframe src="https://www.openstreetmap.org/export/embed.html?bbox='+(parseFloat(o.lng)-.005)+','+(parseFloat(o.lat)-.005)+','+(parseFloat(o.lng)+.005)+','+(parseFloat(o.lat)+.005)+'&layer=mapnik&marker='+o.lat+','+o.lng+'" style="width:100%;height:180px;border-radius:10px;border:1px solid rgba(255,255,255,.06);filter:invert(1) hue-rotate(180deg)" loading="lazy"></iframe></div>';}
+    var waNum=o.waPhone||PHONE;
+    var waMsg=encodeURIComponent('مرحباً، أنا مهتم بعرض: '+(o.ar||o.name||'')+(o.price?' بسعر '+Number(o.price).toLocaleString('ar-SA')+' ريال':''));
+    var locStr=(o.city||'')+(o.district?' — '+o.district:'');
     document.getElementById('od-body').innerHTML=
-      (o.coverImg?'<img class="od-img" src="'+esc(o.coverImg)+'" onclick="openLb(\''+esc(o.coverImg)+'\')">':'<div class="od-noimg">🏠</div>')
-      +'<div class="o-type" style="margin-bottom:6px">'+(TL[o.type]||o.type||'عقار')+'</div>'
-      +'<div style="font-size:17px;font-weight:800;margin-bottom:6px">'+esc(o.ar||o.name||'')+'</div>'
-      +'<div style="font-size:13px;color:var(--gold);margin-bottom:14px">📍 '+esc((o.city||'')+(o.district?' — '+o.district:''))+'</div>'
-      +'<div class="od-stats">'
-      +(o.price?'<div class="od-s"><div class="od-sv">'+fmt(o.price)+'</div><div class="od-sk">السعر</div></div>':'')
-      +(o.area?'<div class="od-s"><div class="od-sv">'+o.area+' م²</div><div class="od-sk">المساحة</div></div>':'')
-      +(o.beds?'<div class="od-s"><div class="od-sv">'+o.beds+'</div><div class="od-sk">غرف</div></div>':'')
-      +'</div>'
-      +(o.desc?'<p style="font-size:13px;color:var(--sub);line-height:1.8;margin-bottom:14px">'+esc(o.desc)+'</p>':'')
-      +((o.features||[]).length?'<div class="od-feats">'+o.features.map(function(f){return'<div class="od-feat">'+esc(f)+'</div>';}).join('')+'</div>':'')
-      +(imgs.length?'<div class="od-gall">'+imgs.map(function(s){return'<img src="'+esc(s)+'" onclick="openLb(\''+esc(s)+'\')">';}).join('')+'</div>':'')
-      +(o.lat&&o.lng?'<div style="margin-bottom:16px"><div style="font-size:11px;color:var(--sub);margin-bottom:8px;font-weight:600">الموقع على الخريطة</div><div style="border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.1)"><iframe src="https://www.openstreetmap.org/export/embed.html?bbox='+(parseFloat(o.lng)-.008)+','+(parseFloat(o.lat)-.008)+','+(parseFloat(o.lng)+.008)+','+(parseFloat(o.lat)+.008)+'&layer=mapnik&marker='+o.lat+','+o.lng+'" style="width:100%;height:220px;border:none;display:block" loading="lazy"></iframe></div><a href="https://www.google.com/maps?q='+o.lat+','+o.lng+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;background:#4285f4;color:#fff;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;text-decoration:none">فتح في قوقل ماب ↗</a></div>':'')
-      +'<button class="btn-wa-od" onclick="waOffer(\''+esc(o.ar||o.name||'')+'\')">'
-      +'<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.533 5.847L.054 23.272a.5.5 0 0 0 .625.613l5.563-1.46A11.952 11.952 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>'
-      +'تواصل عبر واتساب</button>'
-      +'<button class="btn-int-od" onclick="openInterest(\''+esc(o.ar||o.name||'')+'\',\''+esc(o.id||'')+'\')" style="margin-top:8px">🏠 سجّل اهتمامك بهذا العرض</button>';
+      heroHTML
+      +'<div class="od-content">'
+      +'<div class="od-title-row"><div class="od-type-tag">'+typeLabel+'</div><div class="od-title">'+esc(o.ar||o.name||'')+'</div>'+(locStr?'<div class="od-loc"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>'+esc(locStr)+'</div>':'')+'</div>'
+      +priceHTML+statsHTML+descHTML+featsHTML+gallHTML+mapHTML
+      +'<div class="od-btns">'
+      +'<button class="btn-wa-od" onclick="window.open(\'https://wa.me/'+waNum+'?text='+waMsg+'\',\'_blank\')" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>تواصل عبر واتساب</button>'
+      +'<button class="btn-int-od" onclick="openInterest(\''+esc(id)+'\',\''+esc(o.ar||o.name||'')+'\')" type="button">✦ سجّل اهتمامك بهذا العرض</button>'
+      +'</div></div>';
     document.getElementById('mod-offer').classList.add('open');
+    history.replaceState(null,'','?offer='+encodeURIComponent(id));
+  };
+  window.shareOffer=function(id){
+    var url=location.origin+location.pathname+'?offer='+encodeURIComponent(id);
+    if(navigator.share){navigator.share({title:'عرض عقاري — شارك العقارية',url:url}).catch(function(){});}
+    else{var btn=document.querySelector('.od-share-btn');if(navigator.clipboard){navigator.clipboard.writeText(url).then(function(){if(btn){var h=btn.innerHTML;btn.textContent='✓ تم النسخ!';setTimeout(function(){btn.innerHTML=h;},2000);}});}else{var ta=document.createElement('textarea');ta.value=url;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);if(btn){var h=btn.innerHTML;btn.textContent='✓ تم النسخ!';setTimeout(function(){btn.innerHTML=h;},2000);}}}
   };
   window.waOffer=function(t){window.open('https://wa.me/'+PHONE+'?text='+encodeURIComponent('السلام عليكم، أنا مهتم بالعقار: '+t),'_blank');};
 
@@ -907,112 +888,10 @@ body{background:var(--dark);color:var(--text)}
     document.body.style.overflow='';
   };
 
-
-  /* ── PARTNER PROJECTS ── */
-  function renderProjects(list){
-    var g=document.getElementById('prj-grid'), SP=window.SharkProjects;
-    if(!list.length){ document.getElementById('projects').style.display='none'; return; }
-    g.innerHTML=list.map(function(p){
-      var s=SP.stats(p), K=SP.kind(p), href='project.html?id='+encodeURIComponent(p.id);
-      return '<div class="prj-card" onclick="location.href=\''+href+'\'">'
-        +'<div class="prj-img">'+(p.coverImg?'<img src="'+esc(p.coverImg)+'" loading="lazy" alt="">':'<div class="ph">🏗️</div>')
-        +'<div class="prj-badge">مشروع شريك'+(p.stage?' · '+esc(p.stage):'')+'</div><div class="prj-kind">'+esc(K.label)+'</div></div>'
-        +'<div class="prj-body">'
-        +'<div class="prj-name">'+esc(p.name)+'</div>'
-        +'<div class="prj-loc">📍 '+esc((p.city||'')+(p.district?' · '+p.district:''))+'</div>'
-        +(p.partner?'<div class="prj-partner">بالشراكة مع <b>'+esc(p.partner)+'</b></div>':'')
-        +(s.total?'<div class="prj-stats">'
-          +'<div class="prj-st"><b>'+s.total+'</b><span>إجمالي ال'+K.units+'</span></div>'
-          +'<div class="prj-st"><b style="color:#22c55e">'+s.available+'</b><span>متاح</span></div>'
-          +'<div class="prj-st"><b style="color:#f59e0b">'+(s.reserved+s.sold)+'</b><span>محجوز / مباع</span></div></div>'
-          +'<div class="prj-bar"><span style="width:'+(s.available/s.total*100)+'%;background:#4fa776"></span><span style="width:'+(s.reserved/s.total*100)+'%;background:#b3aea8"></span><span style="width:'+(s.sold/s.total*100)+'%;background:#c25b6e"></span></div>':'')
-        +'<div class="prj-foot"><div class="prj-from">'+(s.minPrice?'تبدأ من<b>'+SP.fmtPrice(s.minPrice)+'</b>':(s.minArea?'المساحات<b>'+SP.fmtNum(s.minArea)+(s.maxArea>s.minArea?' – '+SP.fmtNum(s.maxArea):'')+' م²</b>':''))+'</div>'
-        +'<button class="prj-go">عرض المشروع ←</button></div>'
-        +'</div></div>';
-    }).join('');
-  }
-  if(window.SharkProjects){ SharkProjects.loadPublished().then(renderProjects).catch(function(){ renderProjects([]); }); }
-  else renderProjects([]);
-
   loadOffers();
-  /* expose db for AI chat */
-  try{ window.db = _fsdb; }catch(e){}
-  /* also re-expose after Firebase init */
-  setTimeout(function(){ try{ window.db = _fsdb; }catch(e){}; }, 2000);
+  (function(){var p=new URLSearchParams(location.search).get('offer');if(p){var t=setInterval(function(){var o=_offers.find(function(x){return x.id===p;});if(o||_offers.length>0){clearInterval(t);if(o)showOffer(p);}},400);setTimeout(function(){clearInterval(t);},8000);}})();
 })();
 
-// ══════════════════════════════════════════════
-//  AI CHAT WIDGET
-// ══════════════════════════════════════════════
-var _aiOpen = false;
-var _aiHistory = [];
-var _aiOfferContext = '';
-
-async function initAIContext(){
-  try{
-    if(!window.db) return;
-    var snap = await window.db.collection('offers').where('published','==',true).get();
-    var offers = snap.docs.map(function(d){return d.data();});
-    _aiOfferContext = offers.map(function(o){return '- '+(o.ar||o.name||'')+': '+(o.type||'')+' في '+(o.city||'')+(o.district?'، '+o.district:'')+', المساحة: '+(o.area||'?')+' م², السعر: '+(o.price||'?')+' ر.س'+(o.desc?', '+o.desc:'');}).join('\n');
-  }catch(e){ _aiOfferContext = ''; }
-}
-
-function toggleAIChat(){
-  _aiOpen = !_aiOpen;
-  var panel = document.getElementById('ai-chat-panel');
-  panel.style.display = _aiOpen ? 'flex' : 'none';
-  if(_aiOpen && !document.getElementById('ai-msgs').children.length){
-    appendAIMsg('bot','مرحباً! أنا مساعد شارك العقاري. يمكنني مساعدتك في الاستفسار عن العقارات المتاحة وتفاصيلها. كيف يمكنني مساعدتك؟');
-    initAIContext();
-  }
-}
-
-function appendAIMsg(role, text){
-  var div = document.createElement('div');
-  div.style.cssText = 'max-width:85%;padding:10px 14px;border-radius:'+(role==='user'?'16px 16px 4px 16px':'16px 16px 16px 4px')+';background:'+(role==='user'?'linear-gradient(135deg,#1a1a2e,#c8a96e)':'#f3f4f6')+';color:'+(role==='user'?'#fff':'#1a1a2e')+';font-size:13px;line-height:1.5;align-self:'+(role==='user'?'flex-end':'flex-start');
-  div.textContent = text;
-  document.getElementById('ai-msgs').appendChild(div);
-  document.getElementById('ai-msgs').scrollTop = 99999;
-}
-
-async function sendAIMsg(){
-  var inp = document.getElementById('ai-inp');
-  var text = inp.value.trim(); if(!text) return;
-  inp.value = '';
-  appendAIMsg('user', text);
-  _aiHistory.push({role:'user', content:text});
-
-  var typing = document.createElement('div');
-  typing.id = 'ai-typing';
-  typing.style.cssText = 'align-self:flex-start;background:#f3f4f6;padding:10px 14px;border-radius:16px 16px 16px 4px;font-size:13px;color:#666';
-  typing.textContent = '...';
-  document.getElementById('ai-msgs').appendChild(typing);
-  document.getElementById('ai-msgs').scrollTop = 99999;
-
-  var apiKey = localStorage.getItem('shark_openai_key')||'';
-  if(!apiKey){ typing.remove(); appendAIMsg('bot','⚠️ لم يتم ضبط مفتاح الذكاء الاصطناعي بعد. يرجى التواصل مع الإدارة.'); return; }
-
-  try{
-    var systemPrompt = 'أنت مساعد عقاري متخصص لشركة شارك العقارية في المملكة العربية السعودية. مهمتك الإجابة على استفسارات العملاء بشأن العقارات المتاحة وتقديم المشورة العقارية بشكل احترافي ومختصر. تحدث بالعربية دائماً.\n\nالعروض المتاحة حالياً:\n'+(_aiOfferContext||'(لا توجد عروض منشورة حالياً)')+'\n\nإذا سأل العميل عن عقار معين وهو متاح، اعطه التفاصيل. اقترح التواصل مع فريق شارك على واتساب: 966539997060';
-
-    var res = await fetch('https://api.openai.com/v1/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
-      body: JSON.stringify({
-        model:'gpt-4o-mini',
-        messages:[{role:'system',content:systemPrompt}].concat(_aiHistory.slice(-8)),
-        max_tokens:400,temperature:0.7
-      })
-    });
-    var data = await res.json();
-    typing.remove();
-    if(data.choices&&data.choices[0]){
-      var reply = data.choices[0].message.content;
-      _aiHistory.push({role:'assistant',content:reply});
-      appendAIMsg('bot', reply);
-    } else { appendAIMsg('bot','عذراً، حدث خطأ. حاول مرة أخرى.'); }
-  }catch(e){ typing.remove(); appendAIMsg('bot','⚠️ تعذّر الاتصال. تحقق من الإنترنت.'); }
-}
 </script>
 </body>
 </html>
