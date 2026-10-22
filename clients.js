@@ -60,7 +60,8 @@
 
   /* ── Google Sheets ── */
   function sendSheet(payload){
-    try{ fetch(SHEETS_URL,{method:'POST',mode:'no-cors',body:JSON.stringify(payload)}); }catch(e){}
+    /* يُرسل كنموذج (data=...) لأنه أضمن طريقة يستقبلها Apps Script */
+    try{ fetch(SHEETS_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({data:JSON.stringify(payload)})}); }catch(e){}
   }
 
   /* ── قائمة الانتظار عند انقطاع الإنترنت ── */
