@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="clients.js"></script>
 <script src="projects.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -778,19 +779,13 @@ body{background:var(--dark);color:var(--text)}
 
 <script>
 (function(){
-  var SHEETS='https://script.google.com/macros/s/AKfycbyHVwZPpmNrCOrXjbzlrrkz1tYcA1v7MXvDfwlPFYKUMzV3ICTmpYsNP22HH6dsF7k/exec';
-  var PHONE='966539997060';
+    var PHONE='966539997060';
   var TL={warehouses:'مستودع',commercial:'تجاري',residential:'سكني',villas:'فيلا',villa:'فيلا',apartments:'شقة',apartment:'شقة',lands:'أرض',land:'أرض',agricultural:'زراعي',rest:'استراحة',chalets:'شاليه'};
   var CC={'الرياض':[24.7136,46.6753],'جدة':[21.4858,39.1925],'مكة المكرمة':[21.3891,39.8579],'المدينة المنورة':[24.5247,39.5692],'الدمام':[26.4207,50.0888],'الخبر':[26.2172,50.1971],'الأحساء':[25.3814,49.5875],'تبوك':[28.3998,36.5700],'أبها':[18.2164,42.5053],'بريدة':[26.3292,43.9749],'حائل':[27.5219,41.7087],'نجران':[17.5656,44.2289],'جازان':[16.8892,42.5511],'ينبع':[24.0895,38.0618],'خميس مشيط':[18.3000,42.7333],'الجبيل':[27.0025,49.6603]};
 
   function gs(k){try{return JSON.parse(localStorage.getItem(k)||'null');}catch(e){return null;}}
-  function send(r){try{fetch(SHEETS,{method:'POST',mode:'no-cors',body:JSON.stringify(r)});}catch(e){}}
-  function save(r){
-    try{var a=gs('shark_admin_clients')||[];a.unshift(r);localStorage.setItem('shark_admin_clients',JSON.stringify(a));}catch(e){}
-    try{
-      if(_fsdb){ r._ts=Date.now(); _fsdb.collection('clients').doc(r.id).set(r); }
-    }catch(e){}
-  }
+  /* الحفظ في صفحة العملاء والشيت يتم عبر clients.js */
+  function save(r){ return SharkClients.save(r); }
   function now(){return new Date().toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'});}
   function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
   function fmt(n){if(!n)return'—';var v=Number(String(n).replace(/,/g,''));if(!v)return n;if(v>=1000000)return(v/1000000).toLocaleString('ar',{maximumFractionDigits:2})+' مليون ريال';return v.toLocaleString('ar-SA')+' ريال';}
@@ -808,24 +803,28 @@ body{background:var(--dark);color:var(--text)}
   window.subInv=function(){
     var n=document.getElementById('si-name').value.trim(),p=document.getElementById('si-phone').value.trim();
     if(!n||!p){alert('الرجاء إدخال الاسم ورقم الجوال');return;}
-    var r={name:n,phone:p,type:'رغبة استثمار',interest:document.getElementById('si-type').value,note:document.getElementById('si-note').value.trim(),source:'invest',date:now(),id:'SK-'+(Date.now()%100000)};
-    save(r);send(r);
+    var r={name:n,phone:p,type:'رغبة استثمار',interest:document.getElementById('si-type').value,note:document.getElementById('si-note').value.trim(),source:'invest',date:now()};
+    save(r);
     document.getElementById('inv-f').style.display='none';document.getElementById('inv-ok').style.display='block';
     setTimeout(function(){closeM('mod-inv');document.getElementById('inv-f').style.display='block';document.getElementById('inv-ok').style.display='none';['si-name','si-phone','si-note'].forEach(function(i){document.getElementById(i).value='';});},3000);
   };
   window.subMkt=function(){
     var n=document.getElementById('sm-name').value.trim(),p=document.getElementById('sm-phone').value.trim();
     if(!n||!p){alert('الرجاء إدخال الاسم ورقم الجوال');return;}
-    var r={name:n,phone:p,type:'عرض عقار',interest:document.getElementById('sm-kind').value,note:document.getElementById('sm-note').value.trim(),source:'marketing',date:now(),id:'SK-'+(Date.now()%100000)};
-    save(r);send(r);
+    var r={name:n,phone:p,type:'عرض عقار',interest:document.getElementById('sm-kind').value,note:document.getElementById('sm-note').value.trim(),source:'marketing',date:now()};
+    save(r);
     document.getElementById('mkt-f').style.display='none';document.getElementById('mkt-ok').style.display='block';
     setTimeout(function(){closeM('mod-mkt');document.getElementById('mkt-f').style.display='block';document.getElementById('mkt-ok').style.display='none';['sm-name','sm-phone','sm-note'].forEach(function(i){document.getElementById(i).value='';});},3000);
   };
 
-  window.openInterest=function(offerName){
+  window.openInterest=function(offerId,offerName){
+    if(offerName===undefined){ offerName=offerId; offerId=''; }
+    if(offerName && _offers.some(function(x){return x.id===offerName;}) && !_offers.some(function(x){return x.id===offerId;})){ var tmp=offerId; offerId=offerName; offerName=tmp; }
+    if(!offerName && offerId){ var oo=_offers.find(function(x){return x.id===offerId;}); offerName=oo?(oo.ar||oo.name||''):''; }
     closeM('mod-offer');
     document.getElementById('int-offer-name').textContent=offerName?'العرض: '+offerName:'';
     document.getElementById('int-offer-name').dataset.offer=offerName||'';
+    document.getElementById('int-offer-name').dataset.offerId=offerId||'';
     document.getElementById('int-f').style.display='block';
     document.getElementById('int-ok').style.display='none';
     ['int-name','int-phone','int-note'].forEach(function(i){document.getElementById(i).value='';});
@@ -835,8 +834,9 @@ body{background:var(--dark);color:var(--text)}
     var n=document.getElementById('int-name').value.trim(),p=document.getElementById('int-phone').value.trim();
     if(!n||!p){alert('الرجاء إدخال الاسم ورقم الجوال');return;}
     var offer=document.getElementById('int-offer-name').dataset.offer||'';
-    var r={name:n,phone:p,type:'تسجيل اهتمام',offer:offer,note:document.getElementById('int-note').value.trim(),source:'interest',sheet:'تسجيل الاهتمام',date:now(),id:'SK-'+(Date.now()%100000)};
-    save(r);send(r);
+    var offerId=document.getElementById('int-offer-name').dataset.offerId||'';
+    var r={name:n,phone:p,type:'تسجيل اهتمام',offer:offer,offerName:offer,offerTitle:offer,offerId:offerId,note:document.getElementById('int-note').value.trim(),source:'interest',date:now()};
+    save(r);
     document.getElementById('int-f').style.display='none';document.getElementById('int-ok').style.display='block';
     setTimeout(function(){closeM('mod-interest');},3000);
   };
@@ -887,7 +887,7 @@ body{background:var(--dark);color:var(--text)}
         +'<div class="o-loc"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>'+esc((o.city||'')+(o.district?' · '+o.district:''))+'</div>'
         +'<div class="o-price">'+fmt(o.price)+'</div>'
         +((o.area||o.beds)?'<div class="o-meta">'+(o.area?'<span>📐 '+o.area+' م²</span>':'')+(o.beds?'<span>🛏 '+o.beds+'</span>':'')+'</div>':'')
-        +'<div class="o-card-actions"><button class="o-int-btn" onclick="event.stopPropagation();openInterest(\''+esc(o.ar||o.name||'')+'\')" >تسجيل اهتمام</button></div>'
+        +'<div class="o-card-actions"><button class="o-int-btn" onclick="event.stopPropagation();openInterest(\''+esc(o.id||'')+'\',\''+esc(o.ar||o.name||'')+'\')" >تسجيل اهتمام</button></div>'
         +'</div></div>';
     }).join('');
   }

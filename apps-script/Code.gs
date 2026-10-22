@@ -15,7 +15,8 @@
 var MASTER_SHEET = 'العملاء قاعدة البيانات';
 var REQUESTS_SHEET = 'الطلبات';
 var OFFERS_SHEET = 'العروض';
-var SCRIPT_VERSION = 2;
+var SCRIPT_VERSION = 3;
+var ERRORS_SHEET = 'سجل الأخطاء';
 
 var TYPE_TO_SHEET = {
   'عميل اتصال':   'تسجيل عميل جديد',
@@ -48,7 +49,8 @@ function doPost(e) {
   var lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
-    var data = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+    var got = readPayload_(e);
+    var data = got.data;
     // صيغة قديمة: {sheet, record}
     if (data.record && typeof data.record === 'object') {
       var rec = data.record; rec.sheet = rec.sheet || data.sheet; data = rec;
@@ -69,6 +71,11 @@ function doPost(e) {
       return json_({ ok: true, sheet: REQUESTS_SHEET });
     }
 
+    if (!data.name && !data.phone) {
+      logError_(ss, 'وصل طلب بدون اسم ورقم', got.raw, e);
+      return json_({ ok: false, error: 'empty payload' });
+    }
+
     var type = data.type || (data.source === 'promo' ? 'تسجيل اهتمام' : 'عميل اتصال');
     var sheetName = TYPE_TO_SHEET[type] || data.sheet || MASTER_SHEET;
     var row = [
@@ -87,6 +94,7 @@ function doPost(e) {
     }
     return json_({ ok: true, sheet: sheetName, offerSheet: offerSheet ? offerSheet.getName() : '' });
   } catch (err) {
+    try { logError_(SpreadsheetApp.getActiveSpreadsheet(), String(err), (e && e.postData && e.postData.contents) || '', e); } catch (x) {}
     return json_({ ok: false, error: String(err) });
   } finally {
     lock.releaseLock();
@@ -94,7 +102,29 @@ function doPost(e) {
 }
 
 function doGet() {
-  return json_({ ok: true, service: 'shark-clients', version: SCRIPT_VERSION });
+  // doPostOk = false معناها فيه ملف ثاني في المشروع فيه doPost قديمة تغطي على هذي
+  return json_({ ok: true, service: 'shark-clients', version: SCRIPT_VERSION, doPostOk: String(doPost).indexOf('readPayload_') > -1 });
+}
+
+/** يقرأ البيانات سواء وصلت كنموذج (data=...) أو JSON مباشر أو حقول منفصلة */
+function readPayload_(e) {
+  var raw = '';
+  if (e && e.parameter && e.parameter.data) raw = e.parameter.data;
+  else if (e && e.postData && e.postData.contents) raw = e.postData.contents;
+  var data = {};
+  try { data = JSON.parse(raw || '{}'); } catch (x) { data = {}; }
+  if (typeof data === 'string') { try { data = JSON.parse(data); } catch (x) { data = {}; } }
+  if (!data || typeof data !== 'object') data = {};
+  if (!Object.keys(data).length && e && e.parameter) {
+    Object.keys(e.parameter).forEach(function (k) { if (k !== 'data') data[k] = e.parameter[k]; });
+  }
+  return { data: data, raw: raw };
+}
+
+function logError_(ss, msg, raw, e) {
+  var sh = ss.getSheetByName(ERRORS_SHEET);
+  if (!sh) { sh = ss.insertSheet(ERRORS_SHEET); sh.setRightToLeft(true); sh.appendRow(['التاريخ', 'الخطأ', 'البيانات الواصلة', 'نوع المحتوى']); sh.setFrozenRows(1); }
+  sh.appendRow([now_(), msg, String(raw || JSON.stringify((e && e.parameter) || {})).slice(0, 5000), (e && e.postData && e.postData.type) || '']);
 }
 
 /** تبويب خاص لكل عرض. يُحفظ ربط رقم العرض بالتبويب، فلو تغيّر اسم العرض أو التبويب يبقى نفس التبويب */
