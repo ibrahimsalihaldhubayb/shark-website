@@ -726,22 +726,29 @@ var _tasksCache=[];
 var _taskFilter = 'all';
 var _allTasksCache = []; function setTaskFilter(f){ _taskFilter=f; ['all','pending','done'].forEach(id=>{ $('tfilt-'+id)?.classList.toggle('active',id===f); }); renderTasksView();
 } async function renderTasks(){
-  var fromLS = gs('shark_tasks')||[];
-  if(fromLS.length > _allTasksCache.length) _allTasksCache = fromLS;
-  if(!_allTasksCache.length) _allTasksCache = fromLS;
-  _tasksCache = _allTasksCache;
-  renderTasksView();
-  if(_db && !_allTasksCache.length){
+  var listEl=$('tasks-list-view');
+  if(listEl && !_allTasksCache.length) listEl.innerHTML='<div style="text-align:center;padding:48px;color:var(--sub);font-size:14px">جاري تحميل المهام...</div>';
+  if(_db){
     try{
-      var snap = await _db.collection('tasks').get();
-      var fsT = snap.docs.map(d=>({...d.data(),id:d.id}));
-      var merged={}; fromLS.forEach(t=>{merged[t.id]=t;}); fsT.forEach(t=>{merged[t.id]=t;});
-      _allTasksCache = Object.values(merged).sort((a,b)=>(b._ts||0)-(a._ts||0));
-      _tasksCache = _allTasksCache;
-      ss('shark_tasks', _allTasksCache);
-      renderTasksView();
-    }catch(e){ console.warn('tasks fs fetch',e); }
+      var snap=await _db.collection('tasks').get();
+      var fsT=snap.docs.map(d=>({...d.data(),id:d.id}));
+      var localT=gs('shark_tasks')||[];
+      var merged={}; localT.forEach(t=>{merged[t.id]=t;}); fsT.forEach(t=>{merged[t.id]=t;});
+      _allTasksCache=Object.values(merged).sort((a,b)=>(b._ts||0)-(a._ts||0));
+      _tasksCache=_allTasksCache;
+      ss('shark_tasks',_allTasksCache);
+    }catch(e){
+      var fromLS=gs('shark_tasks')||[];
+      if(fromLS.length>_allTasksCache.length) _allTasksCache=fromLS;
+      if(!_allTasksCache.length) _allTasksCache=fromLS;
+      _tasksCache=_allTasksCache;
+    }
+  } else {
+    var fromLS=gs('shark_tasks')||[];
+    if(fromLS.length>_allTasksCache.length) _allTasksCache=fromLS;
+    _tasksCache=_allTasksCache;
   }
+  renderTasksView();
 } function renderTasksView(){ _allTasksCache = (gs('shark_tasks')||[]).length > _allTasksCache.length ? (gs('shark_tasks')||[]) : _allTasksCache; if(!_allTasksCache.length) _allTasksCache=gs('shark_tasks')||[]; const done=_allTasksCache.filter(t=>t.status==='done').length; const total=_allTasksCache.length; const pct=total?Math.round(done/total*100):0; if($('tasks-summary-line')) $('tasks-summary-line').textContent=`${total} مهمة · ${done} مكتملة · ${total-done} جارية`; if($('tasks-pct-label')) $('tasks-pct-label').textContent=pct+'%'; if($('tasks-pct-bar')) $('tasks-pct-bar').style.width=pct+'%'; const filtered=_taskFilter==='all'?_allTasksCache:_allTasksCache.filter(t=>t.status===(_taskFilter==='done'?'done':'pending')); const listEl=$('tasks-list-view'); if(!listEl) return; if(!filtered.length){ listEl.innerHTML='<div style="text-align:center;padding:48px;color:var(--sub);font-size:14px">لا توجد مهام في هذه الفئة</div>'; return; } // group by assignedTo const groups={}; filtered.forEach(t=>{ const key=t.assignedTo||'غير محدد'; if(!groups[key]) groups[key]=[]; groups[key].push(t); }); listEl.innerHTML=Object.entries(groups).map(([emp,tasks])=>{ const cards=tasks.map(t=>{ const isDone=t.status==='done'; const overdue=!isDone&&t.dueDate&&new Date(t.dueDate)<new Date(); const statusClass=overdue?'overdue':isDone?'done':'pending'; const statusLabel=overdue?'متأخرة':isDone?'مكتملة':'جارية'; const awarded=t.award; let meta=[]; if(t.responsible) meta.push(`المسؤول: ${t.responsible}`); if(t._ts){ const d=new Date(t._ts); meta.push(`الإسناد: ${d.toLocaleDateString('ar-SA',{month:'2-digit',day:'2-digit'})}`); } const dl=t.deadline||t.dueDate; if(dl) meta.push(`التسليم: ${dl}`); const safeTitle=(t.title||'—').replace(/'/g,"\\'"); const sid=t.id.replace(/'/g,"\\'"); return `<div class="tc-card ${isDone?'done-card':''}${overdue?' overdue-card':''}"><div class="tc-badge ${statusClass}">${statusLabel}</div> <div class="tc-title">${t.title||'—'}${awarded?' (مميز)':''}</div>${t.description?`<div class="tc-desc">${t.description}</div>`:''} ${meta.length?`<div class="tc-meta">${meta.map(m=>`<span>${m}</span>`).join('')}</div>`:''} ${t.note?`<div class="tc-note-display"><span style="color:var(--gold);font-weight:700">ملاحظة: </span>${t.note}</div>`:''} <div class="tc-actions">${isDone&&!awarded?`<button class="tc-act-btn award" onclick="grantAward('${sid}')">تميز</button>`:''} ${overdue?`<button class="tc-act-btn notif" onclick="sendOverdueNotif('${sid}','${(t.assignedTo||'').replace(/'/g,"\\'")}','${safeTitle}')">تنبيه</button>`:''} ${!isDone?`<button class="tc-act-btn complete" onclick="markTaskDone('${sid}')">إنجاز</button>`:''} <button class="tc-act-btn notif" onclick="toggleTaskNote('${sid}')">تبرير</button> <button class="tc-act-btn del" onclick="deleteTask('${sid}')">×</button> </div> <div id="tc-note-${t.id}" class="tc-note-area" style="display:none"><textarea id="tc-note-ta-${t.id}" class="tc-note-ta" placeholder="اكتب الملاحظة أو التبرير..."></textarea><div style="display:flex;gap:8px;margin-top:6px"><button class="tc-act-btn complete" onclick="saveTaskNote('${sid}')">حفظ</button><button class="tc-act-btn del" onclick="toggleTaskNote('${sid}')">إلغاء</button></div></div></div>`; }).join(''); return `<div class="emp-section"><div class="emp-name-band"><h3>${emp}</h3><span class="emp-task-count">${tasks.length} مهام</span></div> <div class="task-cards-grid">${cards}</div> </div>`; }).join('');
 }
 function openTaskEditor(){ toggleTaskForm(); }
