@@ -5,7 +5,7 @@
    • إذا انقطع الإنترنت يحتفظ بالسجل ويعيد إرساله لاحقاً
    ══════════════════════════════════════════════ */
 (function(){
-  var SHEETS_URL='https://script.google.com/macros/s/AKfycbyHVwZPpmNrCOrXjbzlrrkz1tYcA1v7MXvDfwlPFYKUMzV3ICTmpYsNP22HH6dsF7k/exec';
+  var SHEETS_URL='https://script.google.com/macros/s/AKfycbwnBdAK73h0xRyYjY-cnZ4ra5WPXrhD6a5-sLqme1193lme4PFWnl6dbDrUpj5YKTry/exec';
   var FB_CFG={apiKey:"AIzaSyCJ59kjkb7mZ7pcsLImkT4L2-fdHFDTVko",authDomain:"sharek-re.firebaseapp.com",projectId:"sharek-re",storageBucket:"sharek-re.firebasestorage.app",messagingSenderId:"1000796915275",appId:"1:1000796915275:web:bb556f80db9d2f7f99efce"};
   var FB_VER='9.23.0';
   var MASTER_SHEET='العملاء قاعدة البيانات';
