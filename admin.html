@@ -378,9 +378,16 @@ tr:hover td{background:#fafafa}
     <div class="form-row"><label>اسم العميل *</label><input id="req-cl-name" type="text" placeholder="محمد أحمد"></div>
     <div class="form-row"><label>رقم الجوال *</label><input id="req-cl-phone" type="tel" placeholder="05xxxxxxxx"></div>
   </div>
+  <div class="form-2col">
+    <div class="form-row"><label>نوع العقار</label><select id="req-prop-type"><option value="">— اختر —</option><option>فيلا</option><option>أرض</option><option>شقة</option><option>مستودع</option><option>تجاري</option><option>مكتب</option><option>استراحة</option><option>مزرعة</option></select></div>
+    <div class="form-row"><label>الموظف المسؤول</label><select id="req-emp-sel"><option value="">— اختر —</option></select></div>
+  </div>
+  <div class="form-2col">
+    <div class="form-row"><label>المنطقة / المدينة</label><input id="req-region" type="text" placeholder="الرياض، بريدة..."></div>
+    <div class="form-row"><label>الحي</label><input id="req-district" type="text" placeholder="حي الشمالية..."></div>
+  </div>
   <div class="form-row"><label>العرض المرتبط (اختياري)</label><select id="req-offer-sel"><option value="">— بدون عرض —</option></select></div>
-  <div class="form-row"><label>الاهتمام / نوع العقار</label><input id="req-interest" type="text" placeholder="مستودع في بريدة"></div>
-  <div class="form-row"><label>ملاحظات</label><textarea id="req-note" rows="3" placeholder="أي تفاصيل إضافية..."></textarea></div>
+  <div class="form-row"><label>ملاحظات إضافية</label><textarea id="req-note" rows="2" placeholder="أي تفاصيل..."></textarea></div>
   <div class="modal-footer"><button class="btn-outline" onclick="closeModal('modal-request')">إلغاء</button><button class="btn-primary" onclick="saveRequest()">حفظ الطلب</button></div>
 </div></div>
 <!-- ══ MODAL: Add Client ══ -->
@@ -895,6 +902,11 @@ function renderRequests(){
       +'<span style="font-size:11px;font-weight:700;color:#fff;background:'+REQ_STATUS_COLORS[st]+';border-radius:20px;padding:2px 10px">'+REQ_STATUS_LABELS[st]+'</span>'
       +'</div>'
       +'<div style="font-size:12px;color:var(--sub);margin-bottom:6px">📱 '+(r.phone||'—')+(r.addedBy?' · الموظف: '+r.addedBy:'')+'</div>'
+      +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">'
+      +(r.propType?'<span style="font-size:11px;background:#f3f4f6;border-radius:12px;padding:2px 8px;color:var(--text)">🏠 '+r.propType+'</span>':'')
+      +(r.region?'<span style="font-size:11px;background:#f3f4f6;border-radius:12px;padding:2px 8px;color:var(--text)">📍 '+r.region+'</span>':'')
+      +(r.district?'<span style="font-size:11px;background:#f3f4f6;border-radius:12px;padding:2px 8px;color:var(--text)">🏘 '+r.district+'</span>':'')
+      +'</div>'
       +(r.interest?'<div style="font-size:12px;color:var(--text);margin-bottom:4px">الاهتمام: '+r.interest+'</div>':'')
       +(offerName?'<div style="font-size:12px;color:var(--gold);margin-bottom:4px">العرض: '+offerName+'</div>':'')
       +(r.note?'<div style="font-size:11px;color:#78350f;background:#fefce8;border:1px solid #fde68a;border-radius:6px;padding:4px 8px;margin-bottom:6px">'+r.note+'</div>':'')
@@ -908,7 +920,9 @@ function renderRequests(){
   }).join('');
 }
 function openRequestModal(){
-  $('req-cl-name').value=''; $('req-cl-phone').value=''; $('req-interest').value=''; $('req-note').value='';
+  $('req-cl-name').value=''; $('req-cl-phone').value=''; $('req-note').value='';
+  $('req-region').value=''; $('req-district').value=''; $('req-prop-type').value='';
+  var empSel=$('req-emp-sel'); if(empSel){ var emps=getEmployees(); empSel.innerHTML='<option value="">— اختر —</option>'+emps.map(function(e){return '<option value="'+(e.name||e.username)+'">'+(e.name||e.username)+'</option>';}).join(''); var me=(_currentUser&&(_currentUser.name||_currentUser.username))||''; if(me) empSel.value=me; }
   var sel=$('req-offer-sel'); if(sel){ sel.innerHTML='<option value="">— بدون عرض —</option>'+(_offersCache||[]).map(function(o){return '<option value="'+o.id+'">'+(o.ar||o.name||o.id)+'</option>';}).join(''); }
   $('modal-request').classList.add('open');
 }
@@ -919,9 +933,13 @@ async function saveRequest(){
   var offerSel=$('req-offer-sel'); var offerId=offerSel?offerSel.value:'';
   var offerName=''; if(offerId){ var fo=_offersCache.find(function(o){return o.id===offerId;}); offerName=fo?(fo.ar||fo.name||offerId):''; }
   var me=(_currentUser&&(_currentUser.name||_currentUser.username))||'موظف';
+  var empVal=($('req-emp-sel')||{}).value||me;
   var r={ id:'CL-'+Date.now().toString(36).toUpperCase(), name:name, phone:phone, type:'طلب شراء',
-    interest:($('req-interest')||{}).value||'', note:($('req-note')||{}).value||'',
-    offerId:offerId, offerTitle:offerName, addedBy:me, reqStatus:'new', date:nowAr(), _ts:Date.now() };
+    propType:($('req-prop-type')||{}).value||'',
+    region:($('req-region')||{}).value||'',
+    district:($('req-district')||{}).value||'',
+    note:($('req-note')||{}).value||'',
+    offerId:offerId, offerTitle:offerName, addedBy:empVal, reqStatus:'new', date:nowAr(), _ts:Date.now() };
   _clientsCache.unshift(r); ss(CLIENTS_KEY, _clientsCache);
   if(_db){ try{ await _db.collection('clients').doc(r.id).set(r); }catch(e){ console.warn('req save',e); } }
   closeModal('modal-request');
