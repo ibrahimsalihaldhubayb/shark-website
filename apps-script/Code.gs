@@ -7,6 +7,7 @@
  *   3) إذا كان العميل مرتبط بعرض: تبويب خاص بالعرض نفسه (عرض - اسم العرض)
  * والطلبات (type = request) تُضاف في تبويب «الطلبات».
  * وعند نشر عرض في الموقع (type = offer) يُنشأ تبويبه ويُضاف لتبويب «العروض».
+ * وكل إعلان (type = promo) له تبويب «إعلان - العنوان» ويُضاف لتبويب «الإعلانات»، والمسجلين منه ينزلون فيه.
  * التبويب يُنشأ تلقائياً بالعناوين إذا ما كان موجود.
  *
  * طريقة التركيب: انظر apps-script/README.md
@@ -15,7 +16,8 @@
 var MASTER_SHEET = 'العملاء قاعدة البيانات';
 var REQUESTS_SHEET = 'الطلبات';
 var OFFERS_SHEET = 'العروض';
-var SCRIPT_VERSION = 3;
+var SCRIPT_VERSION = 4;
+var PROMOS_SHEET = 'الإعلانات';
 var ERRORS_SHEET = 'سجل الأخطاء';
 
 var TYPE_TO_SHEET = {
@@ -42,6 +44,7 @@ var SOURCE_LABELS = {
 };
 
 var CLIENT_HEADERS = ['التاريخ', 'النوع', 'الاسم', 'الجوال', 'الاهتمام', 'العرض', 'الملاحظة', 'الموظف', 'المصدر', 'المعرف'];
+var PROMO_INDEX_HEADERS = ['رقم الإعلان', 'عنوان الإعلان', 'رابط الإعلان', 'عدد المسجلين', 'التبويب', 'تاريخ الإنشاء'];
 var OFFER_INDEX_HEADERS = ['رقم العرض', 'اسم العرض', 'النوع', 'المدينة', 'الحي', 'السعر', 'رابط صفحة الهبوط', 'عدد المهتمين', 'التبويب', 'تاريخ النشر'];
 var REQUEST_HEADERS = ['التاريخ', 'اسم العميل', 'الجوال', 'الموظف', 'الطلب', 'الميزانية', 'المنطقة', 'المدينة', 'الحي', 'الملاحظات', 'المستندات', 'المعرف'];
 
@@ -60,6 +63,11 @@ function doPost(e) {
     if (data.type === 'offer') {
       var osh = ensureOfferSheet_(ss, data.offerId, data.title, data);
       return json_({ ok: true, sheet: osh.getName() });
+    }
+
+    if (data.type === 'promo') {
+      var psh = ensurePromoSheet_(ss, data.promoId, data.title, data);
+      return json_({ ok: true, sheet: psh.getName() });
     }
 
     if (data.type === 'request') {
@@ -92,7 +100,13 @@ function doPost(e) {
       appendRow_(ss, offerSheet.getName(), CLIENT_HEADERS, row, data.id);
       updateOfferIndex_(ss, data.offerId || '', offerTitle, null, offerSheet);
     }
-    return json_({ ok: true, sheet: sheetName, offerSheet: offerSheet ? offerSheet.getName() : '' });
+    var promoSheet = null;
+    if (data.promoId) {
+      promoSheet = ensurePromoSheet_(ss, data.promoId, data.promoTitle || '', null);
+      appendRow_(ss, promoSheet.getName(), CLIENT_HEADERS, row, data.id);
+      updatePromoIndex_(ss, data.promoId, data.promoTitle || '', null, promoSheet);
+    }
+    return json_({ ok: true, sheet: sheetName, offerSheet: offerSheet ? offerSheet.getName() : '', promoSheet: promoSheet ? promoSheet.getName() : '' });
   } catch (err) {
     try { logError_(SpreadsheetApp.getActiveSpreadsheet(), String(err), (e && e.postData && e.postData.contents) || '', e); } catch (x) {}
     return json_({ ok: false, error: String(err) });
@@ -153,6 +167,58 @@ function ensureOfferSheet_(ss, offerId, title, info) {
   }
   updateOfferIndex_(ss, offerId, title, info, sh);
   return sh;
+}
+
+/** تبويب خاص لكل إعلان، بنفس فكرة تبويبات العروض */
+function ensurePromoSheet_(ss, promoId, title, info) {
+  var props = PropertiesService.getDocumentProperties();
+  var key = 'promo:' + promoId;
+  var sh = null;
+  var savedId = props.getProperty(key);
+  if (savedId) {
+    sh = ss.getSheets().filter(function (x) { return String(x.getSheetId()) === savedId; })[0] || null;
+  }
+  if (!sh) {
+    var base = ('إعلان - ' + (title || promoId)).replace(/[:\\\/?*\[\]]/g, ' ').replace(/\s+/g, ' ').trim();
+    if (base.length > 80) base = base.slice(0, 80).trim();
+    var name = base;
+    if (ss.getSheetByName(name)) name = (base + ' ' + promoId).slice(0, 99);
+    sh = ss.getSheetByName(name) || ss.insertSheet(name);
+    sh.setRightToLeft(true);
+    if (sh.getLastRow() === 0) {
+      sh.appendRow(CLIENT_HEADERS);
+      sh.getRange(1, 1, 1, CLIENT_HEADERS.length).setFontWeight('bold').setBackground('#c8a96e').setFontColor('#1a1000');
+      sh.setFrozenRows(1);
+    }
+    sh.setTabColor('#5b8def');
+    props.setProperty(key, String(sh.getSheetId()));
+  }
+  updatePromoIndex_(ss, promoId, title, info, sh);
+  return sh;
+}
+
+/** تبويب «الإعلانات»: صف لكل إعلان مع رابطه وعدد المسجلين */
+function updatePromoIndex_(ss, promoId, title, info, promoSheet) {
+  var idx = ss.getSheetByName(PROMOS_SHEET);
+  if (!idx) { idx = ss.insertSheet(PROMOS_SHEET); idx.setRightToLeft(true); }
+  if (idx.getLastRow() === 0) {
+    idx.appendRow(PROMO_INDEX_HEADERS);
+    idx.getRange(1, 1, 1, PROMO_INDEX_HEADERS.length).setFontWeight('bold').setBackground('#c8a96e').setFontColor('#1a1000');
+    idx.setFrozenRows(1);
+  }
+  var last = idx.getLastRow();
+  var rowNum = 0;
+  if (last > 1) {
+    var hit = idx.getRange(2, 1, last - 1, 1).createTextFinder(String(promoId)).matchEntireCell(true).findNext();
+    if (hit) rowNum = hit.getRow();
+  }
+  if (!rowNum) {
+    idx.appendRow([promoId, title || '', '', 0, '', now_()]);
+    rowNum = idx.getLastRow();
+  }
+  if (info) idx.getRange(rowNum, 2, 1, 2).setValues([[title || '', info.url || '']]);
+  idx.getRange(rowNum, 4).setValue(Math.max(0, promoSheet.getLastRow() - 1));
+  idx.getRange(rowNum, 5).setFormula('=HYPERLINK("#gid=' + promoSheet.getSheetId() + '","' + promoSheet.getName().replace(/"/g, '') + '")');
 }
 
 /** تبويب «العروض»: صف لكل عرض مع رابط صفحة الهبوط وعدد المهتمين */
@@ -227,6 +293,7 @@ function setupSheets() {
   names.forEach(function (n) { appendRowHeadersOnly_(ss, n, CLIENT_HEADERS); });
   appendRowHeadersOnly_(ss, REQUESTS_SHEET, REQUEST_HEADERS);
   appendRowHeadersOnly_(ss, OFFERS_SHEET, OFFER_INDEX_HEADERS);
+  appendRowHeadersOnly_(ss, PROMOS_SHEET, PROMO_INDEX_HEADERS);
 }
 
 function appendRowHeadersOnly_(ss, name, headers) {

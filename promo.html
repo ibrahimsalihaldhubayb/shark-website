@@ -101,18 +101,59 @@ body{
   border:1px solid rgba(37,211,102,.35);color:rgba(37,211,102,.85);
   font-family:'Cairo',sans-serif;font-size:14px;font-weight:500;cursor:pointer;
 }
+/* محتوى الإعلان (يُعبّأ من لوحة الإدارة) */
+.promo-head{display:none;text-align:center;margin-bottom:20px}
+.promo-icon{font-size:34px;line-height:1;margin-bottom:10px}
+.promo-title{font-size:24px;font-weight:800;line-height:1.35;color:#f4f3ef}
+.promo-sub{font-size:15px;font-weight:600;color:#d4a83c;margin-top:6px}
+.promo-body{font-size:14px;line-height:1.85;color:rgba(244,243,239,.75);margin-top:12px;white-space:pre-line}
+.promo-points{list-style:none;margin:14px 0 0;padding:0;text-align:right}
+.promo-points li{font-size:14px;line-height:1.7;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);display:flex;gap:8px;align-items:flex-start}
+.promo-points li:last-child{border-bottom:none}
+.promo-points li::before{content:'✓';color:#d4a83c;font-weight:800;flex-shrink:0}
+.promo-gallery{display:none;gap:8px;overflow-x:auto;margin-top:14px;padding-bottom:4px}
+.promo-gallery img{width:110px;height:80px;object-fit:cover;border-radius:10px;flex-shrink:0;border:1px solid rgba(255,255,255,.1);cursor:pointer}
+.promo-trust{display:none;justify-content:space-around;margin-top:16px;padding:12px 0;border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08)}
+.promo-trust div{text-align:center}
+.promo-trust b{display:block;font-size:18px;color:#d4a83c}
+.promo-trust span{font-size:11px;color:rgba(244,243,239,.5)}
+.form-title{display:none;font-size:16px;font-weight:700;margin-bottom:14px;text-align:center;color:#f4f3ef}
+.brand{display:none;width:100%;max-width:460px;text-align:center;padding:34px 18px 8px}
+.brand b{display:block;font-size:26px;font-weight:800;color:#d4a83c;letter-spacing:.04em}
+.brand span{font-size:12px;color:rgba(244,243,239,.5)}
+body.promo-plain .bg{display:none}
+body.promo-plain .brand{display:block}
+body.promo-plain .page{margin-top:14px}
+body.promo-custom .page{margin-top:-90px}
+.lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:50;align-items:center;justify-content:center;padding:16px}
+.lb img{max-width:100%;max-height:100%;border-radius:8px}
 </style>
 <script src="clients.js"></script>
 </head>
 <body>
 
+<div class="brand"><b>شارك العقارية</b><span>شركة ركن شارك العقارية</span></div>
 <div class="bg">
   <img src="bg-promo.webp" alt="">
 </div>
 
 <div class="page">
   <div class="card">
+    <div class="promo-head" id="promo-head">
+      <div class="promo-icon" id="promo-icon"></div>
+      <h1 class="promo-title" id="promo-title"></h1>
+      <div class="promo-sub" id="promo-sub"></div>
+      <div class="promo-body" id="promo-body"></div>
+      <ul class="promo-points" id="promo-points"></ul>
+      <div class="promo-gallery" id="promo-gallery"></div>
+      <div class="promo-trust" id="promo-trust">
+        <div><b>+٢٥٠</b><span>عرض عقاري</span></div>
+        <div><b>+٥٠٠</b><span>عميل</span></div>
+        <div><b>+٥</b><span>سنوات خبرة</span></div>
+      </div>
+    </div>
     <div id="form-wrap">
+      <div class="form-title" id="form-title"></div>
       <label class="f-label">الاسم الكامل</label>
       <input type="text" class="f-input" id="f-name" placeholder="مثال: عبدالله المطيري" autocomplete="name">
 
@@ -136,6 +177,7 @@ body{
     </div>
   </div>
 
+  <div class="lb" id="lb" onclick="this.style.display='none'"><img id="lb-img" alt=""></div>
   <p class="privacy">نحترم خصوصيتك: رقم جوالك يُعامَل بسرية تامة ولا تتم مشاركته مع أي جهة أخرى، ويكون التواصل فقط بخصوص اهتمامك بالعقار.</p>
 </div>
 
@@ -144,12 +186,50 @@ body{
   var PHONE = '966539997060';
 
   var params = new URLSearchParams(location.search);
+  var promoId = params.get('k') || '';
+  var promo = null;
   var bgUrl = params.get('bg');
   if(bgUrl) document.querySelector('.bg img').src = bgUrl;
 
+  function $(id){ return document.getElementById(id); }
+  function setText(id,t){ var el=$(id); el.textContent=t||''; el.style.display=t?'':'none'; }
+
+  /* يقرأ محتوى الإعلان من قاعدة البيانات ويعرضه */
+  async function loadPromo(){
+    if(!promoId) return;
+    try{
+      var db = await SharkClients.getDb();
+      var doc = await Promise.race([db.collection('promos').doc(promoId).get(), new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('timeout')); },10000); })]);
+      if(!doc || !doc.exists) return;
+      promo = doc.data(); promo.id = promo.id || doc.id;
+    }catch(e){ console.warn('promo load',e); return; }
+    /* صورة الخلفية الافتراضية فيها نص حملة قديمة، فما تُستخدم مع إعلان له محتوى */
+    var bgSrc = bgUrl || promo.bgUrl;
+    if(bgSrc){ document.querySelector('.bg img').src = bgSrc; document.body.classList.add('promo-custom'); }
+    else if(promo.headline) document.body.classList.add('promo-plain');
+    if(promo.headline) document.title = promo.headline + ' — شارك العقارية';
+    setText('promo-icon', promo.icon && promo.icon!=='عقار' ? promo.icon : '');
+    setText('promo-title', promo.headline);
+    setText('promo-sub', promo.subline);
+    setText('promo-body', promo.body);
+    var pts = (promo.points||[]).filter(Boolean);
+    $('promo-points').innerHTML = pts.map(function(t){ var li=document.createElement('li'); li.textContent=t; return li.outerHTML; }).join('');
+    $('promo-points').style.display = pts.length ? '' : 'none';
+    var gal = (promo.gallery||[]).filter(Boolean);
+    if(gal.length){
+      var g=$('promo-gallery'); g.style.display='flex';
+      gal.forEach(function(src){ var im=document.createElement('img'); im.src=src; im.alt=''; im.onclick=function(){ $('lb-img').src=src; $('lb').style.display='flex'; }; g.appendChild(im); });
+    }
+    $('promo-trust').style.display = promo.showTrust ? 'flex' : 'none';
+    $('promo-head').style.display = 'block';
+    if(promo.ctaTitle){ $('form-title').textContent = promo.ctaTitle; $('form-title').style.display='block'; }
+    if(promo.btnLabel) $('btn-submit').textContent = promo.btnLabel;
+  }
+  loadPromo();
+
   window.goWa = function(){
     var name = (document.getElementById('f-name').value||'').trim();
-    var msg = 'السلام عليكم، أود الاستفسار عن العقار'+(name?' — '+name:'')+'\n'+location.href;
+    var msg = 'السلام عليكم، أود الاستفسار'+(promo&&promo.headline?' عن: '+promo.headline:' عن العقار')+(name?' — '+name:'')+'\n'+location.href;
     window.open('https://wa.me/'+PHONE+'?text='+encodeURIComponent(msg),'_blank');
   };
 
@@ -163,7 +243,9 @@ body{
     var btn = document.getElementById('btn-submit');
     btn.disabled = true; btn.textContent = 'جارٍ الإرسال...';
 
-    SharkClients.save({name:name,phone:phone,note:note,type:'تسجيل اهتمام',interest:'إعلان ترويجي',source:'promo'});
+    SharkClients.save({name:name,phone:phone,note:note,type:'تسجيل اهتمام',
+      interest:'إعلان: '+((promo&&promo.headline)||promoId||'إعلان ترويجي'),
+      promoId:promoId, promoTitle:(promo&&promo.headline)||'', source:'promo'});
 
     document.getElementById('form-wrap').style.display='none';
     document.getElementById('success-box').style.display='block';

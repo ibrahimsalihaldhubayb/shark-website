@@ -16,8 +16,7 @@ const PERM_SECTIONS = [
   {key:'performance', label:'تقارير الأداء'},
   {key:'chat', label:'المحادثة'},
   {key:'finance', label:'المالية'},
-  {key:'promos', label:'الإعلانات'},
-  {key:'landing', label:'صفحات الهبوط'},
+  {key:'promos', label:'الإعلانات وصفحات الهبوط'},
   {key:'promowa', label:'الرسائل الترويجية'},
   {key:'offers', label:'العروض المنشورة', nav:'nav-web-offers'},
   {key:'projects', label:'مشاريع الشركاء'},
@@ -30,10 +29,10 @@ const ALL_PERMS = PERM_SECTIONS.map(p=>p.key);
 const ROLE_PERMS = {
   'مدير': ALL_PERMS,
   'محاسب': ['dashboard','deals','tasks','performance','chat','finance','shark-docs'],
-  'موظف': ['dashboard','workspace-offers','deals','tasks','chat','promos','landing','promowa','clients','shark-docs']
+  'موظف': ['dashboard','workspace-offers','deals','tasks','chat','promos','promowa','clients','shark-docs']
 };
 // Sections without their own sidebar entry inherit another section's permission.
-const PERM_ALIASES = {'export':'clients'};
+const PERM_ALIASES = {'export':'clients','landing':'promos'};
 
 const LEDGER_TYPES = {
   salary:    {label:'راتب مستحق', sign:1},
@@ -83,7 +82,7 @@ async function checkPassword(emp, pass){
 function empPerms(e){
   if(!e) return [];
   if(e.username==='admin') return ALL_PERMS.slice();
-  if(Array.isArray(e.perms)) return e.perms.filter(p=>ALL_PERMS.includes(p));
+  if(Array.isArray(e.perms)) return e.perms.map(p=>PERM_ALIASES[p]||p).filter(p=>ALL_PERMS.includes(p));
   return (ROLE_PERMS[e.role] || ROLE_PERMS['موظف']).slice();
 }
 function currentEmp(){ return _currentUser ? (findEmployee(_currentUser.username) || _currentUser) : null; }

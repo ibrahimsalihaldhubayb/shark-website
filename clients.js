@@ -92,6 +92,7 @@
       id:r.id, date:r.date, type:r.type, name:r.name, phone:r.phone,
       interest:r.interest||'', offer:r.offerName||r.offerTitle||r.offer||'',
       offerId:r.offerId||'', offerTitle:r.offerTitle||r.offerName||r.offer||'',
+      promoId:r.promoId||'', promoTitle:r.promoTitle||'',
       note:r.note||'', employee:r.employee||'', source:r.source||''
     };
   }
@@ -134,6 +135,13 @@
       price:o.price||'', url:landingUrl(o.id) });
   }
 
+  /* عند حفظ إعلان: ينشئ تبويبه في الشيت ويضيفه لتبويب «الإعلانات» مع رابطه */
+  function promoUrl(p){ var u=new URL('promo.html?k='+encodeURIComponent(p.id),location.href); if(p.bgUrl) u.searchParams.set('bg',p.bgUrl); return u.toString(); }
+  function registerPromo(p){
+    if(!p||!p.id) return;
+    sendSheet({ type:'promo', promoId:p.id, title:p.headline||p.id, url:promoUrl(p) });
+  }
+
   /* هل الرقم مسجل مسبقاً؟ يرجّع السجل أو null (لا يمنع الحفظ) */
   async function findByPhone(phone){
     try{
@@ -161,7 +169,7 @@
 
   window.SharkClients={
     TYPES:TYPES, MASTER_SHEET:MASTER_SHEET, REQUESTS_SHEET:REQUESTS_SHEET, SHEETS_URL:SHEETS_URL,
-    save:save, createRequest:createRequest, registerOffer:registerOffer, landingUrl:landingUrl, findByPhone:findByPhone, flushPending:flushPending,
+    save:save, createRequest:createRequest, registerOffer:registerOffer, landingUrl:landingUrl, registerPromo:registerPromo, promoUrl:promoUrl, findByPhone:findByPhone, flushPending:flushPending,
     pendingCount:function(){ return getPending().length; },
     normPhone:normPhone, isValidPhone:isValidPhone, normType:normType, sheetFor:sheetFor,
     sendSheet:sendSheet, sheetPayload:sheetPayload, getDb:getDb, nowAr:nowAr

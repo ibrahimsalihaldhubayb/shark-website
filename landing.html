@@ -208,7 +208,7 @@ body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:var(--dark);color
 
 <script>
 (function(){
-  var PHONE = '966500000000'; // رقم واتساب الشركة — يمكن تغييره من الإعدادات
+  var PHONE = '966539997060'; // رقم واتساب الشركة
   var offer = null;
   var offerTitle = '';
 
@@ -230,22 +230,33 @@ body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:var(--dark);color
     return num.toLocaleString('ar-SA') + ' ريال';
   }
 
-  function loadOffer(){
-    var offers = [];
-    try{ offers = JSON.parse(localStorage.getItem('shark_offers')||'[]'); }catch(e){}
-    if(offerId) offer = offers.find(function(o){ return o.id===offerId; }) || null;
-    if(!offer && offers.length) offer = offers[0];
+  /* يقرأ العرض من قاعدة البيانات (Firestore) حتى يظهر لأي زائر من أي جهاز */
+  function fromLocal(){
+    try{ var offers=JSON.parse(localStorage.getItem('shark_offers')||'[]'); return offers.find(function(o){ return o.id===offerId; })||null; }catch(e){ return null; }
+  }
+  async function loadOffer(){
+    if(!offerId){ render(); return; }
+    try{
+      var db = await SharkClients.getDb();
+      var doc = await Promise.race([db.collection('offers').doc(offerId).get(), new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('timeout')); },10000); })]);
+      if(doc && doc.exists){ offer = doc.data(); offer.id = offer.id || doc.id; }
+      else {
+        var snap = await db.collection('offers').where('id','==',offerId).limit(1).get();
+        if(!snap.empty){ offer = snap.docs[0].data(); offer.id = offer.id || snap.docs[0].id; }
+      }
+    }catch(e){ console.warn('offer load',e); }
+    if(!offer) offer = fromLocal();
     render();
   }
 
-  var TYPE_MAP = {warehouses:'مستودع',villa:'فيلا',apartment:'شقة',land:'أرض',commercial:'تجاري',compound:'مجمع'};
+  var TYPE_MAP = {warehouses:'مستودع',villa:'فيلا',villas:'فيلا',apartment:'شقة',apartments:'شقة',land:'أرض',lands:'أرض',commercial:'تجاري',compound:'مجمع',residential:'سكني',agricultural:'زراعي',rest:'استراحة',chalets:'شاليه',office:'مكتب'};
   var FEAT_ICONS = {'غرف نوم':'🛏','حمامات':'🚿','موقف سيارات':'🚗','مسبح':'🏊','مصعد':'🛗','حديقة':'🌿','تكييف مركزي':'❄️','مطبخ':'🍳','صالة':'🛋','مجلس':'☕'};
 
   function render(){
     /* hero */
     if(offer && offer.coverImg){
       var img = document.createElement('img');
-      img.className='hero-img'; img.src=offer.coverImg; img.alt=offer.title||'';
+      img.className='hero-img'; img.src=offer.coverImg; img.alt=offer.ar||offer.title||'';
       document.getElementById('hero-placeholder').replaceWith(img);
     }
     var badge = document.getElementById('hero-badge');
@@ -253,7 +264,8 @@ body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:var(--dark);color
       var typeLabel = TYPE_MAP[offer.type]||offer.type||'عقار';
       badge.textContent = typeLabel; badge.style.display='block';
     }
-    document.getElementById('hero-title').textContent = offer ? (offer.title||offer.name||'عرض عقاري مميز') : 'عرض عقاري مميز';
+    document.getElementById('hero-title').textContent = offer ? (offer.ar||offer.title||offer.name||'عرض عقاري مميز') : 'عرض عقاري مميز';
+    if(offer) document.title = (offer.ar||offer.title||offer.name) + ' — شارك العقارية';
     offerTitle = document.getElementById('hero-title').textContent;
     var loc = '';
     if(offer){ if(offer.city) loc+=offer.city; if(offer.district) loc+=(loc?' · ':'')+offer.district; }
@@ -313,7 +325,7 @@ body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:var(--dark);color
       name:name, phone:phone,
       type:'تسجيل اهتمام', interest:document.getElementById('f-intent').value,
       note:(document.getElementById('f-note').value.trim()||'')+(offer?' | العرض: '+offerTitle:''),
-      offerId:offer?offer.id:'', offerTitle:offerTitle, offerName:offerTitle,
+      offerId:offer?offer.id:(offerId||''), offerTitle:offerTitle, offerName:offerTitle,
       source:'landing'
     };
     SharkClients.save(rec);
