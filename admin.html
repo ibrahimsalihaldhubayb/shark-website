@@ -1322,15 +1322,36 @@ async function _syncWONotes(){
   }catch(e){ console.warn('notes sync fail',e); }
 }
 async function refreshWorkspaceOffers(){
-  showToast('جاري تحديث العروض...');
-  try{
-    var snap=await _db.collection('offers').get();
-    _offersCache=snap.docs.map(function(d){return {...d.data(),id:d.id};}).sort(function(a,b){return (b._ts||0)-(a._ts||0);});
-    ss(OFFERS_KEY,_offersCache);
+  var btn=document.querySelector('[onclick="refreshWorkspaceOffers()"]');
+  if(btn){ btn.textContent='...'; btn.disabled=true; }
+  var restore=function(){ if(btn){ btn.textContent='تحديث'; btn.disabled=false; } };
+  /* try Firestore first */
+  if(_db){
+    try{
+      var snap=await Promise.race([
+        _db.collection('offers').get(),
+        new Promise(function(_,r){setTimeout(function(){r(new Error('timeout'));},10000);})
+      ]);
+      _offersCache=snap.docs.map(function(d){return Object.assign({},d.data(),{id:d.id});}).sort(function(a,b){return (b._ts||0)-(a._ts||0);});
+      ss(OFFERS_KEY,_offersCache);
+      renderWorkspaceOffers();
+      _syncWONotes();
+      showToast('تم التحديث ✓');
+      restore(); return;
+    }catch(e){ console.warn('refresh fs fail',e); }
+  }
+  /* fallback: reload from localStorage */
+  var local=gs(OFFERS_KEY)||[];
+  if(local.length){
+    _offersCache=local;
     renderWorkspaceOffers();
-    _syncWONotes();
-    showToast('تم التحديث ✓');
-  }catch(e){ showToast('تعذّر التحديث'); }
+    showToast('تم التحديث من الكاش المحلي');
+    restore(); return;
+  }
+  /* last resort: hard reload */
+  showToast('سيتم إعادة تحميل الصفحة...');
+  setTimeout(function(){ location.reload(); },1200);
+  restore();
 }
 function renderWorkspaceOffers(){
   const search=($('wo-search')?.value||'').trim().toLowerCase();
