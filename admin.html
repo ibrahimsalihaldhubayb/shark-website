@@ -476,7 +476,7 @@ const CITY_COORDS_ADM = { 'الرياض':[24.7136,46.6753],'جدة':[21.4858,39.
 // ══════════════════════════════════════════════
 const $ = id =>document.getElementById(id);
 const gs = k =>{ try{ return JSON.parse(localStorage.getItem(k)||'null'); }catch(e){ return null; } };
-const ss = (k,v) =>localStorage.setItem(k, JSON.stringify(v));
+const ss = (k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){ /* quota full — strip images and retry */ try{ if(Array.isArray(v)){ var slim=v.map(function(x){ if(!x||typeof x!=='object') return x; var c=Object.assign({},x); delete c.coverImg; delete c.gallery; return c; }); localStorage.setItem(k,JSON.stringify(slim)); } }catch(e2){ console.warn('localStorage full, skipping',k); } } };
 function getPass(){ return localStorage.getItem(PASS_KEY) || DEFAULT_PASS; }
 const SAR='﷼';
 function fmtPrice(n){ return Number(n).toLocaleString('en-US') + '&nbsp;' + SAR; }
@@ -494,6 +494,12 @@ function resetPass(){ localStorage.removeItem(PASS_KEY); $('login-err').style.co
 // INIT
 // ══════════════════════════════════════════════
 async function init(){ initFirebase(); refreshCurrentUser(); syncEmployees();
+  /* clean up old base64 images from localStorage to free quota */
+  try{
+    var _oc=gs(OFFERS_KEY)||[];
+    var _dirty=_oc.some(function(o){return o&&(o.coverImg||o.gallery);});
+    if(_dirty){ var _slim=_oc.map(function(o){var c=Object.assign({},o);delete c.coverImg;delete c.gallery;return c;}); localStorage.setItem(OFFERS_KEY,JSON.stringify(_slim)); }
+  }catch(e){}
   // Show cached data immediately — no waiting
   _offersCache = gs(OFFERS_KEY)||[]; _clientsCache = gs(CLIENTS_KEY)||[]; _promosCache = gs('shark_promos')||[]; _allTasksCache = gs('shark_tasks')||[]; _tasksCache=_allTasksCache;
   renderOffers(); renderClients(); renderStats(); renderPromos(); renderDeals(); loadSettings(); renderEmployees(); populatePromoWAOffers(); initSidebarGroups(); showSection('dashboard');
