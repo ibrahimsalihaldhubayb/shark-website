@@ -473,6 +473,7 @@ const ss = (k,v) =>localStorage.setItem(k, JSON.stringify(v));
 function getPass(){ return localStorage.getItem(PASS_KEY) || DEFAULT_PASS; }
 const SAR='﷼';
 function fmtPrice(n){ return Number(n).toLocaleString('en-US') + '&nbsp;' + SAR; }
+function h(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function nowAr(){ return new Date().toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'}); }
 function uid(){ return 'CL-' + Date.now().toString(36).toUpperCase(); }
 function ouid(){ return 'OF-' + Date.now().toString(36).toUpperCase(); }
