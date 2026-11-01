@@ -878,8 +878,126 @@ async function saveTaskNote(id){ var ta=$('tc-note-ta-'+id); if(!ta) return; var
 var REQ_STATUS_LABELS={new:'جديدة',inprogress:'قيد التنفيذ',done:'مكتملة',cancelled:'ملغية'};
 var REQ_STATUS_COLORS={new:'#3b82f6',inprogress:'var(--gold)',done:'#10b981',cancelled:'#ef4444'};
 function getRequests(){ return (_clientsCache||[]).filter(function(r){ var t=(r.type||'').trim(); return t==='طلب شراء'; }); }
-function scoreRequestOffer(req, offer){ var score=0; var rt=(req.propType||req.interest||'').trim(); var ot=(offer.propType||offer.type||offer.ar||'').trim(); if(rt&&ot&&(rt===ot||ot.includes(rt)||rt.includes(ot))) score+=40; var rc=(req.city||req.region||'').trim(); var oc=(offer.city||offer.region||'').trim(); if(rc&&oc&&rc===oc) score+=30; var rd=(req.district||'').trim(); var od=(offer.district||'').trim(); if(rd&&od&&rd===od) score+=20; var budget=parseFloat(req.budget||req.maxPrice||0); var price=parseFloat(offer.price||0); if(budget>0&&price>0&&price<=budget) score+=10; return score; }
-function showRequestMatches(reqId){ var req=(_clientsCache||[]).find(function(r){ return r.id===reqId; }); if(!req) return; var offers=_offersCache||[]; var scored=offers.map(function(o){ return {offer:o,score:scoreRequestOffer(req,o)}; }).filter(function(x){ return x.score>0; }).sort(function(a,b){ return b.score-a.score; }); $('req-matches-title').textContent='مقترحات لـ: '+(req.name||req.id); if(!scored.length){ $('req-matches-body').innerHTML='<p style="color:var(--sub);text-align:center;padding:20px">لا توجد عروض متوافقة</p>'; } else { $('req-matches-body').innerHTML=scored.map(function(x){ var o=x.offer; var pct=x.score; return '<div style="border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px"><div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:14px">'+h(o.ar||o.name||o.id)+'</b><span style="font-weight:700;color:var(--gold)">'+pct+'%</span></div><div style="height:6px;border-radius:3px;background:var(--bg);overflow:hidden;margin:6px 0"><div style="height:100%;background:var(--gold);width:'+pct+'%"></div></div><div style="font-size:12px;color:var(--sub)">'+(o.city?'📍 '+h(o.city)+(o.district?' — '+h(o.district):'')+'&nbsp;&nbsp;':'')+(o.price?'💰 '+fmtPrice(o.price)+'&nbsp;&nbsp;':'')+(o.type?'🏠 '+h(o.type):'')+'</div></div>'; }).join(''); } $('modal-req-matches').classList.add('open'); }
+/* ── Arabic fuzzy matching helpers ── */
+function _arNorm(s){
+  return String(s||'')
+    .replace(/[ً-ٰٟ]/g,'')   // strip diacritics/harakat
+    .replace(/[أإآا]/g,'ا')                 // unify alef
+    .replace(/[ىي]/g,'ي')                   // unify ya
+    .replace(/ة/g,'ه')                      // ta marbuta → ha
+    .replace(/\s+/g,' ').trim().toLowerCase();
+}
+/* token similarity: returns 0-1 */
+function _arSim(a,b){
+  a=_arNorm(a); b=_arNorm(b);
+  if(!a||!b) return 0;
+  if(a===b) return 1;
+  if(a.includes(b)||b.includes(a)) return 0.85;
+  /* check shared tokens */
+  var ta=a.split(' '), tb=b.split(' ');
+  var shared=ta.filter(function(w){ return w.length>1&&tb.some(function(x){ return x.includes(w)||w.includes(x); }); });
+  if(shared.length) return 0.7*(shared.length/Math.max(ta.length,tb.length));
+  /* character bigram overlap */
+  function bigrams(str){ var bg=[]; for(var i=0;i<str.length-1;i++) bg.push(str.slice(i,i+2)); return bg; }
+  var ba=bigrams(a), bb=bigrams(b);
+  if(!ba.length||!bb.length) return 0;
+  var inter=ba.filter(function(g){ return bb.indexOf(g)>=0; }).length;
+  return (2*inter)/(ba.length+bb.length);
+}
+/* property type synonym groups */
+var _PROP_SYNS=[
+  ['فيلا','فلل','vila','villa','بيت','منزل','دور','دوبلكس','duplex','ڤيلا'],
+  ['شقه','شقة','apartment','apt','سكن','استوديو','studio'],
+  ['ارض','أرض','land','قطعه','قطعة','مزرعه','مزرعة','agricultural'],
+  ['تجاري','محل','مكتب','office','commercial','عماره','عمارة','برج'],
+  ['استراحه','استراحة','مخيم','شاليه','chalet'],
+  ['مستودع','warehouse','مخزن'],
+];
+function _propMatch(a,b){
+  a=_arNorm(a); b=_arNorm(b);
+  if(!a||!b) return 0;
+  /* direct sim */
+  var ds=_arSim(a,b); if(ds>=0.8) return 1;
+  /* synonym group match */
+  for(var i=0;i<_PROP_SYNS.length;i++){
+    var grp=_PROP_SYNS[i];
+    var inA=grp.some(function(w){ return _arNorm(w)===a||a.includes(_arNorm(w))||_arNorm(w).includes(a); });
+    var inB=grp.some(function(w){ return _arNorm(w)===b||b.includes(_arNorm(w))||_arNorm(w).includes(b); });
+    if(inA&&inB) return 1;
+  }
+  return ds>=0.5?0.5:0;
+}
+function scoreRequestOffer(req, offer){
+  var score=0;
+  /* نوع العقار — 40 pts */
+  var rt=req.propType||req.interest||'';
+  var ot=offer.propType||offer.type||offer.ar||'';
+  var pm=_propMatch(rt,ot);
+  score+=Math.round(40*pm);
+  /* المدينة/المنطقة — 30 pts */
+  var rc=req.city||req.region||'';
+  var oc=offer.city||offer.region||'';
+  var cm=_arSim(rc,oc);
+  score+=Math.round(30*(cm>=0.75?1:cm>=0.5?0.6:0));
+  /* الحي — 20 pts */
+  var rd=req.district||'';
+  var od=offer.district||'';
+  var dm=_arSim(rd,od);
+  score+=Math.round(20*(dm>=0.75?1:dm>=0.5?0.6:0));
+  /* الميزانية — 10 pts */
+  var budget=parseFloat((req.budget||req.maxPrice||'').toString().replace(/[^\d.]/g,''))||0;
+  var price=parseFloat((offer.price||'').toString().replace(/[^\d.]/g,''))||0;
+  if(budget>0&&price>0){
+    if(price<=budget) score+=10;
+    else if(price<=budget*1.15) score+=5; /* within 15% over budget → partial */
+  }
+  return Math.min(score,100);
+}
+function showRequestMatches(reqId){
+  var req=(_clientsCache||[]).find(function(r){ return r.id===reqId; });
+  if(!req) return;
+  var offers=_offersCache||[];
+  var scored=offers.map(function(o){
+    var s=scoreRequestOffer(req,o);
+    /* build match tags */
+    var tags=[];
+    if(_propMatch(req.propType||req.interest||'',o.propType||o.type||o.ar||'')>=0.5) tags.push('🏠 نوع متوافق');
+    var cs=_arSim(req.city||req.region||'',o.city||o.region||'');
+    if(cs>=0.5) tags.push('📍 '+(cs>=0.75?'نفس المنطقة':'منطقة قريبة'));
+    var ds=_arSim(req.district||'',o.district||'');
+    if(ds>=0.5) tags.push('🏘 '+(ds>=0.75?'نفس الحي':'حي قريب'));
+    var budget=parseFloat((req.budget||req.maxPrice||'').toString().replace(/[^\d.]/g,''))||0;
+    var price=parseFloat((o.price||'').toString().replace(/[^\d.]/g,''))||0;
+    if(budget>0&&price>0&&price<=budget*1.15) tags.push('💰 '+(price<=budget?'ضمن الميزانية':'قريب من الميزانية'));
+    return {offer:o,score:s,tags:tags};
+  }).filter(function(x){ return x.score>0; }).sort(function(a,b){ return b.score-a.score; }).slice(0,10);
+  $('req-matches-title').textContent='مقترحات لـ: '+(req.name||req.id);
+  var color=function(pct){ return pct>=70?'#10b981':pct>=40?'var(--gold)':'#f97316'; };
+  if(!scored.length){
+    $('req-matches-body').innerHTML='<p style="color:var(--sub);text-align:center;padding:20px">لا توجد عروض متوافقة — تأكد من تعبئة نوع العقار والمنطقة في الطلب</p>';
+  } else {
+    $('req-matches-body').innerHTML=scored.map(function(x,i){
+      var o=x.offer; var pct=x.score; var c=color(pct);
+      return '<div style="border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+        +'<b style="font-size:14px">'+(i===0?'🥇 ':i===1?'🥈 ':i===2?'🥉 ':'')+(o.exclusive?'<span style="font-size:10px;background:#f59e0b;color:#fff;border-radius:8px;padding:1px 6px;margin-left:4px">حصري</span>':'')+h(o.ar||o.name||o.id)+'</b>'
+        +'<span style="font-size:16px;font-weight:800;color:'+c+'">'+pct+'%</span>'
+        +'</div>'
+        +'<div style="height:7px;border-radius:4px;background:var(--bg);overflow:hidden;margin-bottom:8px">'
+        +'<div style="height:100%;background:'+c+';width:'+pct+'%;transition:width .4s"></div></div>'
+        +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">'
+        +x.tags.map(function(t){ return '<span style="font-size:11px;background:rgba(16,185,129,.1);color:#10b981;border-radius:10px;padding:2px 8px">'+t+'</span>'; }).join('')
+        +'</div>'
+        +'<div style="font-size:12px;color:var(--sub)">'
+        +(o.city?'📍 '+h(o.city)+(o.district?' — '+h(o.district):'')+'&nbsp; ':'')
+        +(o.price?'💰 '+fmtPrice(o.price)+'&nbsp; ':'')
+        +(o.type||o.propType?'🏠 '+h(o.type||o.propType):'')
+        +'</div>'
+        +'</div>';
+    }).join('');
+  }
+  $('modal-req-matches').classList.add('open');
+}
 function renderRequests(){
   var reqs=getRequests();
   var search=($('req-search')||{}).value||''; search=search.trim().toLowerCase();
