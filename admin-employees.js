@@ -259,7 +259,7 @@ function openEmployeeEditor(username){
   $('emp-pass-label').textContent = e ? 'كلمة مرور جديدة' : 'كلمة المرور *';
   $('emp-role').innerHTML = EMP_ROLES.map(r=>`<option value="${r}">${r}</option>`).join('');
   const f = (id, v)=>{ $(id).value = v==null ? '' : v; };
-  f('emp-name', e&&e.name); f('emp-email', e&&e.email); f('emp-phone', e&&e.phone); f('emp-title', e&&e.jobTitle);
+  f('emp-name', e&&e.name); f('emp-email', e&&e.email); f('emp-phone', e&&e.phone); f('emp-whatsapp', e&&e.whatsapp); f('emp-title', e&&e.jobTitle);
   f('emp-hire', e&&e.hireDate); f('emp-idno', e&&e.idNumber); f('emp-iban', e&&e.iban); f('emp-salary', e&&e.salary);
   f('emp-commrate', e&&e.commissionRate); f('emp-notes', e&&e.notes);
   $('emp-role').value = (e&&e.role) || 'موظف'; $('emp-status').value = (e&&e.status) || 'active';
@@ -282,7 +282,7 @@ async function saveEmployee(){
   const e = editId ? {...findEmployee(editId)} : {username, rating:0, _created:Date.now()};
   Object.assign(e, {
     name, role:$('emp-role').value, status:$('emp-status').value,
-    email:$('emp-email').value.trim(), phone:$('emp-phone').value.trim(), jobTitle:$('emp-title').value.trim(),
+    email:$('emp-email').value.trim(), phone:$('emp-phone').value.trim(), whatsapp:$('emp-whatsapp').value.trim(), jobTitle:$('emp-title').value.trim(),
     hireDate:$('emp-hire').value, idNumber:$('emp-idno').value.trim(), iban:$('emp-iban').value.trim().toUpperCase(),
     salary:parseFloat($('emp-salary').value)||0, commissionRate:parseFloat($('emp-commrate').value)||0,
     notes:$('emp-notes').value.trim(), _ts:Date.now()
