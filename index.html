@@ -992,6 +992,38 @@ body{background:var(--dark);color:var(--text)}
     document.body.style.overflow='';
   };
 
+  /* ── PARTNER PROJECTS ── */
+  function renderProjects(list){
+    var g=document.getElementById('prj-grid'), SP=window.SharkProjects;
+    if(!list.length){ document.getElementById('projects').style.display='none'; return; }
+    g.innerHTML=list.map(function(p){
+      var s=SP.stats(p), K=SP.kind(p), href='project.html?id='+encodeURIComponent(p.id);
+      return '<div class="prj-card" onclick="location.href=\''+href+'\'">'
+        +'<div class="prj-img">'+(p.coverImg?'<img src="'+esc(p.coverImg)+'" loading="lazy" alt="">':'<div class="ph">🏗️</div>')
+        +'<div class="prj-badge">مشروع شريك'+(p.stage?' · '+esc(p.stage):'')+'</div><div class="prj-kind">'+esc(K.label)+'</div></div>'
+        +'<div class="prj-body">'
+        +'<div class="prj-name">'+esc(p.name)+'</div>'
+        +'<div class="prj-loc">📍 '+esc((p.city||'')+(p.district?' · '+p.district:''))+'</div>'
+        +(p.partner?'<div class="prj-partner">بالشراكة مع <b>'+esc(p.partner)+'</b></div>':'')
+        +(s.total?'<div class="prj-stats">'
+          +'<div class="prj-st"><b>'+s.total+'</b><span>إجمالي ال'+K.units+'</span></div>'
+          +'<div class="prj-st"><b style="color:#22c55e">'+s.available+'</b><span>متاح</span></div>'
+          +'<div class="prj-st"><b style="color:#f59e0b">'+(s.reserved+s.sold)+'</b><span>محجوز / مباع</span></div></div>'
+          +'<div class="prj-bar"><span style="width:'+(s.available/s.total*100)+'%;background:#4fa776"></span><span style="width:'+(s.reserved/s.total*100)+'%;background:#b3aea8"></span><span style="width:'+(s.sold/s.total*100)+'%;background:#c25b6e"></span></div>':'')
+        +'<div class="prj-foot"><div class="prj-from">'+(s.minPrice?'تبدأ من<b>'+SP.fmtPrice(s.minPrice)+'</b>':(s.minArea?'المساحات<b>'+SP.fmtNum(s.minArea)+(s.maxArea>s.minArea?' – '+SP.fmtNum(s.maxArea):'')+' م²</b>':''))+'</div>'
+        +'<button class="prj-go">عرض المشروع ←</button></div>'
+        +'</div></div>';
+    }).join('');
+  }
+  /* إذا تأخرت قاعدة البيانات أكثر من 12 ثانية نعرض آخر نسخة محفوظة بدل البقاء على «جاري التحميل» */
+  function cachedProjects(){ try{ return (JSON.parse(localStorage.getItem('shark_projects')||'[]')||[]).filter(function(p){return p&&p.published;}); }catch(e){ return []; } }
+  if(window.SharkProjects){
+    var _prjDone=false;
+    var _prjT=setTimeout(function(){ if(!_prjDone){ _prjDone=true; renderProjects(cachedProjects()); } },12000);
+    SharkProjects.loadPublished().then(function(l){ clearTimeout(_prjT); _prjDone=true; renderProjects(l||[]); })
+      .catch(function(){ clearTimeout(_prjT); if(!_prjDone){ _prjDone=true; renderProjects(cachedProjects()); } });
+  } else renderProjects([]);
+
   loadOffers();
   (function(){var p=new URLSearchParams(location.search).get('offer');if(p){var t=setInterval(function(){var o=_offers.find(function(x){return x.id===p;});if(o||_offers.length>0){clearInterval(t);if(o)showOffer(p);}},400);setTimeout(function(){clearInterval(t);},8000);}})();
 })();
