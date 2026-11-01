@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.11.0/mapbox-gl.css" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="clients.js"></script>
@@ -54,6 +55,8 @@ button,input{font-family:'Cairo',sans-serif}
 #map{position:fixed;inset:0;top:calc(58px + env(safe-area-inset-top));z-index:1;background:#ebe7e0}
 .leaflet-container{font-family:'Cairo',sans-serif;direction:ltr}
 .leaflet-control-attribution{font-size:9px!important;background:rgba(255,255,255,.6)!important}
+.mapboxgl-ctrl-attrib{font-size:9px!important}
+.mapboxgl-ctrl-logo{display:none!important}
 
 /* project marker: partner logo card */
 .pm{position:relative;display:flex;flex-direction:column;align-items:center;cursor:pointer;filter:drop-shadow(0 4px 10px rgba(0,0,0,.22));transition:transform .15s;transform-origin:50% 100%}
@@ -235,6 +238,9 @@ body.list #fabs,body.list #legend{display:none!important}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="plotmap.js"></script>
+<script>/* Mapbox token loaded into global for tile URLs */
+(function(){var t=localStorage.getItem('shark_mapbox_token')||'';if(!t){t=prompt('أدخل Mapbox Access Token للخريطة:')||'';if(t)localStorage.setItem('shark_mapbox_token',t);}window._MBTK=t;})();
+</script>
 <script>
 (function(){
   var PHONE='966539997060';
@@ -273,9 +279,16 @@ body.list #fabs,body.list #legend{display:none!important}
   function $(id){return document.getElementById(id);}
 
   /* ── MAP ── */
-  var map=L.map('map',{zoomControl:false,attributionControl:true,maxZoom:20}).setView([24.3,45.2],6);
-  map.attributionControl.setPrefix(false);
-  var BL=PM.baseLayers(), _base='light';
+  var map=L.map('map',{zoomControl:false,attributionControl:true,maxZoom:22}).setView([24.3,45.2],6);
+  map.attributionControl.setPrefix('<a href="https://www.mapbox.com/" target="_blank">© Mapbox</a>');
+  var _MBSTYLES={light:'mapbox/light-v11',sat:'mapbox/satellite-streets-v12'};
+  function _mbLayer(style){
+    return L.tileLayer(
+      'https://api.mapbox.com/styles/v1/'+style+'/tiles/256/{z}/{x}/{y}@2x?access_token='+window._MBTK,
+      {tileSize:256,zoomOffset:0,maxZoom:22,attribution:'© <a href="https://www.mapbox.com/">Mapbox</a> © <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'}
+    );
+  }
+  var BL={light:_mbLayer(_MBSTYLES.light),sat:_mbLayer(_MBSTYLES.sat)}, _base='light';
   BL.light.addTo(map);
   window.toggleLayers=function(){
     map.removeLayer(BL[_base]); _base=_base==='light'?'sat':'light'; BL[_base].addTo(map);
