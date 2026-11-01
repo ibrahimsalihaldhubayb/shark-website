@@ -238,9 +238,6 @@ body.list #fabs,body.list #legend{display:none!important}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="plotmap.js"></script>
-<script>/* Mapbox token loaded into global for tile URLs */
-(function(){var t=localStorage.getItem('shark_mapbox_token')||'';if(!t){t=prompt('أدخل Mapbox Access Token للخريطة:')||'';if(t)localStorage.setItem('shark_mapbox_token',t);}window._MBTK=t;})();
-</script>
 <script>
 (function(){
   var PHONE='966539997060';
@@ -281,16 +278,20 @@ body.list #fabs,body.list #legend{display:none!important}
   /* ── MAP ── */
   var map=L.map('map',{zoomControl:false,attributionControl:true,maxZoom:22}).setView([24.3,45.2],6);
   map.attributionControl.setPrefix('<a href="https://www.mapbox.com/" target="_blank">© Mapbox</a>');
-  var _MBSTYLES={light:'mapbox/light-v11',sat:'mapbox/satellite-streets-v12'};
-  function _mbLayer(style){
+  var BL={}, _base='light';
+  function _mbLayer(style,tk){
     return L.tileLayer(
-      'https://api.mapbox.com/styles/v1/'+style+'/tiles/256/{z}/{x}/{y}@2x?access_token='+window._MBTK,
+      'https://api.mapbox.com/styles/v1/'+style+'/tiles/256/{z}/{x}/{y}@2x?access_token='+tk,
       {tileSize:256,zoomOffset:0,maxZoom:22,attribution:'© <a href="https://www.mapbox.com/">Mapbox</a> © <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'}
     );
   }
-  var BL={light:_mbLayer(_MBSTYLES.light),sat:_mbLayer(_MBSTYLES.sat)}, _base='light';
-  BL.light.addTo(map);
+  function _initBasemap(tk){
+    BL.light=_mbLayer('mapbox/light-v11',tk);
+    BL.sat=_mbLayer('mapbox/satellite-streets-v12',tk);
+    BL.light.addTo(map);
+  }
   window.toggleLayers=function(){
+    if(!BL.light) return;
     map.removeLayer(BL[_base]); _base=_base==='light'?'sat':'light'; BL[_base].addTo(map);
     $('fab-layers').classList.toggle('on',_base==='sat');
   };
@@ -621,17 +622,23 @@ body.list #fabs,body.list #legend{display:none!important}
   window.waText=function(t){window.open('https://wa.me/'+PHONE+'?text='+encodeURIComponent(t),'_blank');};
 
   /* ── LOAD ── */
-  var pOffers=new Promise(function(res){
-    try{
-      var cfg={apiKey:"AIzaSyCJ59kjkb7mZ7pcsLImkT4L2-fdHFDTVko",authDomain:"sharek-re.firebaseapp.com",projectId:"sharek-re",storageBucket:"sharek-re.firebasestorage.app",messagingSenderId:"1000796915275",appId:"1:1000796915275:web:bb556f80db9d2f7f99efce"};
-      if(!firebase.apps.length) firebase.initializeApp(cfg);
-      firebase.firestore().collection('offers').orderBy('_ts','desc').get()
-        .then(function(snap){ _offers=snap.docs.map(function(d){return d.data();}); if(!_offers.length) _offers=gs('shark_offers')||[]; res(); })
-        .catch(function(){ _offers=gs('shark_offers')||[]; res(); });
-    }catch(e){ _offers=gs('shark_offers')||[]; res(); }
-  });
+  var _cfg={apiKey:"AIzaSyCJ59kjkb7mZ7pcsLImkT4L2-fdHFDTVko",authDomain:"sharek-re.firebaseapp.com",projectId:"sharek-re",storageBucket:"sharek-re.firebasestorage.app",messagingSenderId:"1000796915275",appId:"1:1000796915275:web:bb556f80db9d2f7f99efce"};
+  if(!firebase.apps.length) firebase.initializeApp(_cfg);
+  var _db=firebase.firestore();
+
+  var pToken=_db.collection('config').doc('app').get()
+    .then(function(d){ return (d.exists&&d.data().mapboxToken)||localStorage.getItem('shark_mapbox_token')||''; })
+    .catch(function(){ return localStorage.getItem('shark_mapbox_token')||''; });
+
+  var pOffers=_db.collection('offers').orderBy('_ts','desc').get()
+    .then(function(snap){ _offers=snap.docs.map(function(d){return d.data();}); if(!_offers.length) _offers=gs('shark_offers')||[]; })
+    .catch(function(){ _offers=gs('shark_offers')||[]; });
+
   var pProjects=SP?SP.loadPublished().then(function(l){_projects=l;}).catch(function(){}):Promise.resolve();
-  Promise.all([pOffers,pProjects]).then(function(){
+
+  Promise.all([pToken,pOffers,pProjects]).then(function(r){
+    var tk=r[0]||'';
+    _initBasemap(tk);
     var qs=new URLSearchParams(location.search), f=qs.get('filter'), pid=qs.get('project');
     if(f){ var b=document.querySelector('#chips .chip[data-f="'+f+'"]'); if(b){ _filter=f; document.querySelectorAll('#chips .chip').forEach(function(c){c.classList.toggle('on',c===b);}); } }
     rebuild();
