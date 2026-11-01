@@ -12,6 +12,8 @@
 <script src="clients.js"></script>
 <script src="admin-employees.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/mapbox-gl@3.11.0/dist/mapbox-gl.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mapbox-gl@3.11.0/dist/mapbox-gl.min.js"></script>
 <style>:root{ --gold:#c8a96e;--gold2:#b8954f; --bg:#f4f5f7;--sidebar-w:240px; --white:#fff;--card:#fff; --text:#1a1a2e;--sub:#6b7280; --border:#e5e7eb;--border2:#d1d5db; --red:#ef4444;--green:#10b981;--warn:#f59e0b; --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04); --shadow-md:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06);
 }
 *{margin:0;padding:0;box-sizing:border-box}
@@ -347,7 +349,28 @@ tr:hover td{background:#fafafa}
     </div>
   </div>
 </div> <!-- ══ DASHBOARD ══ -->
-<div id="dashboard"><!-- Topbar --> <div class="topbar"><div class="topbar-brand"><div><div class="brand-logo">مساحة شارك</div> <div class="brand-sub">لوحة تحكم الموظفين</div> </div> </div> <div class="topbar-right"><!-- Notifications bell --> <div style="position:relative;margin-left:8px"><button onclick="toggleNotifPanel()" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;width:38px;height:38px;cursor:pointer;font-size:18px;position:relative;display:flex;align-items:center;justify-content:center">🔔<span id="notif-badge" style="display:none;position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;border-radius:50%;min-width:18px;height:18px;font-size:10px;font-weight:800;align-items:center;justify-content:center;padding:0 3px">0</span> </button> <div id="notif-panel" style="display:none;position:absolute;top:46px;left:0;width:310px;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.13);z-index:2000;max-height:380px;overflow-y:auto"><div style="padding:12px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:13px;display:flex;justify-content:space-between;align-items:center"><span>الإشعارات</span> <button onclick="clearNotifications()" style="background:none;border:none;font-size:11px;color:var(--sub);cursor:pointer">مسح الكل</button> </div> <div id="notif-list"></div> </div> </div> <button class="topbar-user" onclick="openMyProfile()" title="ملفي الشخصي"><span class="tu-avatar" id="topbar-avatar">م</span><span class="tu-text"><span class="u-name" id="topbar-name">المدير</span> <span class="u-role" id="topbar-role">مدير</span></span> </button> <button class="btn-logout" onclick="doLogout()">خروج</button> </div> </div> <div class="layout"><!-- Sidebar --> <div class="sidebar"><div class="sidebar-section-label" style="cursor:default">مساحة العمل</div> <div class="sidebar-item active" onclick="showSection('dashboard')" id="nav-dashboard">الرئيسية</div> <div class="sidebar-item" onclick="showSection('workspace-offers')" id="nav-workspace-offers">عروضنا</div> <div class="sidebar-item" onclick="showSection('requests')" id="nav-requests">الطلبات</div> <div class="sidebar-item" onclick="showSection('deals')" id="nav-deals">الصفقات</div> <div class="sidebar-item" onclick="showSection('tasks')" id="nav-tasks">المهام</div> <div class="sidebar-item" onclick="showSection('performance')" id="nav-performance">تقارير الأداء</div> <div class="sidebar-item" onclick="showSection('chat')" id="nav-chat">المحادثة</div> <div class="sidebar-item" onclick="showSection('finance')" id="nav-finance">المالية</div> <div class="sidebar-section-label" onclick="toggleSidebarGroup('mkt')"><span>التسويق</span><i class="sg-arrow" id="arrow-mkt">▾</i> </div> <div id="sidebar-group-mkt" class="sidebar-group" style="max-height:200px"><div class="sidebar-item" onclick="showSection('promos')" id="nav-promos">الإعلانات وصفحات الهبوط</div> <div class="sidebar-item" onclick="showSection('promowa')" id="nav-promowa">الرسائل الترويجية</div> </div> <div class="sidebar-section-label" onclick="toggleSidebarGroup('web')"><span>الموقع الإلكتروني</span><i class="sg-arrow" id="arrow-web">▾</i> </div> <div id="sidebar-group-web" class="sidebar-group" style="max-height:200px"><div class="sidebar-item" onclick="showSection('offers')" id="nav-web-offers">العروض المنشورة</div> <div class="sidebar-item" onclick="showSection('projects')" id="nav-projects">مشاريع الشركاء</div> <div class="sidebar-item" onclick="showSection('clients')" id="nav-clients">العملاء</div> </div> <div class="sidebar-section-label" style="cursor:default">الإعدادات</div> <div class="sidebar-item" onclick="showSection('employees')" id="nav-employees">إدارة الموظفين</div> <div class="sidebar-item" onclick="showSection('settings')" id="nav-settings">الإعدادات</div> <div class="sidebar-item" id="nav-shark-docs" onclick="showSection('shark-docs')">مستندات شارك</div> </div> <!-- Main content --> <div class="main"><!-- ── OFFERS ── --> <div class="section" id="sec-offers"><div class="sec-header"><h2>العروض العقارية</h2> <div class="sec-actions"><button class="btn-primary" onclick="openOfferEditor(null)">+ إضافة عرض</button> </div> </div> <div class="card"><div style="overflow-x:auto"><table id="offers-table"> <thead><tr> <th>العرض</th><th>النوع</th><th>المدينة</th><th>رقم الإعلان</th><th>الموقع</th><th>السعر</th><th>المسؤول</th><th>النشر</th><th>إجراءات</th> </tr></thead> <tbody id="offers-body"></tbody> </table> </div> </div> </div> <!-- ── WORKSPACE OFFERS ── --> <div id="sec-workspace-offers" class="section" style="display:none"><div id="wo-list-view"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px"><div><h2 style="margin:0;font-size:20px">عروضنا</h2><div style="font-size:13px;color:var(--sub);margin-top:2px">إدارة العروض العقارية الداخلية</div></div><div style="display:flex;gap:8px"><button onclick="refreshWorkspaceOffers()" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 14px;font-size:13px;cursor:pointer;font-family:inherit;color:var(--text)">تحديث</button><button class="btn-primary" onclick="openOfferEditor(null)">+ إضافة عرض</button></div></div><div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap"><input id="wo-search" type="text" placeholder="ابحث باسم العرض أو المدينة..." oninput="renderWorkspaceOffers()" style="flex:1;min-width:200px;padding:9px 14px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:#fff"><select id="wo-filter-type" onchange="renderWorkspaceOffers()" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:#fff"><option value="">كل الأنواع</option><option value="warehouses">مستودعات</option><option value="land">أراضي</option><option value="villa">فلل</option><option value="apartment">شقق</option><option value="commercial">تجاري</option><option value="office">مكاتب</option></select></div><div id="workspace-offers-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px"></div></div><div id="wo-detail-view" style="display:none"></div></div>
+<div id="dashboard"><!-- Topbar --> <div class="topbar"><div class="topbar-brand"><div><div class="brand-logo">مساحة شارك</div> <div class="brand-sub">لوحة تحكم الموظفين</div> </div> </div> <div class="topbar-right"><!-- Notifications bell --> <div style="position:relative;margin-left:8px"><button onclick="toggleNotifPanel()" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;width:38px;height:38px;cursor:pointer;font-size:18px;position:relative;display:flex;align-items:center;justify-content:center">🔔<span id="notif-badge" style="display:none;position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;border-radius:50%;min-width:18px;height:18px;font-size:10px;font-weight:800;align-items:center;justify-content:center;padding:0 3px">0</span> </button> <div id="notif-panel" style="display:none;position:absolute;top:46px;left:0;width:310px;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.13);z-index:2000;max-height:380px;overflow-y:auto"><div style="padding:12px 16px;border-bottom:1px solid var(--border);font-weight:700;font-size:13px;display:flex;justify-content:space-between;align-items:center"><span>الإشعارات</span> <button onclick="clearNotifications()" style="background:none;border:none;font-size:11px;color:var(--sub);cursor:pointer">مسح الكل</button> </div> <div id="notif-list"></div> </div> </div> <button class="topbar-user" onclick="openMyProfile()" title="ملفي الشخصي"><span class="tu-avatar" id="topbar-avatar">م</span><span class="tu-text"><span class="u-name" id="topbar-name">المدير</span> <span class="u-role" id="topbar-role">مدير</span></span> </button> <button class="btn-logout" onclick="doLogout()">خروج</button> </div> </div> <div class="layout"><!-- Sidebar --> <div class="sidebar"><div class="sidebar-section-label" style="cursor:default">مساحة العمل</div> <div class="sidebar-item active" onclick="showSection('dashboard')" id="nav-dashboard">الرئيسية</div> <div class="sidebar-item" onclick="showSection('workspace-offers')" id="nav-workspace-offers">عروضنا</div> <div class="sidebar-item" onclick="showSection('requests')" id="nav-requests">الطلبات</div> <div class="sidebar-item" onclick="showSection('deals')" id="nav-deals">الصفقات</div> <div class="sidebar-item" onclick="showSection('tasks')" id="nav-tasks">المهام</div> <div class="sidebar-item" onclick="showSection('performance')" id="nav-performance">تقارير الأداء</div> <div class="sidebar-item" onclick="showSection('chat')" id="nav-chat">المحادثة</div> <div class="sidebar-item" onclick="showSection('finance')" id="nav-finance">المالية</div> <div class="sidebar-section-label" onclick="toggleSidebarGroup('mkt')"><span>التسويق</span><i class="sg-arrow" id="arrow-mkt">▾</i> </div> <div id="sidebar-group-mkt" class="sidebar-group" style="max-height:200px"><div class="sidebar-item" onclick="showSection('promos')" id="nav-promos">الإعلانات وصفحات الهبوط</div> <div class="sidebar-item" onclick="showSection('promowa')" id="nav-promowa">الرسائل الترويجية</div> </div> <div class="sidebar-section-label" onclick="toggleSidebarGroup('web')"><span>الموقع الإلكتروني</span><i class="sg-arrow" id="arrow-web">▾</i> </div> <div id="sidebar-group-web" class="sidebar-group" style="max-height:200px"><div class="sidebar-item" onclick="showSection('offers')" id="nav-web-offers">العروض المنشورة</div> <div class="sidebar-item" onclick="showSection('projects')" id="nav-projects">مشاريع الشركاء</div> <div class="sidebar-item" onclick="showSection('clients')" id="nav-clients">العملاء</div> </div> <div class="sidebar-section-label" style="cursor:default">الإعدادات</div> <div class="sidebar-item" onclick="showSection('employees')" id="nav-employees">إدارة الموظفين</div> <div class="sidebar-item" onclick="showSection('settings')" id="nav-settings">الإعدادات</div> <div class="sidebar-item" id="nav-shark-docs" onclick="showSection('shark-docs')">مستندات شارك</div> </div> <!-- Main content --> <div class="main"><!-- ── OFFERS ── --> <div class="section" id="sec-offers"><div class="sec-header"><h2>العروض العقارية</h2> <div class="sec-actions"><button class="btn-primary" onclick="openOfferEditor(null)">+ إضافة عرض</button> </div> </div> <div class="card"><div style="overflow-x:auto"><table id="offers-table"> <thead><tr> <th>العرض</th><th>النوع</th><th>المدينة</th><th>رقم الإعلان</th><th>الموقع</th><th>السعر</th><th>المسؤول</th><th>النشر</th><th>إجراءات</th> </tr></thead> <tbody id="offers-body"></tbody> </table> </div> </div> </div> <!-- ── WORKSPACE OFFERS ── --> <div id="sec-workspace-offers" class="section" style="display:none"><div id="wo-list-view"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+  <div><h2 style="margin:0;font-size:20px">عروضنا</h2><div style="font-size:13px;color:var(--sub);margin-top:2px">إدارة العروض العقارية الداخلية</div></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <!-- view toggle -->
+    <div style="display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <button id="wo-view-grid" onclick="setWOView('grid')" style="padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;border:none;background:var(--gold);color:#1a1000">كروت</button>
+      <button id="wo-view-map" onclick="setWOView('map')" style="padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;border:none;background:var(--bg);color:var(--sub)">خريطة</button>
+    </div>
+    <button onclick="refreshWorkspaceOffers()" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 14px;font-size:13px;cursor:pointer;font-family:inherit;color:var(--text)">تحديث</button>
+    <button class="btn-primary" onclick="openOfferEditor(null)">+ إضافة عرض</button>
+  </div>
+</div>
+<div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+  <input id="wo-search" type="text" placeholder="ابحث باسم العرض أو المدينة..." oninput="renderWorkspaceOffers();if(_woMapMode)renderOffersMap()" style="flex:1;min-width:200px;padding:9px 14px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:#fff">
+  <select id="wo-filter-type" onchange="renderWorkspaceOffers();if(_woMapMode)renderOffersMap()" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;background:#fff">
+    <option value="">كل الأنواع</option><option value="warehouses">مستودعات</option><option value="lands">أراضي</option><option value="villas">فلل</option><option value="apartments">شقق</option><option value="commercial">تجاري</option><option value="office">مكاتب</option>
+  </select>
+</div>
+<div id="workspace-offers-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px"></div>
+<div id="wo-map-container" style="display:none;border-radius:14px;overflow:hidden;border:1px solid var(--border);position:relative">
+  <div id="wo-mapbox" style="height:70vh;width:100%"></div>
+</div></div><div id="wo-detail-view" style="display:none"></div></div>
 <!-- ── REQUESTS ── -->
 <div id="sec-requests" class="section" style="display:none">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
@@ -1318,6 +1341,138 @@ document.addEventListener('click',e=>{ if(!e.target.closest('#notif-panel')&&!e.
 var _detailOfferId = '';
 var _detailTab = 'details';
 var _offerDocsCache = {};
+var _woMapMode = false;
+var _woMap = null;
+var _woMapMarkers = [];
+var MAPBOX_TOKEN = gs('shark_mapbox_token')||'';
+
+var _TYPE_COLORS = {
+  warehouses:'#6366f1', lands:'#f59e0b', land:'#f59e0b',
+  villas:'#10b981', villa:'#10b981', apartments:'#3b82f6', apartment:'#3b82f6',
+  commercial:'#ef4444', office:'#8b5cf6', agricultural:'#84cc16',
+  rest:'#06b6d4', chalets:'#f97316'
+};
+var _TYPE_LABELS_MAP = {
+  warehouses:'مستودع', lands:'أرض', land:'أرض', villas:'فيلا', villa:'فيلا',
+  apartments:'شقة', apartment:'شقة', commercial:'تجاري', office:'مكتب',
+  agricultural:'زراعي', rest:'استراحة', chalets:'شاليه'
+};
+
+function setWOView(mode){
+  _woMapMode = mode === 'map';
+  var grid = $('workspace-offers-grid');
+  var mapC = $('wo-map-container');
+  var btnG = $('wo-view-grid');
+  var btnM = $('wo-view-map');
+  if(_woMapMode){
+    if(grid) grid.style.display='none';
+    if(mapC) mapC.style.display='block';
+    btnG.style.background='var(--bg)'; btnG.style.color='var(--sub)';
+    btnM.style.background='var(--gold)'; btnM.style.color='#1a1000';
+    renderOffersMap();
+  } else {
+    if(grid) grid.style.display='grid';
+    if(mapC) mapC.style.display='none';
+    btnG.style.background='var(--gold)'; btnG.style.color='#1a1000';
+    btnM.style.background='var(--bg)'; btnM.style.color='var(--sub)';
+    renderWorkspaceOffers();
+  }
+}
+
+function _getFilteredOffers(){
+  var search=($('wo-search')?.value||'').trim().toLowerCase();
+  var typeFilter=$('wo-filter-type')?.value||'';
+  return _offersCache.filter(function(o){
+    var name=(o.ar||o.name||'').toLowerCase();
+    var city=(o.city||'').toLowerCase();
+    if(search && !name.includes(search) && !city.includes(search)) return false;
+    if(typeFilter && o.type!==typeFilter) return false;
+    return true;
+  });
+}
+
+function renderOffersMap(){
+  MAPBOX_TOKEN = gs('shark_mapbox_token')||'';
+  if(!MAPBOX_TOKEN){
+    var t=prompt('أدخل Mapbox Access Token:');
+    if(!t){ setWOView('grid'); return; }
+    ss('shark_mapbox_token',t); MAPBOX_TOKEN=t;
+  }
+  mapboxgl.accessToken = MAPBOX_TOKEN;
+  var container = $('wo-mapbox');
+  if(!container) return;
+  var offers = _getFilteredOffers();
+  /* init map once */
+  if(!_woMap){
+    _woMap = new mapboxgl.Map({
+      container:'wo-mapbox',
+      style:'mapbox://styles/mapbox/light-v11',
+      center:[43.9, 24.7],
+      zoom:5,
+      language:'ar'
+    });
+    _woMap.addControl(new mapboxgl.NavigationControl({showCompass:false}),'top-left');
+    _woMap.addControl(new mapboxgl.FullscreenControl(),'top-left');
+    _woMap.on('load', function(){ _placeMapMarkers(offers); });
+  } else {
+    _placeMapMarkers(offers);
+  }
+}
+
+function _placeMapMarkers(offers){
+  /* clear old markers */
+  _woMapMarkers.forEach(function(m){ m.remove(); });
+  _woMapMarkers=[];
+  var bounds = new mapboxgl.LngLatBounds();
+  var hasCoords = false;
+  offers.forEach(function(o){
+    var lat=parseFloat(o.lat), lng=parseFloat(o.lng);
+    if(!lat||!lng) return;
+    var color=_TYPE_COLORS[o.type]||'#c8a96e';
+    var label=_TYPE_LABELS_MAP[o.type]||'عقار';
+    /* custom marker element */
+    var el=document.createElement('div');
+    el.style.cssText='width:36px;height:36px;border-radius:50% 50% 50% 0;background:'+color+';transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:pointer';
+    el.title=o.ar||o.name||'';
+    /* inner icon */
+    var inner=document.createElement('div');
+    inner.style.cssText='width:100%;height:100%;display:flex;align-items:center;justify-content:center;transform:rotate(45deg);font-size:13px;font-weight:700;color:#fff;font-family:Cairo,sans-serif';
+    inner.textContent=label.slice(0,1);
+    el.appendChild(inner);
+    /* popup */
+    var priceStr=o.price?Number(o.price).toLocaleString('en-US')+' ﷼':'السعر عند الطلب';
+    var popupHtml='<div style="font-family:Cairo,sans-serif;direction:rtl;min-width:200px">'
+      +(o.coverImg?'<img src="'+o.coverImg+'" style="width:100%;height:110px;object-fit:cover;border-radius:8px;margin-bottom:8px">':'')
+      +'<div style="font-weight:700;font-size:14px;margin-bottom:4px">'+(o.ar||o.name||'—')+'</div>'
+      +'<div style="font-size:12px;color:#6b7280;margin-bottom:4px">'+label+(o.city?' · '+o.city:'')+(o.district?' · '+o.district:'')+'</div>'
+      +(o.area?'<div style="font-size:12px;color:#6b7280;margin-bottom:4px">المساحة: '+o.area+' م²</div>':'')
+      +'<div style="font-size:15px;font-weight:800;color:#c8a96e;margin-bottom:8px">'+priceStr+'</div>'
+      +(o.exclusive?'<span style="font-size:10px;background:#f59e0b;color:#fff;border-radius:4px;padding:2px 7px;margin-left:4px">حصري</span>':'')
+      +'<span style="font-size:10px;background:'+(o.published!==false?'rgba(16,185,129,.15)':'rgba(156,163,175,.15)')+';color:'+(o.published!==false?'#10b981':'#9ca3af')+';border-radius:4px;padding:2px 7px">'+(o.published!==false?'منشور':'غير منشور')+'</span>'
+      +'<div style="margin-top:10px"><button onclick="closeAllPopups();openOfferDetail(\''+o.id+'\')" style="width:100%;background:#c8a96e;color:#1a1000;border:none;border-radius:6px;padding:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:Cairo,sans-serif">عرض التفاصيل</button></div>'
+      +'</div>';
+    var popup=new mapboxgl.Popup({offset:20,maxWidth:'260px',closeButton:true})
+      .setHTML(popupHtml);
+    var marker=new mapboxgl.Marker({element:el,anchor:'bottom-left'})
+      .setLngLat([lng,lat])
+      .setPopup(popup)
+      .addTo(_woMap);
+    _woMapMarkers.push(marker);
+    bounds.extend([lng,lat]);
+    hasCoords=true;
+  });
+  if(hasCoords && _woMapMarkers.length>1) _woMap.fitBounds(bounds,{padding:80,maxZoom:14});
+  else if(hasCoords && _woMapMarkers.length===1) _woMap.flyTo({center:[parseFloat(offers.find(o=>o.lat).lng),parseFloat(offers.find(o=>o.lat).lat)],zoom:13});
+  /* show count */
+  var noCoords=offers.filter(function(o){return !o.lat||!o.lng;});
+  if(noCoords.length){
+    var info=document.getElementById('wo-map-nocoords');
+    if(!info){info=document.createElement('div');info.id='wo-map-nocoords';info.style.cssText='position:absolute;bottom:12px;right:12px;background:rgba(0,0,0,.65);color:#fff;border-radius:8px;padding:7px 12px;font-size:12px;font-family:Cairo,sans-serif;z-index:10;pointer-events:none';$('wo-map-container').appendChild(info);}
+    info.textContent=noCoords.length+' عرض بدون إحداثيات — أضف إحداثياتها من تعديل العرض';
+  }
+}
+function closeAllPopups(){ _woMapMarkers.forEach(function(m){m.getPopup()&&m.getPopup().remove();}); }
+
 async function _syncWONotes(){
   if(!_db) return;
   try{
