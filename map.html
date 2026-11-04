@@ -630,9 +630,15 @@ body.list #fabs,body.list #legend{display:none!important}
     .then(function(d){ return (d.exists&&d.data().mapboxToken)||localStorage.getItem('shark_mapbox_token')||''; })
     .catch(function(){ return localStorage.getItem('shark_mapbox_token')||''; });
 
-  var pOffers=_db.collection('offers').where('published','==',true).orderBy('_ts','desc').get()
-    .then(function(snap){ _offers=snap.docs.map(function(d){return d.data();}); if(!_offers.length) _offers=(gs('shark_offers')||[]).filter(function(o){return o.published!==false;}); })
-    .catch(function(){ _offers=(gs('shark_offers')||[]).filter(function(o){return o.published!==false;}); });
+  var pOffers=_db.collection('offers').where('published','==',true).get()
+    .then(function(snap){
+      _offers=snap.docs.map(function(d){return d.data();}).sort(function(a,b){return (b._ts||0)-(a._ts||0);});
+      if(!_offers.length) _offers=(gs('shark_offers')||[]).filter(function(o){return o.published===true;});
+    })
+    .catch(function(e){
+      console.warn('offers fetch error:',e);
+      _offers=(gs('shark_offers')||[]).filter(function(o){return o.published===true;});
+    });
 
   var pProjects=SP?SP.loadPublished().then(function(l){_projects=l;}).catch(function(){}):Promise.resolve();
 
