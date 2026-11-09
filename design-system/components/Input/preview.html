@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shark · Input</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../bundle.css">
+</head><body>
+<!-- @dsCard group="Forms" height=200 subtitle="بحث، قائمة، حقل بعنوان" -->
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@600;700&display=swap" rel="stylesheet">
+<style>html,body{margin:0;background:var(--surface)}</style>
+<div class="sh-root" dir="rtl" style="padding:24px">
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;max-width:720px">
+<div class="sh-input-wrap"><svg class="sh-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input class="sh-input" placeholder="ابحث باسم العرض أو المدينة أو رقم الإعلان…"></div>
+<select class="sh-input"><option>كل الأنواع</option><option>تجاري</option><option>سكني</option><option>زراعي</option></select></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:720px;margin-top:20px">
+<label class="sh-field"><span class="sh-field-label">اسم العرض</span><input class="sh-input" value="أرض تجارية حويلان"></label>
+<label class="sh-field"><span class="sh-field-label">المساحة (م²)</span><input class="sh-input sh-num" value="6030.67" dir="ltr" style="text-align:right"><span class="sh-field-hint">أرقام لاتينية فقط</span></label></div>
+</div>
+</body></html>

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shark · Cover</title>
+<link rel="stylesheet" href="../../tokens.css">
+<link rel="stylesheet" href="../bundle.css">
+</head><body>
+<!-- @dsCard height=300 -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=IBM+Plex+Sans+Arabic:wght@400&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;background:var(--surface)}
+  .cover{position:relative;width:960px;height:300px;background:var(--surface);overflow:hidden}
+  svg{position:absolute;inset:0}
+  .ink{fill:var(--ink)} .silver{fill:var(--silver)} .stone{fill:var(--stone)} .gold{fill:var(--gold)}
+  .rule{stroke:var(--hairline);stroke-width:1}
+  .text{position:absolute;left:var(--space-8);bottom:var(--space-8);max-width:440px}
+  .name{margin:0;font-family:var(--font-latin);font-weight:500;font-size:120px;line-height:.92;color:var(--ink)}
+  .tag{margin:var(--space-2) 0 0;font-family:var(--font-arabic);font-size:14px;line-height:20px;color:var(--muted)}
+</style>
+<div class="cover">
+  <svg width="960" height="300" viewBox="0 0 960 300">
+    <!-- blocks: ink 160w full height, silver 128w from y64, stone 96w from y128, gold 64w from y192 (space-16 multiples)
+         arrangement: a strip of unequal bands rising right-to-left, bleeding off the top and bottom like the mark's ascending bars
+         pattern: editorial row — the serif wordmark and "hairlines, no shadows" — four hairline rules crossing the bands
+         steps/radii: space-16 (64px) pitch, radius-none corners throughout -->
+    <rect class="gold"   x="512" y="192" width="64"  height="108"/>
+    <rect class="stone"  x="576" y="128" width="96"  height="172"/>
+    <rect class="silver" x="672" y="64"  width="128" height="236"/>
+    <rect class="ink"    x="800" y="0"   width="160" height="300"/>
+    <line class="rule" x1="496" y1="64"  x2="960" y2="64"/>
+    <line class="rule" x1="496" y1="128" x2="960" y2="128"/>
+    <line class="rule" x1="496" y1="192" x2="960" y2="192"/>
+    <line class="rule" x1="496" y1="256" x2="960" y2="256"/>
+  </svg>
+  <div class="text">
+    <p class="name">Shark</p>
+    <p class="tag" dir="rtl">شركة شارك العقارية</p>
+  </div>
+</div>
+</body></html>

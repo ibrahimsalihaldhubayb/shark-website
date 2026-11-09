@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shark Design System</title>
+<link rel="stylesheet" href="tokens.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600&family=Noto+Kufi+Arabic:wght@700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:var(--surface-raised);color:var(--ink);font-family:var(--font-arabic)}
+header{display:flex;align-items:center;gap:16px;padding:24px 32px;background:var(--surface);border-bottom:1px solid var(--hairline)}
+header img{height:40px} header h1{font:700 22px/1.4 var(--font-kufi);margin:0} header p{margin:0;color:var(--muted);font-size:14px}
+main{padding:16px 32px 64px;max-width:1500px;margin:auto}
+h2{font:700 18px/1.4 var(--font-kufi);margin:40px 0 16px}
+.card{margin:0 0 24px;background:var(--surface);border:1px solid var(--hairline);border-radius:6px;overflow:hidden}
+figcaption{display:flex;gap:12px;align-items:baseline;padding:12px 16px;border-bottom:1px solid var(--hairline)}
+figcaption span{color:var(--muted);font-size:13px;flex:1} figcaption a{color:var(--ink);font-size:13px}
+.frame{overflow:auto}
+iframe{display:block;border:0;width:calc(var(--w)*1px);height:calc(var(--h)*1px);max-width:none}
+@media (max-width:768px){header,main{padding-inline:16px}}
+</style></head><body>
+<header><img src="assets/Logos/shark-mark-black.png" alt=""><div><h1>نظام تصميم شارك</h1><p>الألوان والخطوط والمكوّنات وصفحات لوحة التحكم. اقرأ START-HERE.md قبل التطبيق.</p></div></header>
+<main>
+<section><h2>Brand</h2>
+<figure class="card" style="--w:960;--h:300">
+<figcaption><b>Cover</b><span></span><a href="components/Cover/preview.html" target="_blank">فتح</a></figcaption>
+<div class="frame"><iframe src="components/Cover/preview.html" loading="lazy" title="Cover"></iframe></div></figure>
+</section>
+<section><h2>Pages</h2>
+<figure class="card" style="--w:1440;--h:1720">
+<figcaption><b>OffersPage</b><span>صفحة عروضنا: الحصرية ثم غير الحصرية</span><a href="components/OffersPage/preview.html" target="_blank">فتح</a></figcaption>
+<div class="frame"><iframe src="components/OffersPage/preview.html" loading="lazy" title="OffersPage"></iframe></div></figure>
+<figure class="card" style="--w:1440;--h:1000">
+<figcaption><b>PartnersPage</b><span>مشاريع الشركاء على الويب</span><a href="components/PartnersPage/preview.html" target="_blank">فتح</a></figcaption>
+<div class="frame"><iframe src="components/PartnersPage/preview.html" loading="lazy" title="PartnersPage"></iframe></div></figure>
+<figure class="card" style="--w:390;--h:1500">
+<figcaption><b>PartnersPageMobile</b><span>نفس الصفحة ونفس الكود على الجوال</span><a href="components/PartnersPageMobile/preview.html" target="_blank">فتح</a></figcaption>
+<div class="frame"><iframe src="components/PartnersPageMobile/preview.html" loading="lazy" title="PartnersPageMobile"></iframe></div></figure>
+<figure class="card" style="--w:1440;--h:1400">
+<figcaption><b>TasksPage</b><span>صفحة المهام: لوحة حسب الحالة</span><a href="components/TasksPage/preview.html" target="_blank">فتح</a></figcaption>
+<div class="frame"><iframe src="components/TasksPage/preview.html" loading="lazy" title="TasksPage"></iframe></div></figure>
+</section>
+<section><h2>Navigation</h2>
+<figure class="card" style="--w:1440;--h:760">
+<figcaption><b>AppShell</b><span>القائمة الجانبية والشريط العلوي</span><a href="components/AppShell/preview.html" target="_blank">فتح</a></figcaption>
+<div class="frame"><iframe src="components/AppShell/preview.html" loading="lazy" title="AppShell"></iframe></div></figure>
+<figure class="card" style="--w:390;--h:844">
+<figcaption><b>MobileNav</b><span>القائمة الكاملة على الجوال</span><a href="components/MobileNav/preview.html" target="_blank">فتح</a></figcaption>
+<div class="frame"><iframe src="components/MobileNav/preview.html" loading="lazy" title="MobileNav"></iframe></div></figure>
+<figure class="card" style="--w:960;--h:150">
+<figcaption><b>Tabs</b><span>تبويبات الفلترة وتبديل العرض</span><a href="components/Tabs/preview.html" target="_blank">فتح</a></figcaption>
+<div class="frame"><iframe src="components/Tabs/preview.html" loading="lazy" title="Tabs"></iframe></div></figure>
+</section>
+<section><h2>Data</h2>
+<figure class="card" style="--w:1280;--h:460">
+<figcaption><b>DataTable</b><span>جدول العروض</span><a href="components/DataTable/preview.html" target="_blank">فتح</a></figcaption>
+<div class="frame"><iframe src="components/DataTable/preview.html" loading="lazy" title="DataTable"></iframe></div></figure>
+<figure class="card" style="--w:960;--h:170">
+<figcaption><b>StatTile</b><span>بطاقات الأرقام</span><a href="components/StatTile/preview.html" target="_blank">فتح</a></figcaption>
+<div class="frame"><iframe src="components/StatTile/preview.html" loading="lazy" title="StatTile"></iframe></div></figure>
+</section>
+<section><h2>Offers</h2>
+<figure class="card" style="--w:960;--h:560">
+<figcaption><b>OfferCard</b><span>عرض حصري وعرض غير حصري</span><a href="components/OfferCard/preview.html" target="_blank">فتح</a></figcaption>
+<div class="frame"><iframe src="components/OfferCard/preview.html" loading="lazy" title="OfferCard"></iframe></div></figure>
+</section>
+<section><h2>Tasks</h2>
+<figure class="card" style="--w:960;--h:600">
+<figcaption><b>TaskCard</b><span>متأخرة، جارية بملاحظة، مكتملة</span><a href="components/TaskCard/preview.html" target="_blank">فتح</a></figcaption>
+<div class="frame"><iframe src="components/TaskCard/preview.html" loading="lazy" title="TaskCard"></iframe></div></figure>
+</section>
+<section><h2>Actions</h2>
+<figure class="card" style="--w:960;--h:150">
+<figcaption><b>Button</b><span>أساسي، ثانوي، شفاف، حذف</span><a href="components/Button/preview.html" target="_blank">فتح</a></figcaption>
+<div class="frame"><iframe src="components/Button/preview.html" loading="lazy" title="Button"></iframe></div></figure>
+</section>
+<section><h2>Forms</h2>
+<figure class="card" style="--w:960;--h:200">
+<figcaption><b>Input</b><span>بحث، قائمة، حقل بعنوان</span><a href="components/Input/preview.html" target="_blank">فتح</a></figcaption>
+<div class="frame"><iframe src="components/Input/preview.html" loading="lazy" title="Input"></iframe></div></figure>
+<figure class="card" style="--w:960;--h:90">
+<figcaption><b>Switch</b><span>مفتاح النشر</span><a href="components/Switch/preview.html" target="_blank">فتح</a></figcaption>
+<div class="frame"><iframe src="components/Switch/preview.html" loading="lazy" title="Switch"></iframe></div></figure>
+</section>
+<section><h2>Status</h2>
+<figure class="card" style="--w:960;--h:130">
+<figcaption><b>Badge</b><span>حالات المهام والعروض</span><a href="components/Badge/preview.html" target="_blank">فتح</a></figcaption>
+<div class="frame"><iframe src="components/Badge/preview.html" loading="lazy" title="Badge"></iframe></div></figure>
+</section>
+</main></body></html>
