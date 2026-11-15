@@ -35,6 +35,9 @@
       if(pr&&st==='available'){ s.minPrice=s.minPrice?Math.min(s.minPrice,pr):pr; s.maxPrice=Math.max(s.maxPrice,pr); }
     });
     if(!s.minPrice && num(p&&p.priceFrom)) s.minPrice=num(p.priceFrom);
+    /* إجمالي قطع المخطط (مثلاً 2052) أكبر من القطع المدخلة: الفرق يُحسب غير متاح (مباع/محجوز) */
+    var tot=Math.round(num(p&&p.totalUnits));
+    if(tot>s.total){ s.unlisted=tot-s.total; s.sold+=s.unlisted; s.total=tot; }
     return s;
   }
 
