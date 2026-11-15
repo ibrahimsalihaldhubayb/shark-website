@@ -62,16 +62,20 @@
   /* المشاريع المنشورة فقط (للموقع) */
   function loadPublished(){
     var d=db();
-    if(!d) return Promise.resolve(cached().filter(function(p){return p.published;}));
+    if(!d) return Promise.resolve(cached().filter(function(p){return p.published!==false;}));
+    window.SharkProjects.lastError=null;
     return d.collection('projects').get().then(function(snap){
-      var list=snap.docs.map(function(x){ var o=x.data(); o.id=o.id||x.id; return o; })
-        .filter(function(p){return p.published;})
+      var all=snap.docs.map(function(x){ var o=x.data(); o.id=o.id||x.id; return o; });
+      window.SharkProjects.allCount=all.length;
+      var list=all
+        .filter(function(p){return p.published!==false;})
         .sort(function(a,b){return (b._ts||0)-(a._ts||0);});
       cache(list);
       return list;
     }).catch(function(e){
       console.warn('projects load',e);
-      return cached().filter(function(p){return p.published;});
+      window.SharkProjects.lastError=(e&&(e.code||e.message))||'unknown';
+      return cached().filter(function(p){return p.published!==false;});
     });
   }
   function loadOne(id){

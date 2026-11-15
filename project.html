@@ -377,7 +377,7 @@ button{font-family:'Cairo',sans-serif}
   var id=new URLSearchParams(location.search).get('id');
   if(!id){ notFound(); return; }
   SP.loadOne(id).then(function(p){
-    if(!p||!p.published){ notFound(); return; }
+    if(!p||p.published===false){ notFound(); return; }
     P=p; P.units=(P.units||[]).slice().sort(natCmp); K=SP.kind(P);
     render();
     SP.loadMedia(P.id).then(function(m){

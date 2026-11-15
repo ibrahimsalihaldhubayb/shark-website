@@ -995,7 +995,13 @@ body{background:var(--dark);color:var(--text)}
   /* ── PARTNER PROJECTS ── */
   function renderProjects(list){
     var g=document.getElementById('prj-grid'), SP=window.SharkProjects;
-    if(!list.length){ document.getElementById('projects').style.display='none'; return; }
+    if(!list.length){
+      var err=SP&&SP.lastError;
+      g.innerHTML='<div class="prj-empty">'+(err
+        ?'تعذّر تحميل المشاريع حالياً — حدّث الصفحة بعد قليل.<br><small style="opacity:.6;font-size:11px">('+esc(String(err))+')</small>'
+        :'لا توجد مشاريع منشورة حالياً.')+'</div>';
+      return;
+    }
     g.innerHTML=list.map(function(p){
       var s=SP.stats(p), K=SP.kind(p), href='project.html?id='+encodeURIComponent(p.id);
       return '<div class="prj-card" onclick="location.href=\''+href+'\'">'
