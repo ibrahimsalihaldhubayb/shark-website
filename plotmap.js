@@ -11,6 +11,9 @@
     sold:     {fill:'#c25b6e',line:'#983c4f',label:'مباعة'}
   };
   function st(u){ return COL[u&&u.status]?u.status:'available'; }
+  /* ألوان استخدام الأرض (مثل لوحة المخطط) */
+  var USE={res:{fill:'#f1e78a',line:'#c8bb52',label:'سكني'},mix:{fill:'#f6b69e',line:'#d48b6f',label:'سكني تجاري'},com:{fill:'#e8452e',line:'#b3301c',label:'تجاري'}};
+  function useOf(u){ var t=(u&&(u.use||u.type))||''; if(t==='com'||/^تجار/.test(t)) return 'com'; if(t==='mix'||/مختلط|سكني تجاري/.test(t)) return 'mix'; return 'res'; }
   function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
   function corners(p){
@@ -185,7 +188,12 @@
     var c=corners(p);
     if(opts.planUrl&&c){ overlay=RotatedImage(opts.planUrl,c,{opacity:opts.planOpacity==null?.55:opts.planOpacity}); }
 
+    var _mode=opts.colorBy||'status';
     function styleOf(u,dim,sel){
+      if(_mode==='use'){
+        var k2=USE[useOf(u)], av=st(u)==='available';
+        return {color:sel?'#111':(av?'#2f8a55':k2.line),weight:sel?3:(av?2:.8),opacity:dim?.35:1,fillColor:k2.fill,fillOpacity:dim?.2:1};
+      }
       var k=COL[st(u)];
       return {color:sel?'#111':k.line,weight:sel?3:1,opacity:dim?.35:1,fillColor:k.fill,fillOpacity:dim?.15:.88};
     }
@@ -234,12 +242,12 @@
       updLabels(); updDims();
     }
     /* المرافق والشوارع من ملف المخطط: p.features=[{t,n,g}] و p.streets=[{s,p:[lat,lng],r}] */
-    var FK={mosque:{f:'#cfe3f6',l:'#5b8fc9',ic:'🕌'},school:{f:'#fbe9c6',l:'#d9a03a',ic:'🏫'},health:{f:'#fbd9d9',l:'#d96b6b',ic:'⚕️'},
-      public:{f:'#e4e4e4',l:'#9a9a9a',ic:'🏛️'},garden:{f:'#cfeac4',l:'#5fae5a',ic:'🌳'},parking:{f:'#e1e5ea',l:'#9aa3ad',ic:'🅿️'},
-      lake:{f:'#bfe0f3',l:'#5aa9d6',ic:'💧'},walk:{f:'#efe7d8',l:'#ddd2bd',ic:''}};
+    var FK={mosque:{f:'#a5896a',l:'#86694c',ic:'🕌'},school:{f:'#8191cc',l:'#5f6fae',ic:'🏫'},health:{f:'#4b74c4',l:'#355aa3',ic:'⚕️'},
+      public:{f:'#4b74c4',l:'#355aa3',ic:'🏛️'},garden:{f:'#2f5d24',l:'#244a1b',ic:'🌳'},parking:{f:'#8c9196',l:'#767b80',ic:'🅿️'},
+      lake:{f:'#5bbde9',l:'#3c9fcc',ic:'💧'},flood:{f:'#5bbde9',l:'#3c9fcc',ic:'💧'},walk:{f:'#d8cfbd',l:'#c4b9a3',ic:''},road:{f:'#5c5f63',l:'#4d5054',ic:''}};
     if(!map.getPane('sharkFeat')){ var fpn=map.createPane('sharkFeat'); fpn.style.zIndex=390; fpn.style.pointerEvents='none'; }
     var fRend=L.canvas({pane:'sharkFeat',padding:.4}), fGroup=L.layerGroup(), fLbl=L.layerGroup(), fShown=false;
-    var feats=(p.features||[]).map(function(f){
+    var feats=(p.features||[]).slice().sort(function(a,b){ return (a.t==='road'?0:1)-(b.t==='road'?0:1); }).map(function(f){
       var g=f.g||[], ll=[]; for(var i=0;i+1<g.length;i+=2) ll.push([Number(g[i]),Number(g[i+1])]);
       if(ll.length<3) return null;
       var k=FK[f.t]||FK.public;
@@ -250,7 +258,7 @@
     var streets=p.streets||[];
     if(!document.getElementById('shark-feat-css')){ var fcs=document.createElement('style'); fcs.id='shark-feat-css';
       fcs.textContent='.feat-lbl span{display:block;transform:translate(-50%,-50%);background:rgba(255,255,255,.93);color:#333;font:800 10px Cairo,Tahoma,sans-serif;padding:1px 7px;border-radius:9px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.2);pointer-events:none;direction:rtl}'
-        +'.street-lbl span{display:block;color:#5f5a52;font:800 10px Cairo,Tahoma,sans-serif;white-space:nowrap;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 2px #fff;pointer-events:none;direction:rtl}';
+        +'.street-lbl span{display:block;color:#fff;font:800 10px Cairo,Tahoma,sans-serif;white-space:nowrap;text-shadow:0 0 3px #000,0 0 2px #000;pointer-events:none;direction:rtl}';
       document.head.appendChild(fcs); }
     function updF(){
       var z=map.getZoom(), want=(feats.length||streets.length)&&z>=(opts.featMinZoom||(opts.minZoom||13));
@@ -259,7 +267,7 @@
       fLbl.clearLayers(); if(!fShown) return;
       var b=map.getBounds().pad(.1);
       if(z>=15.5) feats.forEach(function(x){
-        if(x.f.t==='walk'||(x.f.t==='parking'&&z<17.5)||!b.contains(x.c)) return;
+        if(x.f.t==='walk'||x.f.t==='road'||(x.f.t==='parking'&&z<17.5)||!b.contains(x.c)) return;
         fLbl.addLayer(L.marker(x.c,{interactive:false,keyboard:false,icon:L.divIcon({className:'feat-lbl',iconSize:null,html:'<span>'+(x.k.ic?x.k.ic+' ':'')+esc(x.f.n)+'</span>'})}));
       });
       if(z>=17) streets.forEach(function(st){
@@ -300,6 +308,8 @@
       bounds:function(){ return bounds(p); },
       center:function(id){ return centers[id]; },
       setFilter:function(fn){ _dim=fn; Object.keys(byId).forEach(restyle); },
+      setColorBy:function(m){ _mode=m==='use'?'use':'status'; Object.keys(byId).forEach(restyle); },
+      colorBy:function(){ return _mode; },
       select:function(id){ var old=_sel; _sel=id||null; if(old) restyle(old); if(_sel) restyle(_sel); updDims(); },
       remove:function(){ map.off('zoomend moveend',updF); if(fShown){ map.removeLayer(fGroup); map.removeLayer(fLbl); } map.off('zoomend moveend',updB); if(bShown){ map.removeLayer(bGroup); map.removeLayer(bLbl); } map.off('zoomend moveend',vis); if(overlay) map.removeLayer(overlay); map.removeLayer(group); map.removeLayer(labels); map.removeLayer(dimL); }
     };
@@ -321,6 +331,6 @@
     };
   }
 
-  window.SharkPlotMap={boundaryRings:boundaryRings,boundaryDims:boundaryDims,hasPlots:hasPlots,ringDims:ringDims,utm:utm,mPerDeg:mPerDeg,dims:dims,croquisSVG:croquisSVG,dimsTable:dimsTable,fmtLen:fmtLen,COLORS:COL,status:st,corners:corners,imgToLatLng:imgToLatLng,unitShape:unitShape,centroid:centroid,
+  window.SharkPlotMap={USE:USE,useOf:useOf,boundaryRings:boundaryRings,boundaryDims:boundaryDims,hasPlots:hasPlots,ringDims:ringDims,utm:utm,mPerDeg:mPerDeg,dims:dims,croquisSVG:croquisSVG,dimsTable:dimsTable,fmtLen:fmtLen,COLORS:COL,status:st,corners:corners,imgToLatLng:imgToLatLng,unitShape:unitShape,centroid:centroid,
     hasGeo:hasGeo,bounds:bounds,RotatedImage:RotatedImage,render:render,baseLayers:baseLayers};
 })();
