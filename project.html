@@ -284,7 +284,6 @@ button{font-family:'Cairo',sans-serif}
         <button class="chip" data-st="sold" onclick="setSt('sold')"><i style="background:var(--sd)"></i>مباع</button>
         <input class="plan-search" id="plan-q" type="search" placeholder="ابحث برقم القطعة..." oninput="setQ(this.value)">
       </div>
-      <div class="cb-seg" id="cb-seg" style="display:none"><button id="cb-status" onclick="setColorBy('status')">حسب الحالة</button><button id="cb-use" class="on" onclick="setColorBy('use')">حسب الاستخدام</button></div>
       <div id="plan-box"></div>
       <div class="use-lg" id="use-lg" style="display:none"></div>
       <div class="plan-hint">
@@ -435,7 +434,7 @@ button{font-family:'Cairo',sans-serif}
     $('cta-name').textContent=P.name;
     $('cta-sub').textContent=s.available+' '+K.units+' متاحة'+(s.minPrice?' · تبدأ من '+SP.fmtPrice(s.minPrice):'');
 
-    renderPlan(); renderUnits(); renderLoc(); setupNav(); renderPlanSummary();
+    renderPlan(); renderUnits(); renderLoc(); setupNav();
     var qs=new URLSearchParams(location.search), qUnit=qs.get('unit'), qMode=qs.get('mode')==='interest'?'interest':'book';
     if(qUnit&&!P.units.some(function(u){return u.id===qUnit;})) qUnit=null;
     if(location.hash==='#book') setTimeout(function(){ openBooking(qMode,qUnit||undefined); },250);
@@ -480,10 +479,10 @@ button{font-family:'Cairo',sans-serif}
     applyFilter();
   }
 
-  var _colorBy='use';
+  var _colorBy='status';
   var USE_LG=[['#f1e78a','سكني'],['#f6b69e','سكني تجاري'],['#e8452e','تجاري'],['#a5896a','مساجد'],['#2f5d24','حدائق'],['#8191cc','مرافق تعليمية'],['#4b74c4','مرافق حكومية'],['#5bbde9','تجميع سيول']];
   window.setColorBy=function(m){
-    _colorBy=m; $('cb-status').classList.toggle('on',m==='status'); $('cb-use').classList.toggle('on',m==='use');
+    _colorBy=m;
     if(_geo&&_geo.setColorBy) _geo.setColorBy(m);
     $('use-lg').style.display=m==='use'?'flex':'none';
     $('use-lg').innerHTML=USE_LG.map(function(x){ return '<span><i style="background:'+x[0]+'"></i>'+x[1]+'</span>'; }).join('')+'<span><i style="border:2px solid #2f8a55;box-sizing:border-box"></i>متاحة للبيع</span>';
@@ -510,8 +509,6 @@ button{font-family:'Cairo',sans-serif}
     _planMap=map;
     _geo=PM.render(map,P,{colorBy:_colorBy,labelZoom:18,planUrl:MEDIA.plan&&P.planW?MEDIA.plan:null,planOpacity:.5,onClick:function(u){ focusUnit(u.id,true); }});
     var b=_geo.bounds(); if(b) map.fitBounds(b,{padding:[12,12],maxZoom:19}); else map.setView([24.7,46.7],12);
-    $('cb-seg').style.display=PM.hasPlots(P)?'inline-flex':'none';
-    if(PM.hasPlots(P)) setTimeout(function(){ setColorBy(_colorBy); },0);
     var rings=PM.boundaryRings(P);
     if(rings.length){
       box.insertAdjacentHTML('beforeend','<div class="land-box">'+rings.map(function(r,i){ var D=PM.boundaryDims(P,i);

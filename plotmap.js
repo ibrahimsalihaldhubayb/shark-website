@@ -242,9 +242,21 @@
       updLabels(); updDims();
     }
     /* المرافق والشوارع من ملف المخطط: p.features=[{t,n,g}] و p.streets=[{s,p:[lat,lng],r}] */
-    var FK={mosque:{f:'#a5896a',l:'#86694c',ic:'🕌'},school:{f:'#8191cc',l:'#5f6fae',ic:'🏫'},health:{f:'#4b74c4',l:'#355aa3',ic:'⚕️'},
-      public:{f:'#4b74c4',l:'#355aa3',ic:'🏛️'},garden:{f:'#2f5d24',l:'#244a1b',ic:'🌳'},parking:{f:'#8c9196',l:'#767b80',ic:'🅿️'},
-      lake:{f:'#5bbde9',l:'#3c9fcc',ic:'💧'},flood:{f:'#5bbde9',l:'#3c9fcc',ic:'💧'},walk:{f:'#d8cfbd',l:'#c4b9a3',ic:''},road:{f:'#5c5f63',l:'#4d5054',ic:''}};
+    var FK={mosque:{f:'#9b7d60',l:'#7e6248'},school:{f:'#8191ca',l:'#6474b0'},health:{f:'#e3f5f4',l:'#a9cfcc'},
+      public:{f:'#4c72c2',l:'#3a5ea8'},garden:{f:'#2f5a26',l:'#24481d'},parking:{f:'#8e9194',l:'#7b7e81'},
+      lake:{f:'#64bfe9',l:'#3fa3d1'},flood:{f:'#64bfe9',l:'#3fa3d1'},walk:{f:'#d9d1bf',l:'#c8bea8'},road:{f:'#6d6f72',l:'#5d5f62'}};
+    /* نص المرفق كما في لوحة المخطط */
+    function featText(f){
+      var n=f.n||'';
+      if(f.t==='mosque') return n==='جامع'?'جامع':'مسجد<br>وملحقاته';
+      if(f.t==='school') return /بنات/.test(n)?'مرفق تعليمي<br>بنات':(/بنين/.test(n)?'مرفق تعليمي<br>بنين':'مرفق تعليمي');
+      if(f.t==='health') return 'مركز صحي';
+      if(f.t==='public') return 'مرفق عام';
+      if(f.t==='parking') return 'مواقف سيارات';
+      if(f.t==='flood'||f.t==='lake') return 'تجميع سيول';
+      return '';
+    }
+    var DOME='<svg width="18" height="12" viewBox="0 0 18 12" style="display:block;margin:2px auto 0"><path d="M9 1.2c.4 0 .7.3.7.7v.6C12.8 3.3 15 5.6 15 8.4V10H3V8.4c0-2.8 2.2-5.1 5.3-5.9v-.6c0-.4.3-.7.7-.7z" fill="#3f8f3a"/><rect x="1.5" y="10" width="15" height="1.6" rx=".5" fill="#3f8f3a"/></svg>';
     if(!map.getPane('sharkFeat')){ var fpn=map.createPane('sharkFeat'); fpn.style.zIndex=390; fpn.style.pointerEvents='none'; }
     var fRend=L.canvas({pane:'sharkFeat',padding:.4}), fGroup=L.layerGroup(), fLbl=L.layerGroup(), fShown=false;
     var feats=(p.features||[]).slice().sort(function(a,b){ return (a.t==='road'?0:1)-(b.t==='road'?0:1); }).map(function(f){
@@ -257,7 +269,8 @@
     }).filter(Boolean);
     var streets=p.streets||[];
     if(!document.getElementById('shark-feat-css')){ var fcs=document.createElement('style'); fcs.id='shark-feat-css';
-      fcs.textContent='.feat-lbl span{display:block;transform:translate(-50%,-50%);background:rgba(255,255,255,.93);color:#333;font:800 10px Cairo,Tahoma,sans-serif;padding:1px 7px;border-radius:9px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.2);pointer-events:none;direction:rtl}'
+      fcs.textContent='.feat-lbl div{transform:translate(-50%,-50%);color:#1e1e1e;font:800 var(--fs,10px)/1.25 Cairo,Tahoma,sans-serif;text-align:center;white-space:nowrap;pointer-events:none;direction:rtl}'
+        +'.feat-lbl.lt div{color:#fff}'
         +'.street-lbl span{display:block;color:#fff;font:800 10px Cairo,Tahoma,sans-serif;white-space:nowrap;text-shadow:0 0 3px #000,0 0 2px #000;pointer-events:none;direction:rtl}';
       document.head.appendChild(fcs); }
     function updF(){
@@ -266,9 +279,13 @@
       else if(!want&&fShown){ map.removeLayer(fGroup); map.removeLayer(fLbl); fShown=false; }
       fLbl.clearLayers(); if(!fShown) return;
       var b=map.getBounds().pad(.1);
+      var fs=z>=18.5?14:z>=17.5?12:z>=16.5?10.5:9;
       if(z>=15.5) feats.forEach(function(x){
-        if(x.f.t==='walk'||x.f.t==='road'||(x.f.t==='parking'&&z<17.5)||!b.contains(x.c)) return;
-        fLbl.addLayer(L.marker(x.c,{interactive:false,keyboard:false,icon:L.divIcon({className:'feat-lbl',iconSize:null,html:'<span>'+(x.k.ic?x.k.ic+' ':'')+esc(x.f.n)+'</span>'})}));
+        var txt=featText(x.f);
+        if(!txt||(x.f.t==='parking'&&z<17.5)||!b.contains(x.c)) return;
+        var light=false;
+        fLbl.addLayer(L.marker(x.c,{interactive:false,keyboard:false,icon:L.divIcon({className:'feat-lbl'+(light?' lt':''),iconSize:null,
+          html:'<div style="--fs:'+fs+'px">'+txt+(x.f.t==='mosque'&&z>=16.5?DOME:'')+'</div>'})}));
       });
       if(z>=17) streets.forEach(function(st){
         if(!st.p||!b.contains(st.p)) return;
