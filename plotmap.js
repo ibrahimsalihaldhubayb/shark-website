@@ -233,6 +233,43 @@
       else if(!want&&shown){ if(overlay) map.removeLayer(overlay); map.removeLayer(group); map.removeLayer(labels); map.removeLayer(dimL); shown=false; }
       updLabels(); updDims();
     }
+    /* المرافق والشوارع من ملف المخطط: p.features=[{t,n,g}] و p.streets=[{s,p:[lat,lng],r}] */
+    var FK={mosque:{f:'#cfe3f6',l:'#5b8fc9',ic:'🕌'},school:{f:'#fbe9c6',l:'#d9a03a',ic:'🏫'},health:{f:'#fbd9d9',l:'#d96b6b',ic:'⚕️'},
+      public:{f:'#e4e4e4',l:'#9a9a9a',ic:'🏛️'},garden:{f:'#cfeac4',l:'#5fae5a',ic:'🌳'},parking:{f:'#e1e5ea',l:'#9aa3ad',ic:'🅿️'},
+      lake:{f:'#bfe0f3',l:'#5aa9d6',ic:'💧'},walk:{f:'#efe7d8',l:'#ddd2bd',ic:''}};
+    if(!map.getPane('sharkFeat')){ var fpn=map.createPane('sharkFeat'); fpn.style.zIndex=390; fpn.style.pointerEvents='none'; }
+    var fRend=L.canvas({pane:'sharkFeat',padding:.4}), fGroup=L.layerGroup(), fLbl=L.layerGroup(), fShown=false;
+    var feats=(p.features||[]).map(function(f){
+      var g=f.g||[], ll=[]; for(var i=0;i+1<g.length;i+=2) ll.push([Number(g[i]),Number(g[i+1])]);
+      if(ll.length<3) return null;
+      var k=FK[f.t]||FK.public;
+      var poly=L.polygon(ll,{renderer:fRend,pane:'sharkFeat',color:k.l,weight:1,fillColor:k.f,fillOpacity:1,interactive:false});
+      fGroup.addLayer(poly);
+      return {f:f,k:k,c:centroid(ll)};
+    }).filter(Boolean);
+    var streets=p.streets||[];
+    if(!document.getElementById('shark-feat-css')){ var fcs=document.createElement('style'); fcs.id='shark-feat-css';
+      fcs.textContent='.feat-lbl span{display:block;transform:translate(-50%,-50%);background:rgba(255,255,255,.93);color:#333;font:800 10px Cairo,Tahoma,sans-serif;padding:1px 7px;border-radius:9px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.2);pointer-events:none;direction:rtl}'
+        +'.street-lbl span{display:block;color:#5f5a52;font:800 10px Cairo,Tahoma,sans-serif;white-space:nowrap;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 2px #fff;pointer-events:none;direction:rtl}';
+      document.head.appendChild(fcs); }
+    function updF(){
+      var z=map.getZoom(), want=(feats.length||streets.length)&&z>=(opts.featMinZoom||(opts.minZoom||13));
+      if(want&&!fShown){ fGroup.addTo(map); fLbl.addTo(map); fShown=true; }
+      else if(!want&&fShown){ map.removeLayer(fGroup); map.removeLayer(fLbl); fShown=false; }
+      fLbl.clearLayers(); if(!fShown) return;
+      var b=map.getBounds().pad(.1);
+      if(z>=15.5) feats.forEach(function(x){
+        if(x.f.t==='walk'||(x.f.t==='parking'&&z<17.5)||!b.contains(x.c)) return;
+        fLbl.addLayer(L.marker(x.c,{interactive:false,keyboard:false,icon:L.divIcon({className:'feat-lbl',iconSize:null,html:'<span>'+(x.k.ic?x.k.ic+' ':'')+esc(x.f.n)+'</span>'})}));
+      });
+      if(z>=17) streets.forEach(function(st){
+        if(!st.p||!b.contains(st.p)) return;
+        var r=((Number(st.r)||0)%360+360)%360; if(r>90&&r<270) r-=180;
+        fLbl.addLayer(L.marker(st.p,{interactive:false,keyboard:false,icon:L.divIcon({className:'street-lbl',iconSize:null,html:'<span style="transform:translate(-50%,-50%) rotate('+(-r)+'deg)">'+esc(st.s)+'</span>'})}));
+      });
+    }
+    map.on('zoomend moveend',updF); updF();
+
     /* حدود الأرض: خط ذهبي متقطع + أطوال الأضلاع الرئيسية */
     var bGroup=L.featureGroup(), bLbl=L.layerGroup(), bShown=false, rings=boundaryRings(p);
     rings.forEach(function(r,i){
@@ -264,7 +301,7 @@
       center:function(id){ return centers[id]; },
       setFilter:function(fn){ _dim=fn; Object.keys(byId).forEach(restyle); },
       select:function(id){ var old=_sel; _sel=id||null; if(old) restyle(old); if(_sel) restyle(_sel); updDims(); },
-      remove:function(){ map.off('zoomend moveend',updB); if(bShown){ map.removeLayer(bGroup); map.removeLayer(bLbl); } map.off('zoomend moveend',vis); if(overlay) map.removeLayer(overlay); map.removeLayer(group); map.removeLayer(labels); map.removeLayer(dimL); }
+      remove:function(){ map.off('zoomend moveend',updF); if(fShown){ map.removeLayer(fGroup); map.removeLayer(fLbl); } map.off('zoomend moveend',updB); if(bShown){ map.removeLayer(bGroup); map.removeLayer(bLbl); } map.off('zoomend moveend',vis); if(overlay) map.removeLayer(overlay); map.removeLayer(group); map.removeLayer(labels); map.removeLayer(dimL); }
     };
   }
 
