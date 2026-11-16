@@ -592,12 +592,11 @@ button{font-family:'Cairo',sans-serif}
     $('unit-body').innerHTML='<div class="us-tag">'+esc(P.name)+'</div>'
       +'<div class="us-no">'+esc(uLabel(u))+'</div>'
       +'<span class="pill" style="background:'+c.bg+';color:'+c.color+'">'+c.label+'</span>'
+      +(st==='available'?'<div class="us-price" style="margin-top:12px"><span>السعر</span><b>'+(u.price?SP.fmtPrice(u.price):'عند التواصل')+'</b></div>':'')
       +(cells.length?'<div class="us-grid">'+cells.map(function(x){return '<div class="us-c"><div class="us-k">'+x[0]+'</div><div class="us-v">'+esc(x[1])+'</div></div>';}).join('')+'</div>':'<div style="height:14px"></div>')
-      +(D?'<div class="us-crq"><div class="us-k" style="margin-bottom:4px;font-weight:800">كروكي ال'+esc(K.unit)+' والأطوال</div>'+PM.croquisSVG(D,u)+PM.dimsTable(D,u)+'</div>':'')
-      +(u.note?'<p style="font-size:13px;color:var(--sub);line-height:1.8;margin-bottom:12px">'+esc(u.note)+'</p>':'')
+      +(D?'<div class="us-crq"><div class="us-k" style="margin-bottom:4px;font-weight:800">أطوال ال'+esc(K.unit)+'</div>'+PM.dimsTable(D,u)+'</div>':'')
       +(st==='available'
-        ?'<div class="us-price"><span>السعر</span><b>'+(u.price?SP.fmtPrice(u.price):'عند التواصل')+'</b></div>'
-          +'<div class="us-acts"><button class="btn-gold" onclick="openBooking(\'book\',\''+esc(u.id)+'\')">احجز هذه ال'+esc(K.unit)+'</button>'
+        ?'<div class="us-acts"><button class="btn-gold" onclick="openBooking(\'book\',\''+esc(u.id)+'\')">احجز هذه ال'+esc(K.unit)+'</button>'
           +'<button class="btn-out" onclick="openBooking(\'interest\',\''+esc(u.id)+'\')">سجّل اهتمامك</button>'
           +'<button class="btn-wa" onclick="waProject(\''+esc(uLabel(u))+'\')">استفسر عبر واتساب</button></div>'
         :'<div class="note-sold" style="background:'+c.bg+';color:'+c.color+'">الحالة: '+c.label+(st==='reserved'?' حالياً — سجّل اهتمامك وسنبلغك إذا أصبحت متاحة.':' — تصفّح ال'+esc(K.units)+' المتاحة في المخطط.')+'</div>'

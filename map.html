@@ -371,7 +371,7 @@ body.list #fabs,body.list #legend{display:none!important}
   function onZoom(){
     var z=map.getZoom();
     $('map').classList.toggle('show-lbl',z>=13);
-    $('map').classList.toggle('hide-pm',z>=17);
+    $('map').classList.toggle('hide-pm',z>=16);
     var vb=map.getBounds(), plotsOn=z>=14&&Object.keys(_plots).some(function(k){ var b=_plots[k].bounds(); return _plots[k].count>0&&b&&vb.intersects(b); });
     $('legend').classList.toggle('on',plotsOn&&_view==='map');
   }
@@ -445,15 +445,16 @@ body.list #fabs,body.list #legend{display:none!important}
     $('sheet-body').innerHTML='<div class="ps-head">'+logoBox(p,'ps-logo')
       +'<div style="flex:1;min-width:0"><div class="tag">'+esc(p.name)+'</div><div class="ps-no">'+esc(K.unit)+' '+esc(u.no)+'</div></div>'
       +'<span class="pill" style="background:'+C.bg+';color:'+C.color+'">'+PM.COLORS[st].label+'</span></div>'
-      +(cells.length?'<div class="ps-grid">'+cells.map(function(c){return '<div class="ps-c"><div class="ps-k">'+c[0]+'</div><div class="ps-v">'+esc(c[1])+'</div></div>';}).join('')+'</div>':'')
-      +(D?'<div class="ps-crq"><div class="ps-crq-h">كروكي القطعة والأطوال</div>'+PM.croquisSVG(D,u)+PM.dimsTable(D,u)+'</div>':'')
       +(st==='available'
-        ?'<div class="ps-price"><span style="font-size:12px;color:var(--sub)">السعر</span><b>'+(u.price?fmt(u.price):'عند التواصل')+'</b></div>'
-          +'<div class="acts"><button class="b-pri" onclick="location.href=\''+href+'#book\'">احجز هذه ال'+esc(K.unit)+'</button>'
+        ?'<div class="ps-price" style="margin-bottom:10px"><span style="font-size:12px;color:var(--sub)">السعر</span><b>'+(u.price?fmt(u.price):'عند التواصل')+'</b></div>'
+        :'<div class="ps-price" style="margin-bottom:10px;background:'+C.bg+';border-color:transparent"><span style="font-size:12.5px;font-weight:700;color:'+C.color+'">هذه ال'+esc(K.unit)+' '+(st==='sold'?'مباعة':'محجوزة حالياً')+'</span></div>')
+      +(cells.length?'<div class="ps-grid">'+cells.map(function(c){return '<div class="ps-c"><div class="ps-k">'+c[0]+'</div><div class="ps-v">'+esc(c[1])+'</div></div>';}).join('')+'</div>':'')
+      +(D?'<div class="ps-crq"><div class="ps-crq-h">أطوال القطعة</div>'+PM.dimsTable(D,u)+'</div>':'')
+      +(st==='available'
+        ?'<div class="acts"><button class="b-pri" onclick="location.href=\''+href+'#book\'">احجز هذه ال'+esc(K.unit)+'</button>'
           +'<button class="b-sec" onclick="location.href=\''+href+'&mode=interest#book\'">سجّل اهتمامك</button>'
           +'<button class="b-wa" onclick="waText(\''+esc('السلام عليكم، أنا مهتم بـ'+K.unit+' '+u.no+' في '+p.name)+'\')">'+WA_SVG+'</button></div>'
-        :'<div class="ps-price" style="background:'+C.bg+';border-color:transparent"><span style="font-size:12.5px;font-weight:700;color:'+C.color+'">هذه ال'+esc(K.unit)+' '+(st==='sold'?'مباعة':'محجوزة حالياً')+'</span></div>'
-          +'<div class="acts">'+(st==='reserved'?'<button class="b-sec" onclick="location.href=\''+href+'&mode=interest#book\'">أبلغني إذا توفرت</button>':'')
+        :'<div class="acts">'+(st==='reserved'?'<button class="b-sec" onclick="location.href=\''+href+'&mode=interest#book\'">أبلغني إذا توفرت</button>':'')
           +'<button class="b-pri" onclick="location.href=\'project.html?id='+encodeURIComponent(p.id)+'\'">تفاصيل المشروع</button></div>');
     $('sheet').classList.add('open');
     var c=_plots[p.id]&&_plots[p.id].center(u.id);
