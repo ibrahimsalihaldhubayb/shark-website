@@ -1,849 +1,989 @@
-<!doctype html>
-<html lang="ar" dir="rtl">
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>شركة شارك العقارية — من القصيم إلى كل المملكة</title>
-<meta name="description" content="شركة شارك العقارية — تسويق وبيع وإدارة العقارات بكل أنواعها في القصيم وكل مناطق المملكة.">
+<meta name="theme-color" content="#0b0b0c">
+<title>شارك العقارية</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Jost:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="clients.js"></script>
+<script src="projects.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#0b0b0c;
-  --bg2:#0e0e10;
-  --deco:radial-gradient(circle,rgba(255,255,255,.12) 1px,transparent 1px);
-  --border:rgba(255,255,255,.08);
-  --border2:rgba(255,255,255,.14);
-  --text:rgba(255,255,255,.88);
-  --muted:rgba(255,255,255,.45);
-  --dim:rgba(255,255,255,.25);
-  --light-bg:#f4f3ef;
-  --card-bg:#fff;
-  --card-border:#ecebe6;
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--gold:#c8a96e;--gold2:#f0d080;--dark:#0b0b0c;--card:#16181d;--border:rgba(244,243,239,.1);--border2:rgba(244,243,239,.18);--text:#f4f3ef;--sub:#a8a59d}
+html,body{height:100%;font-family:'Cairo',Tahoma,Arial,sans-serif;direction:rtl;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body{background:var(--dark);color:var(--text)}
+
+/* ═══ NAV ═══ */
+.nav{position:fixed;top:0;left:0;right:0;z-index:1000;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:linear-gradient(to bottom,rgba(11,11,12,.9),transparent);pointer-events:none}
+.nav>*{pointer-events:all}
+/* SVG logo */
+.nav-logo{display:flex;align-items:center;direction:ltr}
+.nav-logo-bars{display:flex;align-items:flex-end;gap:3px;margin-left:0;margin-right:10px}
+.nav-logo-bars span{display:block;width:2.5px;border-radius:2px;background:var(--text)}
+.nav-logo-text{font-family:'Cairo',sans-serif;font-size:24px;font-weight:900;color:var(--text);letter-spacing:-.01em;line-height:1}
+.nav-wa{display:flex;align-items:center;gap:6px;padding:9px 18px;background:#25d366;color:#fff;border:none;border-radius:22px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;cursor:pointer}
+
+/* ═══ HERO ═══ */
+.hero-map{position:relative;width:100%;height:100vh;min-height:560px;overflow:hidden;background:#080a0d}
+/* Saudi Arabia SVG map */
+#sa-map{position:absolute;inset:0;width:100%;height:100%;opacity:.22}
+.hero-vignette{position:absolute;inset:0;background:radial-gradient(ellipse at 60% 45%,transparent 25%,rgba(8,10,13,.7) 80%)}
+
+
+/* hero bottom */
+.hero-bottom{position:absolute;bottom:0;left:0;right:0;z-index:400;padding:20px 20px 96px;background:linear-gradient(to top,rgba(8,10,13,.96) 0%,transparent 100%)}
+.hero-tagline{font-size:clamp(20px,4.5vw,32px);font-weight:800;line-height:1.3;margin-bottom:16px}
+.hero-tagline span{color:var(--gold)}
+.hero-stats{display:flex;gap:24px;flex-wrap:wrap}
+.hstat{text-align:right}
+.hstat-n{font-size:clamp(22px,4vw,30px);font-weight:900;color:var(--gold);line-height:1}
+.hstat-l{font-size:11px;color:var(--sub);margin-top:2px}
+/* scroll hint */
+.scroll-hint{position:absolute;bottom:100px;left:50%;transform:translateX(-50%);z-index:400;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;opacity:.6;animation:bob 2s ease-in-out infinite}
+.scroll-hint span{font-size:11px;color:var(--sub);white-space:nowrap}
+.scroll-hint svg{color:var(--gold)}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(5px)}}
+/* map animations */
+@keyframes border-flow{to{stroke-dashoffset:-80}}
+@keyframes city-pulse{0%,100%{r:14;opacity:.08}50%{r:20;opacity:.18}}
+@keyframes city-pulse-sm{0%,100%{r:10;opacity:.06}50%{r:16;opacity:.14}}
+@keyframes map-glow{0%,100%{opacity:.22}50%{opacity:.3}}
+#sa-map{animation:map-glow 4s ease-in-out infinite}
+.city-dot{cursor:pointer}
+.city-dot:hover .pin-core{filter:brightness(1.4)}
+
+/* ═══ SECTIONS ═══ */
+.section{padding:64px 20px}
+.section-inner{max-width:1100px;margin:0 auto}
+.s-tag{font-size:11px;font-weight:700;letter-spacing:.16em;color:var(--gold);text-transform:uppercase;margin-bottom:10px}
+.s-title{font-size:clamp(22px,4vw,36px);font-weight:800;line-height:1.25;margin-bottom:12px}
+.s-sub{font-size:14px;color:var(--sub);line-height:1.8;max-width:500px}
+.s-head{margin-bottom:40px}
+
+/* ═══ SERVICES ═══ */
+.srv-bg{background:#0e0e10;border-top:1px solid var(--border)}
+.srv-list{display:flex;flex-direction:column;gap:1px}
+.srv-row{display:flex;align-items:center;gap:20px;padding:22px 24px;background:var(--card);border:1px solid var(--border);border-radius:14px;cursor:pointer;transition:border-color .25s,background .25s;position:relative;overflow:hidden}
+.srv-row:hover{border-color:rgba(200,169,110,.35);background:#1c1e24}
+.srv-row::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(200,169,110,.04));opacity:0;transition:opacity .25s}
+.srv-row:hover::before{opacity:1}
+.srv-num{font-family:'Cormorant Garamond',Georgia,serif;font-size:36px;font-weight:300;color:rgba(200,169,110,.18);min-width:52px;line-height:1}
+.srv-info{flex:1}
+.srv-name{font-size:16px;font-weight:700;margin-bottom:5px;color:var(--text)}
+.srv-desc{font-size:13px;color:var(--sub);line-height:1.65}
+.srv-arr{color:rgba(200,169,110,.4);font-size:20px;flex-shrink:0;transition:transform .2s}
+.srv-row:hover .srv-arr{transform:translateX(-4px);color:var(--gold)}
+
+/* ═══ HOURS ═══ */
+.hours-bg{background:#080809;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.hours-card{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09);border-radius:20px;padding:32px 28px;max-width:400px;margin:0 auto;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 20px 60px rgba(0,0,0,.5)}
+.hours-head{text-align:center;margin-bottom:28px}
+.hours-head h3{font-size:clamp(22px,5vw,30px);font-weight:300;letter-spacing:-.01em;color:var(--text);margin-bottom:4px}
+.hours-head small{font-size:12px;font-weight:300;color:rgba(255,255,255,.3);letter-spacing:.12em}
+.hours-row{display:flex;align-items:baseline;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.hours-row:last-child{border-bottom:none}
+.hours-label{font-size:14px;color:rgba(255,255,255,.45);font-weight:300}
+.hours-time{font-size:clamp(28px,6vw,40px);font-weight:300;color:var(--text);font-family:'Cormorant Garamond',Georgia,serif;letter-spacing:-.01em;direction:ltr}
+.hours-ampm{font-size:13px;color:rgba(255,255,255,.3);font-weight:300;letter-spacing:.08em;width:52px;text-align:left}
+.hours-wa-row{display:flex;align-items:center;justify-content:space-between;padding:18px 0 0}
+.hours-wa-lbl{font-size:13px;color:rgba(37,211,102,.6);font-weight:300}
+.hours-wa-num{font-size:clamp(32px,7vw,48px);font-weight:300;color:rgba(255,255,255,.9);font-family:'Cormorant Garamond',Georgia,serif}
+.hours-wa-word{font-size:14px;color:rgba(37,211,102,.5);font-weight:300;letter-spacing:.06em;width:80px;text-align:left}
+
+/* ═══ MARKETING STRIP — CYCLE ═══ */
+.mkt-strip{background:linear-gradient(160deg,#080806,#0f0d07);border-top:1px solid rgba(200,169,110,.12);border-bottom:1px solid rgba(200,169,110,.12);padding:64px 20px}
+.mkt-wrap{max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr auto;gap:48px;align-items:center}
+@media(max-width:720px){.mkt-wrap{grid-template-columns:1fr;gap:36px}}
+.mkt-head .s-tag{margin-bottom:8px}
+.mkt-head h2{font-size:clamp(22px,4vw,34px);font-weight:800;line-height:1.25;margin-bottom:8px}
+.mkt-head h2 span{color:var(--gold)}
+.mkt-head p{font-size:13px;color:var(--sub);line-height:1.8;max-width:360px;margin-bottom:28px}
+.btn-mkt-cta{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:linear-gradient(135deg,#c8972e,#d4a83c 55%,#ba8420);color:#1a1000;border:none;border-radius:10px;font-family:'Cairo',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:opacity .2s}
+.btn-mkt-cta:hover{opacity:.88}
+/* cycle diagram */
+.mkt-cycle{position:relative;width:280px;height:280px;flex-shrink:0;margin:0 auto}
+@media(max-width:720px){.mkt-cycle{width:260px;height:260px}}
+.cycle-svg{position:absolute;inset:0;width:100%;height:100%}
+.cycle-label{position:absolute;font-family:'Cairo',sans-serif;font-weight:700;font-size:12px;color:var(--text);line-height:1.35;text-align:center;max-width:80px}
+.cycle-label small{display:block;font-size:10px;color:var(--sub);font-weight:400;margin-top:2px}
+/* positions: top=12, right=3, bottom=6, left=9 — centered on 280px circle */
+.c-top{top:0;left:50%;transform:translateX(-50%)}
+.c-right{top:50%;right:-4px;transform:translateY(-50%)}
+.c-bottom{bottom:0;left:50%;transform:translateX(-50%)}
+.c-left{top:50%;left:-4px;transform:translateY(-50%) translateX(-100%)}
+@media(max-width:720px){.c-left{left:0px}.c-right{right:0px}}
+.cycle-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.cycle-center-btn{padding:11px 18px;background:linear-gradient(135deg,#c8972e,#d4a83c 55%,#ba8420);color:#1a1000;border:none;border-radius:22px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 4px 16px rgba(200,169,110,.3)}
+@keyframes spin-dash{to{stroke-dashoffset:-100}}
+
+/* ═══ OFFERS ═══ */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.f-btn{padding:7px 16px;border-radius:18px;border:1px solid var(--border);background:transparent;color:var(--sub);font-size:13px;font-weight:600;cursor:pointer;font-family:'Cairo',sans-serif;transition:.2s}
+.f-btn.active,.f-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(200,169,110,.07)}
+.offers-grid{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:12px;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:var(--gold) transparent}
+.offers-grid::-webkit-scrollbar{height:4px}
+.offers-grid::-webkit-scrollbar-track{background:transparent}
+.offers-grid::-webkit-scrollbar-thumb{background:var(--gold);border-radius:4px}
+.o-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s;flex:0 0 290px;scroll-snap-align:start}
+.o-card:hover{transform:translateY(-4px);box-shadow:0 10px 36px rgba(0,0,0,.5)}
+.o-card img,.o-card .o-no-img{width:100%;height:188px;object-fit:cover}
+.o-card .o-no-img{background:linear-gradient(135deg,#1a1a1f,#1e1a0e);display:flex;align-items:center;justify-content:center;font-size:36px;color:rgba(200,169,110,.2)}
+.o-body{padding:16px}
+.o-type{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--gold);text-transform:uppercase;margin-bottom:6px}
+.o-name{font-size:15px;font-weight:700;margin-bottom:5px;line-height:1.35}
+.o-loc{font-size:12px;color:var(--sub);margin-bottom:12px;display:flex;align-items:center;gap:4px}
+.o-price{font-size:17px;font-weight:900;color:var(--gold)}
+.o-meta{display:flex;gap:12px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--sub)}
+.o-empty{text-align:center;padding:48px 0;color:var(--sub);font-size:14px;grid-column:1/-1}
+.o-card-actions{padding:0 16px 12px}
+.o-int-btn{width:100%;padding:9px;background:rgba(200,169,110,.1);border:1px solid rgba(200,169,110,.3);color:var(--gold);border-radius:8px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:.2s}
+.o-int-btn:hover{background:rgba(200,169,110,.2)}
+
+/* ═══ ABOUT ═══ */
+.about-bg{background:#0e0e10;border-top:1px solid var(--border)}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.about-img{border-radius:16px;width:100%;height:380px;object-fit:cover}
+.about-vals{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:24px}
+.about-val{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:13px;display:flex;align-items:center;gap:9px}
+.about-dot{width:7px;height:7px;border-radius:50%;background:var(--gold);flex-shrink:0}
+.about-p{font-size:14px;color:var(--sub);line-height:1.9;margin-bottom:14px}
+@media(max-width:720px){.about-grid{grid-template-columns:1fr}.about-img{display:none}}
+
+/* ═══ CTA ═══ */
+.cta{border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:linear-gradient(135deg,#121008,#0b0b0c);padding:56px 20px;text-align:center}
+.cta .s-title{margin:0 auto 14px}
+.cta .s-sub{margin:0 auto 32px}
+.cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn-gold{padding:14px 28px;background:linear-gradient(135deg,#c8972e,#d4a83c 55%,#ba8420);color:#1a1000;border:none;border-radius:10px;font-family:'Cairo',sans-serif;font-size:15px;font-weight:800;cursor:pointer;transition:opacity .2s}
+.btn-gold:hover{opacity:.88}
+.btn-out{padding:14px 28px;border:1px solid var(--border2);background:transparent;color:var(--text);border-radius:10px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:.2s}
+.btn-out:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ═══ FOOTER ═══ */
+.footer{background:#060607;border-top:1px solid var(--border);padding:40px 20px 28px}
+.footer-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px;margin-bottom:32px}
+.f-logo-en{font-family:'Cairo',sans-serif;font-size:22px;font-weight:900;color:var(--gold)}
+.f-logo-ar{font-size:10px;font-weight:300;letter-spacing:.14em;color:var(--sub);margin-top:3px;margin-bottom:14px}
+.f-desc{font-size:13px;color:rgba(244,243,239,.35);line-height:1.8;max-width:260px}
+.f-col h5{font-size:12px;font-weight:700;color:var(--text);margin-bottom:12px;letter-spacing:.08em}
+.f-col ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.f-col li{font-size:13px;color:var(--sub);cursor:pointer;transition:color .2s}
+.f-col li:hover{color:var(--gold)}
+.f-copy{border-top:1px solid var(--border);padding-top:20px;display:flex;justify-content:space-between;font-size:11px;color:rgba(244,243,239,.25);flex-wrap:wrap;gap:8px;max-width:1100px;margin:0 auto}
+@media(max-width:720px){.footer-inner{grid-template-columns:1fr}}
+
+/* ═══ MOBILE FIXES ═══ */
+@media(max-width:600px){
+  .nav{padding:0 14px;height:56px}
+  .nav-wa span{display:none}
+  .nav-wa{padding:8px 12px}
+  .hero-map{min-height:480px}
+  .hero-bottom{padding:16px 16px 80px}
+  .hero-tagline{font-size:20px}
+  .hero-stats{gap:16px}
+  .hstat-n{font-size:22px}
+  .section{padding:44px 14px}
+  .s-title{font-size:20px}
+  .s-sub{font-size:13px}
+  .srv-row{padding:16px 14px;gap:12px}
+  .srv-num{font-size:26px;min-width:36px}
+  .srv-name{font-size:14px}
+  .mkt-wrap{gap:24px}
+  .mkt-head h2{font-size:20px}
+  .mkt-cycle{width:240px;height:240px}
+  .offers-grid{gap:12px;padding-bottom:8px}
+  .o-card{flex:0 0 240px}
+  .o-card img,.o-card .o-no-img{height:160px}
+  .cta{padding:40px 14px}
+  .cta .s-title{font-size:18px}
+  .cta-btns{gap:8px}
+  .btn-gold,.btn-out{padding:12px 18px;font-size:13px}
+  .hours-card{padding:24px 18px}
+  .footer-inner{gap:24px}
 }
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:'Tajawal',sans-serif;min-height:100vh;overflow-x:hidden}
-a{color:inherit;text-decoration:none}
-button{font-family:'Tajawal',sans-serif;cursor:pointer}
-input,select,textarea{font-family:'Tajawal',sans-serif}
-input::placeholder,textarea::placeholder{color:rgba(255,255,255,.35)}
-select option{background:#141416}
 
-@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
-.anim-rise{animation:rise .35s both}
+/* ═══ MODALS ═══ */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9000;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.modal-bg.open{display:flex}
+.modal{background:#1a1a22;border:1px solid var(--border2);border-radius:18px;padding:28px 24px;width:100%;max-width:400px;max-height:90vh;overflow-y:auto;position:relative}
+.modal h3{font-size:17px;font-weight:800;color:var(--gold);margin-bottom:18px}
+.m-close{position:absolute;top:12px;left:16px;background:none;border:none;color:var(--sub);font-size:24px;cursor:pointer;line-height:1}
+.f-row{margin-bottom:13px}
+.f-row label{display:block;font-size:12px;color:var(--sub);margin-bottom:5px;font-weight:600}
+.f-row input,.f-row select,.f-row textarea{width:100%;padding:12px 13px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:14px;font-family:'Cairo',sans-serif;direction:rtl;outline:none;transition:border-color .2s}
+.f-row input:focus,.f-row select:focus,.f-row textarea:focus{border-color:rgba(200,169,110,.45)}
+.f-row select option{background:#1a1a22}
+.f-row input::placeholder,.f-row textarea::placeholder{color:rgba(244,243,239,.22)}
+.btn-sub{width:100%;padding:14px;background:linear-gradient(135deg,#c8972e,#d4a83c 55%,#ba8420);color:#1a1000;border:none;border-radius:9px;font-family:'Cairo',sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-top:4px}
+.m-ok{display:none;text-align:center;padding:12px 0}
+.m-ok .ic{font-size:46px;margin-bottom:12px}
+.m-ok h4{font-size:17px;font-weight:800;color:var(--gold);margin-bottom:7px}
+.m-ok p{font-size:13px;color:var(--sub);line-height:1.7}
 
-/* scrollbar */
-::-webkit-scrollbar{width:6px}
-::-webkit-scrollbar-track{background:#0b0b0c}
-::-webkit-scrollbar-thumb{background:rgba(255,255,255,.18);border-radius:3px}
+/* offer detail — AI artistic redesign */
+#mod-offer{padding:0}
+#mod-offer .modal{max-width:560px;padding:0;background:linear-gradient(160deg,#0d0f16 0%,#12141c 60%,#0e1119 100%);border:1px solid rgba(200,169,110,.18);overflow-y:auto;overflow-x:hidden;position:relative}
+#mod-offer .modal::before{content:'';position:absolute;top:-80px;right:-80px;width:260px;height:260px;background:radial-gradient(circle,rgba(200,169,110,.1) 0%,transparent 70%);pointer-events:none;z-index:0}
+#mod-offer .modal::after{content:'';position:absolute;bottom:-60px;left:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(99,102,241,.07) 0%,transparent 70%);pointer-events:none;z-index:0}
+#od-body{position:relative;z-index:1}
+.od-hero{position:relative;width:100%;height:240px;overflow:hidden;background:linear-gradient(135deg,#0d0f16,#1a1309)}
+.od-hero img{width:100%;height:100%;object-fit:cover;cursor:pointer;transition:transform .4s;display:block}
+.od-hero img:hover{transform:scale(1.03)}
+.od-hero-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(13,15,22,.95) 0%,rgba(13,15,22,.2) 50%,transparent 100%)}
+.od-hero-noimg{width:100%;height:180px;background:linear-gradient(135deg,#0d0f16,#1a1309,#0d0f16);display:flex;align-items:center;justify-content:center;font-size:52px}
+.od-hero-badge{position:absolute;bottom:14px;right:14px;background:rgba(13,15,22,.8);border:1px solid rgba(200,169,110,.35);color:var(--gold);font-size:11px;font-weight:700;padding:5px 13px;border-radius:20px;backdrop-filter:blur(8px)}
+.od-share-btn{position:absolute;top:14px;left:14px;background:rgba(13,15,22,.7);border:1px solid rgba(255,255,255,.15);color:#fff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;backdrop-filter:blur(8px);cursor:pointer;display:flex;align-items:center;gap:5px;transition:border-color .2s,background .2s}
+.od-share-btn:hover{border-color:rgba(200,169,110,.5);background:rgba(200,169,110,.1)}
+.od-back-btn{position:absolute;top:14px;right:14px;background:rgba(13,15,22,.75);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:11px;font-weight:700;padding:5px 13px;border-radius:20px;backdrop-filter:blur(8px);cursor:pointer;display:flex;align-items:center;gap:6px;transition:border-color .2s,background .2s;z-index:10}
+.od-back-btn:hover{border-color:rgba(200,169,110,.5);background:rgba(200,169,110,.1)}
+.od-back-btn svg{flex-shrink:0}
+.od-content{padding:20px 20px 24px}
+.od-title-row{margin-bottom:14px}
+.od-type-tag{font-size:10.5px;font-weight:700;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;margin-bottom:6px;opacity:.8}
+.od-title{font-size:19px;font-weight:900;line-height:1.3;margin-bottom:5px}
+.od-loc{font-size:12.5px;color:var(--sub);display:flex;align-items:center;gap:5px}
+.od-price-row{background:linear-gradient(135deg,rgba(200,169,110,.07),rgba(200,169,110,.03));border:1px solid rgba(200,169,110,.14);border-radius:14px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.od-price-label{font-size:10.5px;color:var(--sub);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.od-price-val{font-size:22px;font-weight:900;color:var(--gold);line-height:1;margin-top:3px}
+.od-price-unit{font-size:11px;color:var(--sub);margin-top:2px}
+.od-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:16px}
+.od-s{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:11px 8px;text-align:center;transition:background .2s}
+.od-s:hover{background:rgba(255,255,255,.06)}
+.od-sv{font-size:14px;font-weight:800;color:var(--text)}
+.od-sk{font-size:10.5px;color:var(--sub);margin-top:3px}
+.od-desc{font-size:13px;color:var(--sub);line-height:1.85;margin-bottom:15px;padding:12px 14px;background:rgba(255,255,255,.025);border-radius:10px;border-right:2px solid rgba(200,169,110,.3)}
+.od-feats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.od-feat{font-size:11.5px;padding:4px 12px;border-radius:18px;background:rgba(200,169,110,.06);border:1px solid rgba(200,169,110,.15);color:var(--gold)}
+.od-gall{display:flex;gap:7px;overflow-x:auto;margin:0 0 16px;scrollbar-width:none;padding-bottom:2px}
+.od-gall::-webkit-scrollbar{display:none}
+.od-gall img{height:72px;width:108px;object-fit:cover;border-radius:9px;flex-shrink:0;cursor:pointer;opacity:.7;transition:opacity .2s,transform .2s;border:1px solid rgba(255,255,255,.07)}
+.od-gall img:hover{opacity:1;transform:scale(1.03)}
+.od-map-wrap{margin-bottom:16px}
+.od-map-label{font-size:10.5px;color:var(--sub);font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.od-map-label::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 6px rgba(200,169,110,.6)}
+.od-btns{display:flex;flex-direction:column;gap:9px}
+.btn-wa-od{width:100%;padding:13px;background:linear-gradient(135deg,#128c7e,#25d366);color:#fff;border:none;border-radius:10px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(37,211,102,.2);transition:opacity .2s}
+.btn-wa-od:hover{opacity:.88}
+.btn-int-od{width:100%;padding:13px;background:linear-gradient(135deg,rgba(200,169,110,.15),rgba(200,169,110,.08));color:var(--gold);border:1px solid rgba(200,169,110,.3);border-radius:10px;font-family:'Cairo',sans-serif;font-size:14px;font-weight:800;cursor:pointer;transition:background .2s,border-color .2s}
+.btn-int-od:hover{background:linear-gradient(135deg,rgba(200,169,110,.22),rgba(200,169,110,.12));border-color:rgba(200,169,110,.5)}
+/* share sheet modal */
+#mod-share{position:fixed;inset:0;z-index:9100;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,0);pointer-events:none;transition:background .25s}
+#mod-share.open{background:rgba(0,0,0,.6);pointer-events:all}
+#mod-share .share-sheet{background:linear-gradient(160deg,#13151e 0%,#0d0f16 100%);border:1px solid rgba(200,169,110,.18);border-radius:22px 22px 0 0;width:100%;max-width:480px;padding:0 0 env(safe-area-inset-bottom,0);transform:translateY(110%);transition:transform .3s cubic-bezier(.22,1,.36,1)}
+#mod-share.open .share-sheet{transform:translateY(0)}
+.ss-handle{width:40px;height:4px;background:rgba(255,255,255,.12);border-radius:2px;margin:14px auto 0}
+.ss-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 0}
+.ss-title{font-size:15px;font-weight:800;color:#fff}
+.ss-close{background:rgba(255,255,255,.07);border:none;color:rgba(255,255,255,.5);width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center}
+.ss-qr-wrap{display:flex;flex-direction:column;align-items:center;padding:20px 20px 8px}
+.ss-qr-img{width:150px;height:150px;border-radius:14px;display:block;box-shadow:0 4px 24px rgba(0,0,0,.4)}
+.ss-qr-label{font-size:11px;color:var(--sub);margin-top:8px;text-align:center;line-height:1.6}
+.ss-divider{height:1px;background:rgba(255,255,255,.07);margin:4px 20px 16px}
+.ss-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:0 20px 24px}
+.ss-btn{display:flex;flex-direction:column;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 8px;cursor:pointer;transition:background .2s;color:#fff;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700}
+.ss-btn:hover{background:rgba(255,255,255,.09)}
+.ss-btn svg,.ss-btn span.ss-icon{font-size:22px}
+.ss-btn.wa{border-color:rgba(37,211,102,.25);background:rgba(37,211,102,.06)}
+.ss-btn.wa:hover{background:rgba(37,211,102,.13)}
+.ss-copy-row{padding:0 20px 20px;display:flex;gap:8px;align-items:center}
+.ss-copy-url{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--sub);direction:ltr;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ss-copy-btn{background:rgba(200,169,110,.12);border:1px solid rgba(200,169,110,.3);color:var(--gold);border-radius:10px;padding:10px 16px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;transition:background .2s}
+.ss-copy-btn:hover{background:rgba(200,169,110,.22)}
+@keyframes od-glow{0%,100%{box-shadow:0 0 18px rgba(200,169,110,.08)}50%{box-shadow:0 0 30px rgba(200,169,110,.15)}}
+#mod-offer .modal{animation:od-glow 3s ease-in-out infinite}
+
+/* FABs — banner style */
+#fab{position:fixed;bottom:0;left:0;right:0;z-index:8000;pointer-events:none}
+#fab-inner{display:grid;grid-template-columns:repeat(2,1fr);pointer-events:all;border-top:1px solid rgba(255,255,255,.08);background:rgba(8,8,10,.96);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.fab-b{border:none;border-left:1px solid rgba(255,255,255,.07);padding:13px 6px 18px;font-family:'Cairo',sans-serif;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;transition:background .18s;background:transparent}
+.fab-b:first-child{border-left:none}
+.fab-b:active{background:rgba(255,255,255,.05)}
+.fab-b-icon{font-size:18px;line-height:1}
+.fab-b-label{font-size:11px;font-weight:700;letter-spacing:.01em;line-height:1.2;text-align:center}
+.fab-b-sub{font-size:9.5px;font-weight:300;opacity:.55;text-align:center;line-height:1.2}
+.fab-map{color:#c8a96e}
+.fab-bl{color:#c8a96e}
+
+/* lightbox */
+#lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:99999;align-items:center;justify-content:center}
+#lb img{max-width:96vw;max-height:90vh;border-radius:10px;object-fit:contain}
+#lb-x{position:absolute;top:14px;left:14px;background:rgba(255,255,255,.14);border:none;color:#fff;border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* city popup */
+#city-pop{display:none;position:fixed;inset:0;z-index:9500;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.65);backdrop-filter:blur(6px)}
+#city-pop.open{display:flex}
+#city-pop-inner{background:#15151c;border:1px solid rgba(255,255,255,.1);border-bottom:none;border-radius:22px 22px 0 0;width:100%;max-width:600px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column}
+#city-pop-head{padding:18px 20px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0}
+#city-pop-title{font-size:17px;font-weight:800;color:var(--text)}
+#city-pop-count{font-size:12px;color:var(--sub);margin-top:3px}
+#city-pop-close{background:none;border:none;color:var(--sub);font-size:22px;cursor:pointer;line-height:1;padding:4px}
+#city-pop-list{overflow-y:auto;padding:14px 14px 28px;display:flex;flex-direction:column;gap:10px}
+.cpop-card{background:var(--card);border:1px solid var(--border);border-radius:12px;display:flex;gap:12px;overflow:hidden;cursor:pointer;transition:border-color .2s}
+.cpop-card:hover{border-color:rgba(200,169,110,.35)}
+.cpop-card img,.cpop-card .cpop-no-img{width:90px;height:72px;object-fit:cover;flex-shrink:0}
+.cpop-card .cpop-no-img{background:linear-gradient(135deg,#1a1a1f,#1e1a0e);display:flex;align-items:center;justify-content:center;font-size:22px}
+.cpop-info{padding:10px 10px 10px 4px;flex:1;min-width:0}
+.cpop-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cpop-loc{font-size:11px;color:var(--sub);margin-top:2px}
+.cpop-price{font-size:13px;color:var(--gold);font-weight:700;margin-top:5px}
+/* city dot hover */
+.city-dot{cursor:pointer;transition:opacity .2s}
+.city-dot:hover circle:first-child{r:7}
+/* ═══ PARTNER PROJECTS ═══ */
+.prj-bg{background:linear-gradient(180deg,#0b0b0c,#101114 40%,#0b0b0c)}
+.prj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:18px}
+.prj-card{background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s,border-color .2s;display:flex;flex-direction:column}
+.prj-card:hover{transform:translateY(-4px);box-shadow:0 14px 40px rgba(0,0,0,.5);border-color:rgba(200,169,110,.35)}
+.prj-img{position:relative;height:200px;background:linear-gradient(135deg,#1a1a1f,#1e1a0e)}
+.prj-img img{width:100%;height:100%;object-fit:cover}
+.prj-img .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:44px;opacity:.35}
+.prj-img::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(22,24,29,.95),transparent 55%)}
+.prj-badge{position:absolute;top:12px;right:12px;z-index:2;padding:4px 11px;border-radius:14px;background:rgba(11,11,12,.75);border:1px solid rgba(200,169,110,.45);color:var(--gold2);font-size:10.5px;font-weight:800;backdrop-filter:blur(6px)}
+.prj-kind{position:absolute;bottom:12px;right:14px;z-index:2;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.06em}
+.prj-body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.prj-name{font-size:18px;font-weight:900;line-height:1.3}
+.prj-loc{font-size:12px;color:var(--sub)}
+.prj-partner{font-size:11.5px;color:var(--sub)}
+.prj-partner b{color:var(--text);font-weight:700}
+.prj-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+.prj-st{background:rgba(255,255,255,.04);border-radius:10px;padding:8px 4px;text-align:center}
+.prj-st b{display:block;font-size:17px;font-weight:900}
+.prj-st span{font-size:10.5px;color:var(--sub)}
+.prj-bar{display:flex;height:6px;border-radius:4px;overflow:hidden;background:rgba(255,255,255,.06);margin-top:4px}
+.prj-foot{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:10px}
+.prj-from{font-size:11px;color:var(--sub)}
+.prj-from b{display:block;font-size:15px;color:var(--gold);font-weight:900}
+.prj-go{padding:8px 14px;border-radius:10px;background:linear-gradient(135deg,#c8972e,#d4a83c 55%,#ba8420);color:#1a1000;font-size:12px;font-weight:800;border:none;cursor:pointer;font-family:'Cairo',sans-serif}
+.prj-empty{text-align:center;padding:40px 16px;color:var(--sub);font-size:14px;border:1px dashed var(--border2);border-radius:16px}
+.prj-map-link{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:1px solid var(--border2);border-radius:20px;color:var(--text);font-size:12px;font-weight:700;text-decoration:none;margin-top:4px}
+.prj-map-link:hover{border-color:var(--gold);color:var(--gold)}
 </style>
 </head>
 <body>
 
 <!-- NAV -->
-<nav id="topNav" style="position:fixed;top:0;inset-inline-start:0;inset-inline-end:0;z-index:800;background:rgba(11,11,12,.7);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.07);height:64px;display:flex;align-items:center;padding:0 clamp(20px,4vw,56px)">
-  <div style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1" onclick="go('home')" id="logoBtn">
-    <div style="display:flex;align-items:flex-end;gap:2.5px;height:26px">
-      <span style="width:3px;height:42%;background:#fff;border-radius:2px;display:block"></span>
-      <span style="width:3px;height:70%;background:#fff;border-radius:2px;display:block"></span>
-      <span style="width:3px;height:100%;background:#fff;border-radius:2px;display:block"></span>
-      <span style="width:3px;height:76%;background:#fff;border-radius:2px;display:block"></span>
-      <span style="width:3px;height:44%;background:#fff;border-radius:2px;display:block"></span>
-    </div>
-    <span style="font-family:'Jost',sans-serif;font-weight:700;letter-spacing:.28em;font-size:.88rem;color:#fff">SHARK</span>
-  </div>
-  <div id="desktopLinks" style="display:flex;align-items:center;gap:0">
-    <button onclick="go('home')" class="navLink" id="nl_home">الرئيسية</button>
-    <button onclick="go('listings')" class="navLink" id="nl_listings">العقارات</button>
-    <button onclick="go('sell')" class="navLink" id="nl_sell">اعرض عقارك</button>
-    <button onclick="go('request')" class="navLink" id="nl_request">اطلب عقارك</button>
-    <button onclick="go('about')" class="navLink" id="nl_about">من نحن</button>
-  </div>
-  <div style="display:flex;align-items:center;gap:10px;margin-inline-start:16px">
-    <button onclick="toggleLang()" style="background:none;border:1px solid rgba(255,255,255,.22);color:rgba(255,255,255,.75);font-size:.8rem;padding:5px 12px;border-radius:40px;font-family:'Jost',sans-serif;letter-spacing:.08em" id="langBtn">EN</button>
-    <a id="waNavBtn" href="https://wa.me/9660539997060" target="_blank" style="background:#1f8a4c;color:#fff;font-size:.82rem;font-weight:700;padding:8px 16px;border-radius:3px;display:none">تواصل</a>
-    <button onclick="toggleDrawer()" id="hamburger" style="background:none;border:none;color:#fff;width:36px;height:36px;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:4px;display:none">
-      <span style="width:100%;height:1.5px;background:#fff;border-radius:1px;display:block;transition:.3s"></span>
-      <span style="width:70%;height:1.5px;background:#fff;border-radius:1px;display:block;transition:.3s"></span>
-      <span style="width:85%;height:1.5px;background:#fff;border-radius:1px;display:block;transition:.3s"></span>
-    </button>
-  </div>
+<nav class="nav">
+  <img src="logo.png" alt="شارك العقارية" style="height:36px;filter:brightness(0) invert(1);object-fit:contain">
+  <button class="nav-wa" onclick="openWA()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.121 1.533 5.847L.054 23.272a.5.5 0 0 0 .625.613l5.563-1.46A11.952 11.952 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.9 0-3.68-.528-5.195-1.443l-.371-.22-3.844 1.009 1.03-3.74-.243-.386A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+    واتساب
+  </button>
 </nav>
 
-<style>
-.navLink{background:none;border:none;color:rgba(255,255,255,.6);font-size:.9rem;font-weight:400;padding:8px 14px;transition:color .2s;white-space:nowrap}
-.navLink:hover,.navLink.active{color:#fff}
-@media(max-width:820px){
-  #desktopLinks{display:none!important}
-  #hamburger{display:flex!important}
-  #waNavBtn{display:none!important}
-}
-@media(min-width:821px){
-  #waNavBtn{display:block!important}
-}
-</style>
+<!-- HERO -->
+<div class="hero-map" id="hero">
 
-<!-- DRAWER -->
-<div id="drawer" style="display:none;position:fixed;inset:0;z-index:900">
-  <div onclick="toggleDrawer()" style="position:absolute;inset:0;background:rgba(0,0,0,.6)"></div>
-  <div style="position:absolute;top:0;inset-inline-end:0;bottom:0;width:min(300px,85vw);background:#0e0e10;border-inline-start:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;padding:72px 28px 32px;animation:slideIn .28s both">
-    <button onclick="go('home');toggleDrawer()" class="drawerLink" id="dl_home">الرئيسية</button>
-    <button onclick="go('listings');toggleDrawer()" class="drawerLink" id="dl_listings">العقارات</button>
-    <button onclick="go('sell');toggleDrawer()" class="drawerLink" id="dl_sell">اعرض عقارك</button>
-    <button onclick="go('request');toggleDrawer()" class="drawerLink" id="dl_request">اطلب عقارك</button>
-    <button onclick="go('about');toggleDrawer()" class="drawerLink" id="dl_about">من نحن</button>
-    <div style="margin-top:auto;display:flex;gap:10px;align-items:center">
-      <button onclick="toggleLang()" style="background:none;border:1px solid rgba(255,255,255,.22);color:rgba(255,255,255,.7);font-size:.82rem;padding:7px 16px;border-radius:40px;font-family:'Jost',sans-serif" id="langBtnDrawer">EN</button>
-      <a href="https://wa.me/9660539997060" target="_blank" style="flex:1;text-align:center;background:#1f8a4c;color:#fff;font-weight:700;font-size:.9rem;padding:12px;border-radius:4px">واتساب</a>
+  <!-- Saudi Arabia SVG map background -->
+  <svg id="sa-map" viewBox="0 0 800 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="mglow" cx="55%" cy="45%" r="50%">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity=".08"/>
+        <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <!-- Saudi Arabia outline (simplified path) -->
+    <!-- Base white border -->
+    <path id="sa-border" d="M 155 80 L 190 72 L 230 68 L 265 60 L 295 55 L 330 52 L 365 54 L 395 58 L 420 65 L 448 74 L 468 88 L 478 105 L 488 125 L 498 148 L 508 168 L 520 185 L 538 200 L 558 215 L 572 228 L 585 242 L 596 258 L 608 272 L 622 285 L 635 296 L 645 305 L 648 318 L 644 332 L 636 345 L 628 358 L 622 372 L 618 388 L 614 404 L 610 420 L 606 436 L 598 450 L 586 462 L 570 472 L 555 480 L 540 486 L 526 490 L 512 492 L 498 492 L 485 490 L 472 486 L 460 480 L 450 472 L 440 465 L 428 460 L 415 458 L 402 458 L 390 460 L 378 464 L 368 470 L 360 478 L 354 488 L 350 500 L 346 512 L 340 524 L 330 534 L 318 540 L 304 544 L 290 546 L 276 546 L 262 544 L 248 540 L 235 534 L 222 526 L 210 518 L 198 510 L 186 502 L 175 492 L 165 482 L 155 470 L 146 458 L 138 444 L 132 430 L 126 415 L 120 400 L 116 384 L 112 368 L 108 352 L 106 336 L 104 320 L 104 304 L 104 288 L 106 272 L 108 256 L 112 240 L 116 224 L 120 208 L 126 192 L 132 177 L 138 162 L 146 148 L 152 134 L 155 120 L 155 106 Z" fill="none" stroke="#ffffff" stroke-width="1.5" opacity=".4"/>
+    <!-- Animated flowing dash on border -->
+    <path d="M 155 80 L 190 72 L 230 68 L 265 60 L 295 55 L 330 52 L 365 54 L 395 58 L 420 65 L 448 74 L 468 88 L 478 105 L 488 125 L 498 148 L 508 168 L 520 185 L 538 200 L 558 215 L 572 228 L 585 242 L 596 258 L 608 272 L 622 285 L 635 296 L 645 305 L 648 318 L 644 332 L 636 345 L 628 358 L 622 372 L 618 388 L 614 404 L 610 420 L 606 436 L 598 450 L 586 462 L 570 472 L 555 480 L 540 486 L 526 490 L 512 492 L 498 492 L 485 490 L 472 486 L 460 480 L 450 472 L 440 465 L 428 460 L 415 458 L 402 458 L 390 460 L 378 464 L 368 470 L 360 478 L 354 488 L 350 500 L 346 512 L 340 524 L 330 534 L 318 540 L 304 544 L 290 546 L 276 546 L 262 544 L 248 540 L 235 534 L 222 526 L 210 518 L 198 510 L 186 502 L 175 492 L 165 482 L 155 470 L 146 458 L 138 444 L 132 430 L 126 415 L 120 400 L 116 384 L 112 368 L 108 352 L 106 336 L 104 320 L 104 304 L 104 288 L 106 272 L 108 256 L 112 240 L 116 224 L 120 208 L 126 192 L 132 177 L 138 162 L 146 148 L 152 134 L 155 120 L 155 106 Z" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="20 600" opacity=".8" style="animation:border-flow 6s linear infinite"/>
+    <!-- Interior glow -->
+    <path d="M 155 80 L 190 72 L 230 68 L 265 60 L 295 55 L 330 52 L 365 54 L 395 58 L 420 65 L 448 74 L 468 88 L 478 105 L 488 125 L 498 148 L 508 168 L 520 185 L 538 200 L 558 215 L 572 228 L 585 242 L 596 258 L 608 272 L 622 285 L 635 296 L 645 305 L 648 318 L 644 332 L 636 345 L 628 358 L 622 372 L 618 388 L 614 404 L 610 420 L 606 436 L 598 450 L 586 462 L 570 472 L 555 480 L 540 486 L 526 490 L 512 492 L 498 492 L 485 490 L 472 486 L 460 480 L 450 472 L 440 465 L 428 460 L 415 458 L 402 458 L 390 460 L 378 464 L 368 470 L 360 478 L 354 488 L 350 500 L 346 512 L 340 524 L 330 534 L 318 540 L 304 544 L 290 546 L 276 546 L 262 544 L 248 540 L 235 534 L 222 526 L 210 518 L 198 510 L 186 502 L 175 492 L 165 482 L 155 470 L 146 458 L 138 444 L 132 430 L 126 415 L 120 400 L 116 384 L 112 368 L 108 352 L 106 336 L 104 320 L 104 304 L 104 288 L 106 272 L 108 256 L 112 240 L 116 224 L 120 208 L 126 192 L 132 177 L 138 162 L 146 148 L 152 134 L 155 120 L 155 106 Z" fill="url(#mglow)"/>
+    <!-- City dots — interactive + animated -->
+    <g class="city-dot" onclick="cityClick('الرياض')" fill="#ffffff">
+      <circle cx="430" cy="290" r="5" opacity=".9" class="pin-core"/>
+      <circle cx="430" cy="290" r="14" opacity=".08" style="animation:city-pulse 3s ease-in-out infinite"/>
+      <circle cx="430" cy="290" r="22" opacity=".04" style="animation:city-pulse 3s ease-in-out infinite .5s"/>
+    </g>
+    <g class="city-dot" onclick="cityClick('جدة')" fill="#ffffff">
+      <circle cx="195" cy="340" r="4" opacity=".8" class="pin-core"/>
+      <circle cx="195" cy="340" r="12" opacity=".07" style="animation:city-pulse-sm 3.5s ease-in-out infinite .3s"/>
+    </g>
+    <g class="city-dot" onclick="cityClick('مكة المكرمة')" fill="#ffffff">
+      <circle cx="185" cy="360" r="3" opacity=".65" class="pin-core"/>
+      <circle cx="185" cy="360" r="9" opacity=".05" style="animation:city-pulse-sm 4s ease-in-out infinite .8s"/>
+    </g>
+    <g class="city-dot" onclick="cityClick('الدمام')" fill="#ffffff">
+      <circle cx="570" cy="250" r="4" opacity=".8" class="pin-core"/>
+      <circle cx="570" cy="250" r="12" opacity=".07" style="animation:city-pulse-sm 3.2s ease-in-out infinite .6s"/>
+    </g>
+    <g class="city-dot" onclick="cityClick('تبوك')" fill="#ffffff">
+      <circle cx="195" cy="155" r="3" opacity=".6" class="pin-core"/>
+      <circle cx="195" cy="155" r="8" opacity=".05" style="animation:city-pulse-sm 4.5s ease-in-out infinite 1s"/>
+    </g>
+    <g class="city-dot" onclick="cityClick('بريدة')" fill="#ffffff">
+      <circle cx="365" cy="215" r="3.5" opacity=".7" class="pin-core"/>
+      <circle cx="365" cy="215" r="10" opacity=".05" style="animation:city-pulse-sm 3.8s ease-in-out infinite .2s"/>
+    </g>
+    <g class="city-dot" onclick="cityClick('أبها')" fill="#ffffff">
+      <circle cx="210" cy="455" r="3" opacity=".6" class="pin-core"/>
+      <circle cx="210" cy="455" r="8" opacity=".05" style="animation:city-pulse-sm 4.2s ease-in-out infinite 1.4s"/>
+    </g>
+    <g class="city-dot" onclick="cityClick('نجران')" fill="#ffffff">
+      <circle cx="318" cy="498" r="3" opacity=".6" class="pin-core"/>
+    </g>
+    <g class="city-dot" onclick="cityClick('حائل')" fill="#ffffff">
+      <circle cx="320" cy="190" r="3" opacity=".6" class="pin-core"/>
+    </g>
+    <g class="city-dot" onclick="cityClick('المدينة المنورة')" fill="#ffffff">
+      <circle cx="222" cy="235" r="3.5" opacity=".65" class="pin-core"/>
+      <circle cx="222" cy="235" r="10" opacity=".05" style="animation:city-pulse-sm 3.6s ease-in-out infinite .7s"/>
+    </g>
+    <!-- City labels -->
+    <g font-family="Cairo,Arial,sans-serif" fill="#ffffff" font-size="11" opacity=".55" text-anchor="middle" pointer-events="none">
+      <text x="430" y="280">الرياض</text>
+      <text x="185" y="330">جدة</text>
+      <text x="580" y="244">الدمام</text>
+      <text x="190" y="148">تبوك</text>
+      <text x="365" y="208">بريدة</text>
+    </g>
+    <!-- Grid lines subtle -->
+    <g stroke="#ffffff" stroke-width=".3" opacity=".05">
+      <line x1="0" y1="175" x2="800" y2="175"/>
+      <line x1="0" y1="350" x2="800" y2="350"/>
+      <line x1="0" y1="525" x2="800" y2="525"/>
+      <line x1="200" y1="0" x2="200" y2="700"/>
+      <line x1="400" y1="0" x2="400" y2="700"/>
+      <line x1="600" y1="0" x2="600" y2="700"/>
+    </g>
+  </svg>
+  <div class="hero-vignette"></div>
+
+
+
+  <!-- tagline + stats -->
+  <div class="hero-bottom">
+    <div class="hero-tagline">عقارات <span>شارك</span><br>في كل مكان</div>
+    <div class="hero-stats">
+      <div class="hstat"><div class="hstat-n">+20</div><div class="hstat-l">مدينة في المملكة</div></div>
+      <div class="hstat"><div class="hstat-n">+10M</div><div class="hstat-l">قيمة الصفقات</div></div>
+      <div class="hstat"><div class="hstat-n">+500</div><div class="hstat-l">عميل راضٍ</div></div>
     </div>
+  </div>
+
+  <!-- scroll hint -->
+  <div class="scroll-hint" onclick="document.getElementById('services').scrollIntoView({behavior:'smooth'})">
+    <span>تصفّح الأقسام</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
   </div>
 </div>
-<style>
-.drawerLink{background:none;border:none;color:rgba(255,255,255,.65);font-size:1.05rem;font-weight:400;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);text-align:start;transition:color .2s}
-.drawerLink:hover,.drawerLink.active{color:#fff}
-</style>
 
-<!-- MAIN PAGE CONTENT -->
-<main id="pageContent"></main>
-
-<!-- FOOTER -->
-<footer id="siteFooter" style="background:#050506;border-top:1px solid rgba(255,255,255,.07);padding:48px clamp(24px,6vw,80px) 32px">
-  <div style="max-width:1200px;margin:0 auto">
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px;margin-bottom:40px">
-      <div>
-        <div style="display:flex;align-items:flex-end;gap:3px;height:28px;margin-bottom:12px">
-          <span style="width:3px;height:42%;background:#fff;border-radius:2px;display:block"></span>
-          <span style="width:3px;height:70%;background:#fff;border-radius:2px;display:block"></span>
-          <span style="width:3px;height:100%;background:#fff;border-radius:2px;display:block"></span>
-          <span style="width:3px;height:76%;background:#fff;border-radius:2px;display:block"></span>
-          <span style="width:3px;height:44%;background:#fff;border-radius:2px;display:block"></span>
-          <span style="font-family:'Jost',sans-serif;font-weight:700;letter-spacing:.3em;font-size:.82rem;color:#fff;margin-inline-start:8px">SHARK</span>
-        </div>
-        <p id="footerBlurb" style="color:rgba(255,255,255,.45);font-size:.88rem;line-height:1.9;max-width:280px">شركة شارك العقارية — تسويق وبيع وإدارة العقارات بكل أنواعها، نربط العميل بالفرصة الأنسب في القصيم وكل مناطق المملكة.</p>
-      </div>
-      <div>
-        <div style="font-family:'Jost',sans-serif;font-size:.7rem;letter-spacing:.2em;color:rgba(255,255,255,.35);margin-bottom:16px">PAGES</div>
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <button onclick="go('home')" style="background:none;border:none;color:rgba(255,255,255,.55);font-size:.9rem;text-align:start;padding:0" id="fl_home">الرئيسية</button>
-          <button onclick="go('listings')" style="background:none;border:none;color:rgba(255,255,255,.55);font-size:.9rem;text-align:start;padding:0" id="fl_listings">العقارات</button>
-          <button onclick="go('sell')" style="background:none;border:none;color:rgba(255,255,255,.55);font-size:.9rem;text-align:start;padding:0" id="fl_sell">اعرض عقارك</button>
-          <button onclick="go('request')" style="background:none;border:none;color:rgba(255,255,255,.55);font-size:.9rem;text-align:start;padding:0" id="fl_request">اطلب عقارك</button>
-          <button onclick="go('about')" style="background:none;border:none;color:rgba(255,255,255,.55);font-size:.9rem;text-align:start;padding:0" id="fl_about">من نحن</button>
-        </div>
-      </div>
-      <div>
-        <div style="font-family:'Jost',sans-serif;font-size:.7rem;letter-spacing:.2em;color:rgba(255,255,255,.35);margin-bottom:16px">CONTACT</div>
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <a href="https://wa.me/9660539997060" target="_blank" style="color:rgba(255,255,255,.55);font-size:.9rem;direction:ltr;text-align:end">0539997060</a>
-          <a href="https://wa.me/9660539995070" target="_blank" style="color:rgba(255,255,255,.55);font-size:.9rem;direction:ltr;text-align:end">0539995070</a>
-          <a href="https://wa.me/9660539996010" target="_blank" style="color:rgba(255,255,255,.55);font-size:.9rem;direction:ltr;text-align:end">0539996010</a>
-          <div style="color:rgba(255,255,255,.35);font-size:.82rem;margin-top:4px" id="footerHours">9:00 صباحاً — 11:00 مساءً</div>
-          <div style="color:rgba(255,255,255,.35);font-size:.82rem">القصيم — نخدم كل المملكة</div>
-        </div>
-      </div>
+<!-- OFFERS -->
+<section class="section" id="offers">
+  <div class="section-inner">
+    <div class="s-head">
+      <div class="s-tag">العروض المتاحة</div>
+      <h2 class="s-title">أبرز عقاراتنا</h2>
     </div>
-    <div style="border-top:1px solid rgba(255,255,255,.07);padding-top:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-      <span id="footerRights" style="color:rgba(255,255,255,.25);font-size:.8rem">© 2025 شركة شارك العقارية · جميع الحقوق محفوظة</span>
-      <a href="admin.html" style="color:rgba(255,255,255,.18);font-size:.75rem;font-family:'Jost',sans-serif;letter-spacing:.1em">ADMIN</a>
+    <div class="filter-bar" id="filter-bar">
+      <button class="f-btn active" onclick="filterOffers('all',this)">الكل</button>
+      <button class="f-btn" onclick="filterOffers('warehouses',this)">مستودعات</button>
+      <button class="f-btn" onclick="filterOffers('villa',this)">فلل</button>
+      <button class="f-btn" onclick="filterOffers('lands',this)">أراضي</button>
+      <button class="f-btn" onclick="filterOffers('commercial',this)">تجاري</button>
+      <button class="f-btn" onclick="filterOffers('apartments',this)">شقق</button>
+    </div>
+    <div class="offers-grid" id="offers-grid"></div>
+  </div>
+</section>
+
+<!-- PARTNER PROJECTS -->
+<section class="section prj-bg" id="projects">
+  <div class="section-inner">
+    <div class="s-head">
+      <div class="s-tag">المشاريع العقارية</div>
+      <h2 class="s-title">مشاريع شركائنا</h2>
+      <p class="s-sub">مشاريع جاهزة ومخططات أراضي نسوّقها بالشراكة مع المطوّرين — اختر قطعتك من المخطط واحجز مباشرة.</p>
+      <a class="prj-map-link" href="map.html?filter=projects">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l6-3 6 3 6-3v13l-6 3-6-3-6 3z"/><path d="M9 4v13M15 7v13"/></svg>
+        عرض المشاريع على الخريطة
+      </a>
+    </div>
+    <div class="prj-grid" id="prj-grid"><div class="prj-empty">جاري تحميل المشاريع...</div></div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="section srv-bg" id="services">
+  <div class="section-inner">
+    <div class="s-head">
+      <div class="s-tag">خدماتنا</div>
+      <h2 class="s-title">ماذا تريد اليوم؟</h2>
+      <p class="s-sub">نرافقك في كل خطوة — سواء كنت تبحث أو تستثمر أو تسوّق.</p>
+    </div>
+    <div class="srv-list">
+      <div class="srv-row" onclick="document.getElementById('mod-mkt').classList.add('open')">
+        <div class="srv-num">01</div>
+        <div class="srv-info">
+          <div class="srv-name">طلب تسويق عقار</div>
+          <div class="srv-desc">لديك عقار وتريد بيعه أو تأجيره؟ نتولى التسويق كاملاً بأحدث الأساليب الرقمية.</div>
+        </div>
+        <div class="srv-arr">←</div>
+      </div>
+      <div class="srv-row" onclick="document.getElementById('mod-inv').classList.add('open')">
+        <div class="srv-num">02</div>
+        <div class="srv-info">
+          <div class="srv-name">مهتم بالاستثمار</div>
+          <div class="srv-desc">تبحث عن فرصة استثمارية مربحة؟ مستشارونا يحللون السوق ويرشدونك للخيار الأمثل.</div>
+        </div>
+        <div class="srv-arr">←</div>
+      </div>
+      <div class="srv-row" onclick="document.getElementById('offers').scrollIntoView({behavior:'smooth'})">
+        <div class="srv-num">03</div>
+        <div class="srv-info">
+          <div class="srv-name">مهتم بالمشاريع العقارية</div>
+          <div class="srv-desc">اطّلع على مشاريعنا القائمة والمتاحة للبيع — مستودعات، أراضي، فلل، وأكثر.</div>
+        </div>
+        <div class="srv-arr">←</div>
+      </div>
     </div>
   </div>
+</section>
+
+<!-- MARKETING STRIP — CYCLE -->
+<section class="mkt-strip" id="mkt-strip">
+  <div class="mkt-wrap">
+    <div class="mkt-head">
+      <div class="s-tag">خدمة التسويق</div>
+      <h2>نسوّق عقارك<br><span>من الفكرة للصفقة</span></h2>
+      <p>لا تكتفِ بالإعلان العادي — نبني لعقارك هوية تسويقية كاملة تصل للمشتري الصح.</p>
+    </div>
+    <!-- Cycle diagram -->
+    <div class="mkt-cycle">
+      <svg class="cycle-svg" viewBox="0 0 280 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Rotating dashed ring -->
+        <circle cx="140" cy="140" r="100" stroke="rgba(200,169,110,.3)" stroke-width="1" stroke-dasharray="8 10"
+          style="animation:spin-dash 18s linear infinite;transform-origin:140px 140px"/>
+        <!-- Static inner ring hint -->
+        <circle cx="140" cy="140" r="100" stroke="rgba(200,169,110,.08)" stroke-width="12"/>
+        <!-- Arrow indicators on path -->
+        <path d="M 140 40 A 100 100 0 0 1 240 140" stroke="rgba(200,169,110,.18)" stroke-width="1.5" fill="none"/>
+        <path d="M 240 140 A 100 100 0 0 1 140 240" stroke="rgba(200,169,110,.18)" stroke-width="1.5" fill="none"/>
+        <path d="M 140 240 A 100 100 0 0 1 40 140" stroke="rgba(200,169,110,.18)" stroke-width="1.5" fill="none"/>
+        <path d="M 40 140 A 100 100 0 0 1 140 40" stroke="rgba(200,169,110,.18)" stroke-width="1.5" fill="none"/>
+        <!-- Node dots — top, right, bottom, left -->
+        <circle cx="140" cy="40" r="7" fill="#c8a96e" opacity=".9"/>
+        <circle cx="140" cy="40" r="14" fill="#c8a96e" opacity=".1"/>
+        <circle cx="240" cy="140" r="7" fill="#c8a96e" opacity=".9"/>
+        <circle cx="240" cy="140" r="14" fill="#c8a96e" opacity=".1"/>
+        <circle cx="140" cy="240" r="7" fill="#c8a96e" opacity=".9"/>
+        <circle cx="140" cy="240" r="14" fill="#c8a96e" opacity=".1"/>
+        <circle cx="40" cy="140" r="7" fill="#c8a96e" opacity=".9"/>
+        <circle cx="40" cy="140" r="14" fill="#c8a96e" opacity=".1"/>
+      </svg>
+      <!-- Labels -->
+      <div class="cycle-label c-top">نصنع الفكرة<small>الرؤية والزاوية</small></div>
+      <div class="cycle-label c-right">نصمم<br>المحتوى<small>تصوير وتصميم</small></div>
+      <div class="cycle-label c-bottom">نُتمّ الصفقة<small>تفاوض وإغلاق</small></div>
+      <div class="cycle-label c-left">نضع<br>الخطة<small>استراتيجية نشر</small></div>
+      <!-- Center -->
+      <div class="cycle-center">
+        <button class="cycle-center-btn" onclick="document.getElementById('mod-mkt').classList.add('open')">اطلب التسويق الآن</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="section about-bg" id="about">
+  <div class="section-inner">
+    <div class="about-grid">
+      <div>
+        <img class="about-img" src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=700&q=80" alt="شارك العقارية" loading="lazy">
+      </div>
+      <div>
+        <div class="s-tag">من نحن</div>
+        <h2 class="s-title">أكثر من مجرد وساطة عقارية</h2>
+        <p class="about-p">شارك العقارية شركة سعودية متخصصة في قطاع العقارات، تأسست بهدف تقديم خدمة عقارية راقية تجمع بين الخبرة الميدانية والابتكار في التسويق.</p>
+        <p class="about-p">نؤمن بأن كل صفقة عقارية قرار مصيري لعميلنا، لذلك نوليه كامل الاهتمام في كل خطوة.</p>
+        <div class="about-vals">
+          <div class="about-val"><div class="about-dot"></div>الشفافية التامة</div>
+          <div class="about-val"><div class="about-dot"></div>الكفاءة والسرعة</div>
+          <div class="about-val"><div class="about-dot"></div>خدمة ما بعد البيع</div>
+          <div class="about-val"><div class="about-dot"></div>التميز في التسويق</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta">
+  <div class="s-tag" style="margin-bottom:12px">تواصل معنا</div>
+  <h2 class="s-title">هل أنت مستعد لخطوتك العقارية القادمة؟</h2>
+  <p class="s-sub">سواء كنت تريد الشراء أو البيع أو الاستثمار</p>
+  <div class="cta-btns" style="margin-top:28px">
+    <button class="btn-gold" onclick="document.getElementById('mod-inv').classList.add('open')">💰 مهتم بالاستثمار</button>
+    <button class="btn-out" onclick="openWA()">تواصل واتساب</button>
+  </div>
+</div>
+
+<!-- HOURS -->
+<section class="section hours-bg" id="hours">
+  <div class="section-inner" style="display:flex;flex-direction:column;align-items:center">
+    <div class="hours-card">
+      <div class="hours-head">
+        <h3>أوقـات العـمل</h3>
+        <small>Business Hours</small>
+      </div>
+      <div class="hours-row">
+        <span class="hours-label">صباحاً</span>
+        <span class="hours-time">9:00</span>
+        <span class="hours-ampm">A.M.</span>
+      </div>
+      <div class="hours-row">
+        <span class="hours-label">مساءً</span>
+        <span class="hours-time">11:00</span>
+        <span class="hours-ampm">P.M.</span>
+      </div>
+      <div class="hours-wa-row">
+        <span class="hours-wa-lbl">الواتس اب</span>
+        <span class="hours-wa-num">24</span>
+        <span class="hours-wa-word">WhatsApp</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div>
+      <img src="logo.png" alt="شارك" style="height:32px;filter:brightness(0) saturate(100%) invert(72%) sepia(30%) saturate(600%) hue-rotate(5deg) brightness(95%);margin-bottom:10px;display:block">
+      <div class="f-logo-ar">شارك العقارية</div>
+      <p class="f-desc">شريكك الموثوق في سوق العقارات السعودي — نحوّل طموحاتك إلى واقع ملموس.</p>
+    </div>
+    <div class="f-col">
+      <h5>روابط سريعة</h5>
+      <ul>
+        <li onclick="document.getElementById('offers').scrollIntoView({behavior:'smooth'})">العروض</li>
+        <li onclick="document.getElementById('services').scrollIntoView({behavior:'smooth'})">خدماتنا</li>
+        <li onclick="document.getElementById('about').scrollIntoView({behavior:'smooth'})">من نحن</li>
+      </ul>
+    </div>
+    <div class="f-col">
+      <h5>للتواصل</h5>
+      <ul>
+        <li onclick="openWA()">واتساب</li>
+        <li onclick="document.getElementById('mod-inv').classList.add('open')">سجّل اهتمامك</li>
+        <li onclick="document.getElementById('mod-mkt').classList.add('open')">سوّق عقارك</li>
+      </ul>
+    </div>
+  </div>
+  <div class="f-copy">
+    <span>© 2024 شارك العقارية — جميع الحقوق محفوظة</span>
+    <span>sharekre.sa</span>
+  </div>
 </footer>
-<style>
-@media(max-width:640px){
-  #siteFooter > div > div:first-child{grid-template-columns:1fr!important}
-}
-</style>
 
-<!-- NOTICE TOAST -->
-<div id="toastEl" style="display:none;position:fixed;bottom:28px;left:50%;transform:translateX(-50%);z-index:1500;background:#f4f3ef;color:#0b0b0c;font-weight:700;font-size:.95rem;padding:14px 26px;border-radius:3px;box-shadow:0 18px 50px rgba(0,0,0,.55);animation:rise .35s both;white-space:nowrap"></div>
+<!-- MODAL: استثمار -->
+<div class="modal-bg" id="mod-inv">
+  <div class="modal">
+    <button class="m-close" onclick="closeM('mod-inv')">×</button>
+    <h3>💰 تسجيل اهتمام استثماري</h3>
+    <div id="inv-f">
+      <div class="f-row"><label>الاسم *</label><input id="si-name" type="text" placeholder="محمد أحمد"></div>
+      <div class="f-row"><label>الجوال *</label><input id="si-phone" type="tel" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right"></div>
+      <div class="f-row"><label>نوع الاستثمار</label><select id="si-type"><option value="">اختر</option><option>أراضي</option><option>فلل</option><option>شقق</option><option>تجاري</option><option>مستودعات</option></select></div>
+      <div class="f-row"><label>ملاحظات</label><textarea id="si-note" rows="3" placeholder="تفاصيل إضافية..."></textarea></div>
+      <button class="btn-sub" onclick="subInv()">إرسال الطلب</button>
+    </div>
+    <div class="m-ok" id="inv-ok"><div class="ic">🎉</div><h4>تم الاستلام!</h4><p>سيتواصل معك مستشارنا قريباً.</p></div>
+  </div>
+</div>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- MODAL: تسويق -->
+<div class="modal-bg" id="mod-mkt">
+  <div class="modal">
+    <button class="m-close" onclick="closeM('mod-mkt')">×</button>
+    <h3>🏠 تسويق عقاري</h3>
+    <div id="mkt-f">
+      <div class="f-row"><label>الاسم *</label><input id="sm-name" type="text" placeholder="محمد أحمد"></div>
+      <div class="f-row"><label>الجوال *</label><input id="sm-phone" type="tel" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right"></div>
+      <div class="f-row"><label>نوع العقار</label><select id="sm-kind"><option value="">اختر</option><option>أرض</option><option>فيلا</option><option>شقة</option><option>عمارة</option><option>تجاري</option><option>مستودع</option></select></div>
+      <div class="f-row"><label>وصف العقار</label><textarea id="sm-note" rows="3" placeholder="الموقع والمساحة والسعر..."></textarea></div>
+      <button class="btn-sub" onclick="subMkt()">إرسال الطلب</button>
+    </div>
+    <div class="m-ok" id="mkt-ok"><div class="ic">✅</div><h4>تم الاستلام!</h4><p>سنتواصل معك لبدء تسويق عقارك.</p></div>
+  </div>
+</div>
+
+<!-- MODAL: تسجيل اهتمام بعرض -->
+<div class="modal-bg" id="mod-interest">
+  <div class="modal">
+    <button class="m-close" onclick="closeM('mod-interest')">×</button>
+    <h3>🏠 تسجيل اهتمام بالعرض</h3>
+    <p id="int-offer-name" style="font-size:13px;color:var(--gold);margin-bottom:16px"></p>
+    <div id="int-f">
+      <div class="f-row"><label>الاسم *</label><input id="int-name" type="text" placeholder="محمد أحمد"></div>
+      <div class="f-row"><label>الجوال *</label><input id="int-phone" type="tel" placeholder="05xxxxxxxx" dir="ltr" style="text-align:right"></div>
+      <div class="f-row"><label>ملاحظات</label><textarea id="int-note" rows="3" placeholder="استفسار أو طلب خاص..."></textarea></div>
+      <button class="btn-sub" onclick="subInterest()">تسجيل الاهتمام</button>
+    </div>
+    <div class="m-ok" id="int-ok"><div class="ic">🎉</div><h4>تم التسجيل!</h4><p>سيتواصل معك مستشارنا قريباً.</p></div>
+  </div>
+</div>
+
+<!-- MODAL: offer detail -->
+<div class="modal-bg" id="mod-offer">
+  <div class="modal" style="max-width:520px">
+    <button class="m-close" onclick="closeM('mod-offer');history.replaceState(null,'',location.pathname)">×</button>
+    <div id="od-body"></div>
+  </div>
+</div>
+
+<!-- CITY POPUP -->
+<div id="city-pop" onclick="if(event.target===this)closeCityPop()">
+  <div id="city-pop-inner">
+    <div id="city-pop-head">
+      <div>
+        <div id="city-pop-title"></div>
+        <div id="city-pop-count"></div>
+      </div>
+      <button id="city-pop-close" onclick="closeCityPop()">×</button>
+    </div>
+    <div id="city-pop-list"></div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lb" onclick="closeLb()">
+  <button id="lb-x" onclick="closeLb()">✕</button>
+  <img id="lb-img" src="" alt="">
+</div>
+
+<!-- FABs — banner -->
+<div id="fab">
+  <div id="fab-inner">
+    <button class="fab-b fab-map" onclick="location.href='map.html'">
+      <span class="fab-b-icon">
+        <svg width="22" height="20" viewBox="0 0 500 440" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M95 52 L118 46 L144 43 L166 38 L185 34 L207 33 L228 34 L248 37 L264 41 L281 47 L294 55 L300 66 L307 78 L314 93 L320 106 L328 116 L338 125 L350 134 L358 143 L366 152 L373 163 L381 170 L390 178 L399 186 L404 197 L402 209 L396 218 L390 228 L386 239 L382 251 L379 263 L376 275 L370 284 L361 290 L350 296 L340 300 L330 302 L319 302 L309 300 L298 297 L288 294 L278 291 L268 291 L258 293 L249 297 L241 303 L235 311 L231 321 L228 332 L224 343 L218 352 L209 358 L199 362 L188 363 L177 362 L166 359 L155 354 L144 348 L134 341 L124 334 L114 326 L105 317 L97 308 L90 298 L84 287 L79 275 L75 263 L72 251 L70 238 L69 225 L69 212 L69 199 L70 186 L72 173 L75 160 L79 147 L84 135 L89 123 L93 111 L95 99 L95 87 Z" stroke="currentColor" stroke-width="18" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="fab-b-label">خريطة العروض</span>
+      <span class="fab-b-sub">تصفّح على الخريطة</span>
+    </button>
+    <button class="fab-b fab-bl" onclick="document.getElementById('offers').scrollIntoView({behavior:'smooth'})">
+      <span class="fab-b-icon">🔑</span>
+      <span class="fab-b-label">العروض</span>
+      <span class="fab-b-sub">تصفّح المتاح</span>
+    </button>
+  </div>
+</div>
+
+
 <script>
-// ---- Firebase ----
-var _cfg={apiKey:"AIzaSyCJ59kjkb7mZ7pcsLImkT4L2-fdHFDTVko",authDomain:"sharek-re.firebaseapp.com",projectId:"sharek-re",storageBucket:"sharek-re.firebasestorage.app",messagingSenderId:"1000796915275",appId:"1:1000796915275:web:bb556f80db9d2f7f99efce"};
-if(!firebase.apps.length) firebase.initializeApp(_cfg);
-var _db=firebase.firestore();
-
-// ---- State ----
-var ST={
-  page:'home', lang:'ar', offers:[], loading:true, activeType:'all',
-  currentOfferId:null, drawerOpen:false, offerActionsOpen:false,
-  _tapCount:0, _tapTimer:null
-};
-
-// ---- i18n ----
-function T(){
-  return ST.lang==='ar'?{
-    brand:'شركة شارك العقارية', tagline:'SHARK · FROM QASSIM TO ALL KSA',
-    langBtn:'EN', waBtn:'تواصل', waDrawer:'واتساب',
-    nav_home:'الرئيسية', nav_listings:'العقارات', nav_sell:'اعرض عقارك',
-    nav_request:'اطلب عقارك', nav_about:'من نحن',
-    heroKicker:'شارك العقارية · القصيم', heroTitle:'عقارك يبدأ من هنا',
-    heroSub:'من القصيم إلى كل المملكة',
-    ctaBrowse:'تصفّح العقارات', ctaRequest:'اطلب عقارك',
-    catsKicker:'تصفّح حسب النوع', catsTitle:'أنواع العقارات', viewAll:'كل العقارات',
-    featuredKicker:'أحدث الفرص', featuredTitle:'عروض مميزة',
-    details:'التفاصيل', interest:'سجّل اهتمامك',
-    aboutKicker:'من نحن', aboutTitle:'شركة شارك العقارية',
-    aboutBody:'شركة شارك العقارية شركة متخصصة في التسويق والبيع والوساطة العقارية، انطلقنا من القصيم لنخدم كل مناطق المملكة. نؤمن أن لكل عميل فرصته الأنسب، ونعمل على ربطه بها بأسرع وقت وبأعلى درجات الشفافية والاحترافية.',
-    svc1:'التسويق والبيوع العقارية', svc2:'إدارة وتشغيل الأملاك',
-    svc3:'صناعة الفرص وتطوير الأراضي', svc4:'الاستشارات والحلول العقارية',
-    statYears:'سنوات الخبرة', statDeals:'صفقة منجزة', statCities:'مدن نخدمها', statClients:'عميل سعيد',
-    ctaTitle:'عندك عقار أو تبحث عن واحد؟',
-    ctaBody:'فريقنا جاهز يخدمك على مدار الساعة عبر الواتساب.',
-    ctaSell:'اعرض عقارك', ctaReq:'اطلب عقارك',
-    listingsKicker:'العقارات المتاحة', listingsTitle:'استكشف عروضنا',
-    resultsAr:'عرض', noResults:'لا توجد عروض في هذا التصنيف حالياً',
-    sar:'ريال', area:'المساحة', m2:'م²', beds:'غرف', baths:'دورات', back:'رجوع',
-    offerLoc:'الموقع على الخريطة', openMap:'فتح في خرائط قوقل',
-    sendWa:'إرسال عبر واتساب', savePdf:'حفظ PDF', contactShare:'تواصل ومشاركة العرض',
-    interestTitle:'سجّل اهتمامك بهذا العرض',
-    interestBody:'عبّئ بياناتك وبيتواصل معك أحد مستشارينا.',
-    fName:'الاسم', fPhone:'رقم الجوال', fNote:'ملاحظة (اختياري)', send:'إرسال',
-    sellTitle:'اعرض عقارك معنا',
-    sellBody:'سجّل تفاصيل عقارك وفريق التسويق بيتواصل معك لتجهيز العرض ونشره.',
-    reqTitle:'اطلب عقارك',
-    reqBody:'وصف لنا العقار اللي تبحث عنه، وبنرشّح لك أنسب الخيارات.',
-    reqType:'نوع العقار المطلوب',
-    aboutPage_kicker:'SHARK REAL ESTATE',
-    aboutPage_title:'شركة شارك العقارية',
-    aboutPage_body:'شركة شارك العقارية شركة متخصصة في التسويق العقاري والبيوع والوساطة العقارية. انطلقنا من منطقة القصيم لنخدم كل مناطق المملكة العربية السعودية. نؤمن أن لكل عميل فرصته الأنسب، ونعمل على ربطه بها بأسرع وقت وبأعلى درجات الشفافية والاحترافية والأمانة.',
-    hoursTitle:'أوقات العمل', hours1:'9:00 صباحاً — 11:00 مساءً', location:'القصيم — نخدم كل المملكة',
-    footerBlurb:'شركة شارك العقارية — تسويق وبيع وإدارة العقارات بكل أنواعها، نربط العميل بالفرصة الأنسب في القصيم وكل مناطق المملكة.',
-    footerRights:'© 2025 شركة شارك العقارية · جميع الحقوق محفوظة',
-    statusAvail:'متاح', statusResv:'محجوز', statusSold:'مباع',
-    toastInterest:'تم تسجيل اهتمامك ✓',
-    toastReq:'تم استلام طلبك ✓',
-    toastSell:'تم استلام عقارك ✓',
-    type:'النوع', city2:'المدينة'
-  }:{
-    brand:'SHARK Real Estate', tagline:'SHARK · FROM QASSIM TO ALL KSA',
-    langBtn:'ع', waBtn:'Contact', waDrawer:'WhatsApp',
-    nav_home:'Home', nav_listings:'Properties', nav_sell:'List Property',
-    nav_request:'Request Property', nav_about:'About',
-    heroKicker:'SHARK REAL ESTATE · QASSIM', heroTitle:'Your property starts here',
-    heroSub:'From Qassim to all of the Kingdom',
-    ctaBrowse:'Browse Properties', ctaRequest:'Request a Property',
-    catsKicker:'Browse by type', catsTitle:'Property Types', viewAll:'All Properties',
-    featuredKicker:'Latest opportunities', featuredTitle:'Featured Listings',
-    details:'Details', interest:'Register Interest',
-    aboutKicker:'About', aboutTitle:'SHARK Real Estate',
-    aboutBody:'SHARK Real Estate is a specialist office for marketing, sales and brokerage. We started in Qassim to serve the entire Kingdom. We believe every client has the right opportunity — and we connect them to it fast, with full transparency and professionalism.',
-    svc1:'Real Estate Marketing & Sales', svc2:'Property Management & Operations',
-    svc3:'Opportunities & Land Development', svc4:'Advisory & Solutions',
-    statYears:'Years experience', statDeals:'Deals closed', statCities:'Cities served', statClients:'Happy clients',
-    ctaTitle:'Have a property or looking for one?',
-    ctaBody:'Our team is ready around the clock on WhatsApp.',
-    ctaSell:'List Property', ctaReq:'Request Property',
-    listingsKicker:'Available properties', listingsTitle:'Explore Listings',
-    resultsAr:'listings', noResults:'No listings in this category yet',
-    sar:'SAR', area:'Area', m2:'m²', beds:'Beds', baths:'Baths', back:'Back',
-    offerLoc:'Map location', openMap:'Open in Google Maps',
-    sendWa:'Send via WhatsApp', savePdf:'Save PDF', contactShare:'Contact & share',
-    interestTitle:'Register interest in this listing',
-    interestBody:'Fill in your details and an advisor will contact you.',
-    fName:'Name', fPhone:'Mobile number', fNote:'Note (optional)', send:'Send',
-    sellTitle:'List Your Property',
-    sellBody:'Submit your property details and our marketing team will reach out.',
-    reqTitle:'Request a Property',
-    reqBody:'Describe what you are looking for and we will match you.',
-    reqType:'Property type wanted',
-    aboutPage_kicker:'SHARK REAL ESTATE',
-    aboutPage_title:'SHARK Real Estate',
-    aboutPage_body:'SHARK Real Estate is a specialist firm for real estate marketing, sales and brokerage. We launched from Qassim to serve all regions of the Kingdom of Saudi Arabia. We believe every client has the right opportunity — and we work to connect them to it quickly, with the highest standards of transparency and professionalism.',
-    hoursTitle:'Business Hours', hours1:'9:00 AM — 11:00 PM', location:'Qassim — serving all of KSA',
-    footerBlurb:'SHARK Real Estate — marketing, sales and management for every property type, connecting clients to the right opportunity across Qassim and the Kingdom.',
-    footerRights:'© 2025 SHARK Real Estate · All rights reserved',
-    statusAvail:'Available', statusResv:'Reserved', statusSold:'Sold',
-    toastInterest:'Interest registered ✓',
-    toastReq:'Request received ✓',
-    toastSell:'Property submitted ✓',
-    type:'Type', city2:'City'
-  };
-}
-
-function cats(){
-  return [
-    {id:'all',ar:'الكل',en:'All'},
-    {id:'commercial',ar:'تجاري',en:'Commercial'},
-    {id:'residential',ar:'سكني',en:'Residential'},
-    {id:'villas',ar:'فلل',en:'Villas'},
-    {id:'apartments',ar:'شقق',en:'Apartments'},
-    {id:'lands',ar:'أراضي',en:'Lands'},
-    {id:'agricultural',ar:'زراعي',en:'Agricultural'},
-    {id:'warehouses',ar:'مستودعات',en:'Warehouses'},
-    {id:'rest',ar:'استراحات',en:'Rest Houses'},
-    {id:'chalets',ar:'شاليهات',en:'Chalets'}
-  ];
-}
-
-function catLabel(id){
-  var ar=ST.lang==='ar';
-  var c=cats().find(function(x){return x.id===id;});
-  return c?(ar?c.ar:c.en):'';
-}
-
-function hue(type){
-  var m={warehouses:210,commercial:30,residential:160,villas:280,apartments:200,lands:90,agricultural:120,rest:330,chalets:250};
-  return m[type]||220;
-}
-
-function statusLabel(s){
-  var t=T();
-  if(s==='available') return t.statusAvail;
-  if(s==='reserved') return t.statusResv;
-  if(s==='sold') return t.statusSold;
-  return s||'';
-}
-
-function fmt(n){return Number(n).toLocaleString('en-US');}
-
-// ---- Firestore load ----
-function loadOffers(){
-  _db.collection('offers').get({source:'server'})
-    .then(function(snap){
-      ST.offers=snap.docs.map(function(d){var o=d.data();o._id=d.id;return o;})
-        .filter(function(o){return o.published===true;})
-        .sort(function(a,b){return (b._ts||0)-(a._ts||0);});
-      ST.loading=false;
-      renderPage();
-    })
-    .catch(function(e){
-      console.warn('offers load error',e);
-      try{var ls=JSON.parse(localStorage.getItem('shark_offers')||'[]');
-        ST.offers=ls.filter(function(o){return o.published===true;});}catch(x){ST.offers=[];}
-      ST.loading=false;
-      renderPage();
-    });
-}
-
-// ---- Navigation ----
-function go(page){
-  ST.page=page;
-  ST.drawerOpen=false;
-  ST.offerActionsOpen=false;
-  window.scrollTo({top:0,behavior:'instant'});
-  renderAll();
-}
-
-function openOffer(id){
-  ST.page='offer';
-  ST.currentOfferId=id;
-  ST.drawerOpen=false;
-  ST.offerActionsOpen=false;
-  window.scrollTo({top:0,behavior:'instant'});
-  renderAll();
-}
-
-function toggleDrawer(){
-  ST.drawerOpen=!ST.drawerOpen;
-  document.getElementById('drawer').style.display=ST.drawerOpen?'block':'none';
-}
-
-function toggleLang(){
-  ST.lang=ST.lang==='ar'?'en':'ar';
-  document.documentElement.lang=ST.lang;
-  document.documentElement.dir=ST.lang==='ar'?'rtl':'ltr';
-  renderAll();
-}
-
-// Secret tap: 5 taps on logo → admin
-function secretTap(){
-  ST._tapCount=(ST._tapCount||0)+1;
-  clearTimeout(ST._tapTimer);
-  ST._tapTimer=setTimeout(function(){ST._tapCount=0;},1600);
-  if(ST._tapCount>=5){ST._tapCount=0;window.location.href='admin.html';}
-}
-
-// ---- Toast ----
-function showToast(msg){
-  var el=document.getElementById('toastEl');
-  el.textContent=msg;
-  el.style.display='block';
-  clearTimeout(ST._toastT);
-  ST._toastT=setTimeout(function(){el.style.display='none';},2600);
-}
-
-// ---- WhatsApp helpers ----
-function waLink(offerId, offerTitle){
-  var phone='0539997060';
-  var t=T();
-  var ar=ST.lang==='ar';
-  var msg=ar?'السلام عليكم، استفساري عن العرض ':'Hello, inquiry about ';
-  return 'https://wa.me/966'+phone.slice(1)+'?text='+encodeURIComponent(msg+offerId+' — '+offerTitle);
-}
-
-// ---- PDF ----
-function savePdf(o){
-  var phones=['0539997060','0539995070','0539996010'];
-  var ar=ST.lang==='ar';
-  var win=window.open('','_blank','width=840,height=1060');
-  if(!win){showToast(ar?'فضلاً فعّل النوافذ المنبثقة':'Allow pop-ups');return;}
-  var row=function(l,v){return (v||v===0)?('<tr><td class="k">'+l+'</td><td class="v">'+v+'</td></tr>'):''};
-  var html='<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>'+o.id+' — شركة شارك العقارية</title>'
-    +'<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">'
-    +'<style>*{margin:0;padding:0;box-sizing:border-box;font-family:Tajawal,Arial,sans-serif}body{padding:46px 50px;color:#16181d}'
-    +'.top{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:2px solid #0b0b0c;padding-bottom:18px;margin-bottom:26px}'
-    +'.bars{display:flex;align-items:flex-end;gap:3px;height:34px}.bars i{width:3px;background:#0b0b0c;border-radius:2px;display:block}'
-    +'.brand{font-size:13px;letter-spacing:.34em;color:#0b0b0c;font-weight:700;margin-top:8px}.co{font-size:13px;color:#6b6a64}.coName{font-size:18px;font-weight:700}'
-    +'.badges span{display:inline-block;background:#0b0b0c;color:#fff;font-size:12px;padding:5px 12px;border-radius:3px;margin-inline-start:6px}'
-    +'h1{font-size:26px;font-weight:700;margin:14px 0 6px}.meta{color:#6b6a64;font-size:14px;margin-bottom:6px}'
-    +'.price{font-size:30px;font-weight:800;margin:18px 0 2px}.price small{font-size:14px;color:#6b6a64;font-weight:400}'
-    +'table{width:100%;border-collapse:collapse;margin:18px 0}td{padding:11px 4px;border-bottom:1px solid #ecebe6;font-size:15px}'
-    +'td.k{color:#8a8a86;width:38%}td.v{font-weight:500}'
-    +'.desc{background:#faf9f6;border:1px solid #ecebe6;border-radius:8px;padding:18px 20px;font-size:15px;line-height:1.95;color:#3f3e3a;margin-top:8px}'
-    +'.foot{margin-top:28px;border-top:1px solid #ecebe6;padding-top:16px;font-size:14px;color:#3f3e3a}.foot b{color:#0b0b0c}.ph{direction:ltr;display:inline-block}'
-    +'@media print{body{padding:26px 32px}}</style></head><body>'
-    +'<div class="top"><div><div class="bars"><i style="height:42%"></i><i style="height:70%"></i><i style="height:100%"></i><i style="height:78%"></i><i style="height:46%"></i></div><div class="brand">SHARK</div></div>'
-    +'<div style="text-align:left"><div class="coName">شركة شارك العقارية</div><div class="co">القصيم — نخدم كل المملكة</div></div></div>'
-    +'<div class="badges"><span>'+(catLabel(o.type)||o.type)+'</span><span>'+statusLabel(o.status)+'</span><span>'+o.id+'</span></div>'
-    +'<h1>'+(ar?o.ar:o.en)+'</h1><div class="meta">'+(o.city||'')+(o.district?' · '+o.district:'')+'</div>'
-    +'<div class="price">'+fmt(o.price)+' <small>ريال سعودي</small></div>'
-    +'<table>'+row('المساحة',fmt(o.area)+' م²')+row('نوع العقار',catLabel(o.type))+(o.beds>0?row('عدد الغرف',o.beds):'')+(o.baths>0?row('دورات المياه',o.baths):'')+row('الحالة',statusLabel(o.status))+row('رقم العرض',o.id)+'</table>'
-    +'<div class="desc">'+(o.desc||'')+'</div>'
-    +'<div class="foot">للتواصل والحجز: <b class="ph">'+phones.join(' · ')+'</b><br>واتساب 24/7 — شركة شارك العقارية</div>'
-    +'</body></html>';
-  win.document.write(html);win.document.close();
-  setTimeout(function(){try{win.focus();win.print();}catch(x){}},600);
-}
-
-// ---- Form submissions ----
-function submitInterest(e){
-  e.preventDefault();
-  var f=new FormData(e.target);
-  var rec={name:f.get('name')||'',phone:f.get('phone')||'',note:f.get('note')||'',offer:ST.currentOfferId||'',kind:'اهتمام',at:Date.now()};
-  _db.collection('leads').add(rec).catch(function(){});
-  e.target.reset();
-  showToast(T().toastInterest);
-}
-
-function submitRequest(e){
-  e.preventDefault();
-  var f=new FormData(e.target);
-  var rec={name:f.get('name')||'',phone:f.get('phone')||'',note:(f.get('type')||'')+' — '+(f.get('note')||''),kind:'طلب عقار',at:Date.now()};
-  _db.collection('requests').add(rec).catch(function(){});
-  e.target.reset();
-  showToast(T().toastReq);
-}
-
-function submitSell(e){
-  e.preventDefault();
-  var f=new FormData(e.target);
-  var rec={name:f.get('name')||'',phone:f.get('phone')||'',type:f.get('type')||'',city:f.get('city')||'',note:f.get('note')||'',kind:'عرض عقار',at:Date.now()};
-  _db.collection('sell_requests').add(rec).catch(function(){});
-  e.target.reset();
-  showToast(T().toastSell);
-}
-
-// ---- Render helpers ----
-function offerCard(o, ar){
-  var t=T();
-  var h=hue(o.type);
-  var title=ar?o.ar:o.en;
-  var cat=catLabel(o.type);
-  var status=statusLabel(o.status);
-  var statusColor=o.status==='available'?'#4ade80':o.status==='reserved'?'#facc15':'#f87171';
-  return '<article onclick="openOffer(\''+o.id+'\')" style="background:#fff;border:1px solid #ecebe6;border-radius:8px;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s" onmouseover="this.style.transform=\'translateY(-4px)\';this.style.boxShadow=\'0 20px 50px rgba(0,0,0,.12)\'" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'\'">'
-    +'<div style="aspect-ratio:4/3;background:linear-gradient(135deg,hsl('+h+',30%,88%),hsl('+h+',20%,80%));position:relative;display:flex;align-items:center;justify-content:center">'
-    +'<div style="display:flex;align-items:flex-end;gap:3px;height:36px;opacity:.35">'
-    +'<span style="width:4px;height:42%;background:hsl('+h+',40%,40%);border-radius:2px;display:block"></span>'
-    +'<span style="width:4px;height:70%;background:hsl('+h+',40%,40%);border-radius:2px;display:block"></span>'
-    +'<span style="width:4px;height:100%;background:hsl('+h+',40%,40%);border-radius:2px;display:block"></span>'
-    +'<span style="width:4px;height:76%;background:hsl('+h+',40%,40%);border-radius:2px;display:block"></span>'
-    +'<span style="width:4px;height:44%;background:hsl('+h+',40%,40%);border-radius:2px;display:block"></span>'
-    +'</div>'
-    +'<div style="position:absolute;top:12px;inset-inline-start:12px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);color:#fff;font-size:.74rem;font-weight:700;padding:5px 10px;border-radius:3px">'+cat+'</div>'
-    +'<div style="position:absolute;top:12px;inset-inline-end:12px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);color:'+statusColor+';font-size:.72rem;font-weight:700;padding:4px 9px;border-radius:3px">'+status+'</div>'
-    +'</div>'
-    +'<div style="padding:16px 18px">'
-    +'<div style="font-size:.7rem;color:#a8a59d;font-family:\'Jost\',sans-serif;margin-bottom:5px">'+o.id+'</div>'
-    +'<div style="font-size:1rem;font-weight:700;color:#16181d;margin-bottom:6px;line-height:1.4">'+title+'</div>'
-    +'<div style="font-size:.82rem;color:#6b6a64;margin-bottom:12px">'+(o.city||'')+(o.district?' · '+o.district:'')+'</div>'
-    +'<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">'
-    +(o.area>0?'<span style="font-size:.8rem;color:#6b6a64">'+fmt(o.area)+' '+t.m2+'</span>':'')
-    +(o.beds>0?'<span style="font-size:.8rem;color:#6b6a64">'+o.beds+' '+t.beds+'</span>':'')
-    +'</div>'
-    +'<div style="display:flex;align-items:center;justify-content:space-between">'
-    +'<div style="font-size:1.1rem;font-weight:800;color:#16181d">'+fmt(o.price)+' <span style="font-size:.74rem;font-weight:400;color:#a8a59d">'+t.sar+'</span></div>'
-    +'<button onclick="event.stopPropagation();openOffer(\''+o.id+'\')" style="background:#0b0b0c;color:#fff;border:none;font-size:.8rem;font-weight:700;padding:9px 16px;border-radius:3px;cursor:pointer">'+t.details+'</button>'
-    +'</div>'
-    +'</div>'
-    +'</article>';
-}
-
-// ---- Page renderers ----
-function renderHome(){
-  var t=T();
-  var ar=ST.lang==='ar';
-  var offers=ST.offers;
-  var featured=offers.filter(function(o){return o.status!=='sold';}).slice(0,4);
-  var catList=cats().filter(function(c){return c.id!=='all';});
-  var catIcons={commercial:'🏢',residential:'🏠',villas:'🏡',apartments:'🏢',lands:'🌳',agricultural:'🌾',warehouses:'🏭',rest:'🏖',chalets:'⛺'};
-
-  var catHTML=catList.map(function(c){
-    var h=hue(c.id);
-    var label=ar?c.ar:c.en;
-    return '<div onclick="ST.activeType=\''+c.id+'\';go(\'listings\')" style="background:linear-gradient(145deg,hsl('+h+',22%,16%),hsl('+h+',18%,12%));border:1px solid hsl('+h+',20%,22%);border-radius:8px;padding:22px 20px;cursor:pointer;transition:transform .2s,border-color .2s" onmouseover="this.style.transform=\'translateY(-3px)\';this.style.borderColor=\'hsl('+h+',30%,34%)\'" onmouseout="this.style.transform=\'\';this.style.borderColor=\'hsl('+h+',20%,22%)\'"><div style="font-size:1.6rem;margin-bottom:10px">'+(catIcons[c.id]||'🏠')+'</div><div style="font-size:.95rem;font-weight:700;color:#fff">'+label+'</div></div>';
-  }).join('');
-
-  var featuredHTML=featured.length?featured.map(function(o){return offerCard(o,ar);}).join('')
-    :'<p style="color:rgba(255,255,255,.4);text-align:center;padding:40px 0;grid-column:1/-1">'+t.noResults+'</p>';
-
-  return '<div class="anim-rise">'
-    // Hero
-    +'<section style="min-height:100vh;background-color:#0b0b0c;background-image:var(--deco),radial-gradient(130% 80% at 60% 10%,rgba(255,255,255,.04),transparent 55%);background-size:60px 60px,cover;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px clamp(24px,6vw,80px) 80px;position:relative">'
-    +'<div style="font-family:\'Jost\',sans-serif;font-size:.74rem;letter-spacing:.3em;color:rgba(255,255,255,.4);margin-bottom:20px">'+t.heroKicker+'</div>'
-    +'<h1 style="font-family:\'Cormorant Garamond\',serif;font-size:clamp(2.8rem,7vw,5.5rem);font-weight:300;color:#fff;line-height:1.1;margin-bottom:16px">'+t.heroTitle+'</h1>'
-    +'<p style="font-size:1.1rem;color:rgba(255,255,255,.5);margin-bottom:40px;font-weight:300">'+t.heroSub+'</p>'
-    +'<div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">'
-    +'<button onclick="go(\'listings\')" style="background:#f4f3ef;color:#0b0b0c;border:none;font-size:1rem;font-weight:700;padding:16px 32px;border-radius:3px;cursor:pointer">'+t.ctaBrowse+'</button>'
-    +'<button onclick="go(\'request\')" style="background:none;border:1px solid rgba(255,255,255,.3);color:#fff;font-size:1rem;font-weight:400;padding:16px 32px;border-radius:3px;cursor:pointer">'+t.ctaRequest+'</button>'
-    +'</div>'
-    +'</section>'
-
-    // Categories
-    +'<section style="background:#0e0e10;background-image:var(--deco);background-size:60px 60px;padding:clamp(60px,8vw,100px) clamp(24px,6vw,80px)">'
-    +'<div style="max-width:1200px;margin:0 auto">'
-    +'<div style="font-family:\'Jost\',sans-serif;font-size:.74rem;letter-spacing:.26em;color:rgba(255,255,255,.35);margin-bottom:12px">'+t.catsKicker+'</div>'
-    +'<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:36px">'
-    +'<h2 style="font-family:\'Cormorant Garamond\',serif;font-size:clamp(1.9rem,4vw,3rem);font-weight:300;color:#fff">'+t.catsTitle+'</h2>'
-    +'<button onclick="ST.activeType=\'all\';go(\'listings\')" style="background:none;border:1px solid rgba(255,255,255,.22);color:rgba(255,255,255,.65);font-size:.88rem;padding:10px 20px;border-radius:40px;cursor:pointer">'+t.viewAll+'</button>'
-    +'</div>'
-    +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px">'+catHTML+'</div>'
-    +'</div>'
-    +'</section>'
-
-    // Featured
-    +'<section style="background:#0b0b0c;background-image:var(--deco);background-size:60px 60px;padding:clamp(60px,8vw,100px) clamp(24px,6vw,80px)">'
-    +'<div style="max-width:1200px;margin:0 auto">'
-    +'<div style="font-family:\'Jost\',sans-serif;font-size:.74rem;letter-spacing:.26em;color:rgba(255,255,255,.35);margin-bottom:12px">'+t.featuredKicker+'</div>'
-    +'<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:36px">'
-    +'<h2 style="font-family:\'Cormorant Garamond\',serif;font-size:clamp(1.9rem,4vw,3rem);font-weight:300;color:#fff">'+t.featuredTitle+'</h2>'
-    +'<button onclick="ST.activeType=\'all\';go(\'listings\')" style="background:none;border:1px solid rgba(255,255,255,.22);color:rgba(255,255,255,.65);font-size:.88rem;padding:10px 20px;border-radius:40px;cursor:pointer">'+t.viewAll+'</button>'
-    +'</div>'
-    +(ST.loading?'<div style="text-align:center;padding:60px 0;color:rgba(255,255,255,.35)">...</div>'
-      :'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px">'+featuredHTML+'</div>')
-    +'</div>'
-    +'</section>'
-
-    // About
-    +'<section style="background:#0e0e10;background-image:var(--deco);background-size:60px 60px;padding:clamp(60px,8vw,100px) clamp(24px,6vw,80px)">'
-    +'<div style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center">'
-    +'<div>'
-    +'<div style="font-family:\'Jost\',sans-serif;font-size:.74rem;letter-spacing:.26em;color:rgba(255,255,255,.35);margin-bottom:14px">'+t.aboutKicker+'</div>'
-    +'<h2 style="font-family:\'Cormorant Garamond\',serif;font-size:clamp(1.9rem,3.5vw,2.8rem);font-weight:300;color:#fff;margin-bottom:20px">'+t.aboutTitle+'</h2>'
-    +'<p style="color:rgba(255,255,255,.55);font-size:.98rem;line-height:2">'+t.aboutBody+'</p>'
-    +'</div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">'
-    +'<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:24px"><div style="font-family:\'Cormorant Garamond\',serif;font-size:3rem;font-weight:300;color:#fff;line-height:1">8+</div><div style="color:rgba(255,255,255,.45);font-size:.85rem;margin-top:8px">'+t.statYears+'</div></div>'
-    +'<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:24px"><div style="font-family:\'Cormorant Garamond\',serif;font-size:3rem;font-weight:300;color:#fff;line-height:1">500+</div><div style="color:rgba(255,255,255,.45);font-size:.85rem;margin-top:8px">'+t.statDeals+'</div></div>'
-    +'<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:24px"><div style="font-family:\'Cormorant Garamond\',serif;font-size:3rem;font-weight:300;color:#fff;line-height:1">12</div><div style="color:rgba(255,255,255,.45);font-size:.85rem;margin-top:8px">'+t.statCities+'</div></div>'
-    +'<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:24px"><div style="font-family:\'Cormorant Garamond\',serif;font-size:3rem;font-weight:300;color:#fff;line-height:1">1k+</div><div style="color:rgba(255,255,255,.45);font-size:.85rem;margin-top:8px">'+t.statClients+'</div></div>'
-    +'</div>'
-    +'</div>'
-    +'</section>'
-
-    // Services
-    +'<section style="background:#0b0b0c;background-image:var(--deco);background-size:60px 60px;padding:clamp(40px,6vw,70px) clamp(24px,6vw,80px)">'
-    +'<div style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px">'
-    +[t.svc1,t.svc2,t.svc3,t.svc4].map(function(s,i){
-      var nums=['01','02','03','04'];
-      return '<div style="border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:28px 24px"><div style="font-family:\'Jost\',sans-serif;font-size:.7rem;color:rgba(255,255,255,.25);letter-spacing:.18em;margin-bottom:14px">'+nums[i]+'</div><div style="color:#fff;font-size:1rem;font-weight:600;line-height:1.5">'+s+'</div></div>';
-    }).join('')
-    +'</div>'
-    +'</section>'
-
-    // CTA
-    +'<section style="background:linear-gradient(135deg,#141416,#0b0b0c);background-image:var(--deco);background-size:60px 60px;padding:clamp(60px,8vw,100px) clamp(24px,6vw,80px);text-align:center">'
-    +'<div style="max-width:600px;margin:0 auto">'
-    +'<h2 style="font-family:\'Cormorant Garamond\',serif;font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:300;color:#fff;margin-bottom:16px">'+t.ctaTitle+'</h2>'
-    +'<p style="color:rgba(255,255,255,.5);font-size:1rem;margin-bottom:36px;line-height:1.9">'+t.ctaBody+'</p>'
-    +'<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">'
-    +'<button onclick="go(\'sell\')" style="background:#f4f3ef;color:#0b0b0c;border:none;font-weight:700;font-size:1rem;padding:16px 32px;border-radius:3px;cursor:pointer">'+t.ctaSell+'</button>'
-    +'<button onclick="go(\'request\')" style="background:none;border:1px solid rgba(255,255,255,.25);color:#fff;font-weight:400;font-size:1rem;padding:16px 32px;border-radius:3px;cursor:pointer">'+t.ctaReq+'</button>'
-    +'</div>'
-    +'</div>'
-    +'</section>'
-    +'</div>';
-}
-
-function renderListings(){
-  var t=T();
-  var ar=ST.lang==='ar';
-  var catList=cats();
-  var filtered=ST.activeType==='all'?ST.offers:ST.offers.filter(function(o){return o.type===ST.activeType;});
-
-  var tabsHTML=catList.map(function(c){
-    var active=c.id===ST.activeType;
-    var label=ar?c.ar:c.en;
-    return '<button onclick="ST.activeType=\''+c.id+'\';renderPage()" style="background:none;border:none;border-bottom:2px solid '+(active?'#fff':'transparent')+';color:'+(active?'#fff':'rgba(255,255,255,.45)')+';font-size:.92rem;font-weight:'+(active?'700':'400')+';padding:12px 16px;cursor:pointer;white-space:nowrap;transition:color .2s">'+label+'</button>';
-  }).join('');
-
-  var cardsHTML=filtered.length?filtered.map(function(o){return offerCard(o,ar);}).join('')
-    :'<p style="grid-column:1/-1;text-align:center;color:rgba(255,255,255,.35);padding:60px 0;font-size:.98rem">'+t.noResults+'</p>';
-
-  return '<div class="anim-rise" style="min-height:100vh;background:#0b0b0c;background-image:var(--deco);background-size:60px 60px;padding-top:64px">'
-    +'<div style="max-width:1200px;margin:0 auto;padding:clamp(40px,6vw,70px) clamp(24px,6vw,80px)">'
-    +'<div style="font-family:\'Jost\',sans-serif;font-size:.74rem;letter-spacing:.26em;color:rgba(255,255,255,.35);margin-bottom:12px">'+t.listingsKicker+'</div>'
-    +'<h1 style="font-family:\'Cormorant Garamond\',serif;font-size:clamp(2rem,4vw,3.2rem);font-weight:300;color:#fff;margin-bottom:28px">'+t.listingsTitle+'</h1>'
-    +'<div style="display:flex;gap:0;overflow-x:auto;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:24px">'+tabsHTML+'</div>'
-    +(ST.loading?'<div style="text-align:center;padding:60px 0;color:rgba(255,255,255,.35)">...</div>'
-      :'<div style="color:rgba(255,255,255,.35);font-size:.82rem;font-family:\'Jost\',sans-serif;margin-bottom:20px">'+filtered.length+' '+t.resultsAr+'</div>'
-       +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px">'+cardsHTML+'</div>')
-    +'</div>'
-    +'</div>';
-}
-
-function renderOffer(){
-  var t=T();
-  var ar=ST.lang==='ar';
-  var o=ST.offers.find(function(x){return x.id===ST.currentOfferId;});
-  if(!o) return '<div style="padding:120px 40px;text-align:center;color:rgba(255,255,255,.4)">...</div>';
-
-  var h=hue(o.type);
-  var title=ar?o.ar:o.en;
-  var cat=catLabel(o.type);
-  var status=statusLabel(o.status);
-  var statusColor=o.status==='available'?'#4ade80':o.status==='reserved'?'#facc15':'#f87171';
-  var waUrl=waLink(o.id,title);
-  var mapUrl=o.map||('https://maps.google.com/?q='+encodeURIComponent((o.city||'')+(o.district?' '+o.district:'')));
-  var actionsOpen=ST.offerActionsOpen;
-
-  return '<div class="anim-rise">'
-    // Cover
-    +'<div style="height:min(55vh,500px);background:linear-gradient(135deg,hsl('+h+',28%,14%),hsl('+h+',20%,9%));background-image:var(--deco);background-size:60px 60px;position:relative;display:flex;align-items:center;justify-content:center;margin-top:64px">'
-    +'<div style="display:flex;align-items:flex-end;gap:4px;height:60px;opacity:.2">'
-    +'<span style="width:5px;height:42%;background:hsl('+h+',50%,70%);border-radius:2px;display:block"></span>'
-    +'<span style="width:5px;height:70%;background:hsl('+h+',50%,70%);border-radius:2px;display:block"></span>'
-    +'<span style="width:5px;height:100%;background:hsl('+h+',50%,70%);border-radius:2px;display:block"></span>'
-    +'<span style="width:5px;height:76%;background:hsl('+h+',50%,70%);border-radius:2px;display:block"></span>'
-    +'<span style="width:5px;height:44%;background:hsl('+h+',50%,70%);border-radius:2px;display:block"></span>'
-    +'</div>'
-    +'<button onclick="go(\'listings\')" style="position:absolute;top:20px;inset-inline-start:clamp(20px,4vw,56px);background:rgba(255,255,255,.12);backdrop-filter:blur(8px);color:#fff;border:1px solid rgba(255,255,255,.18);font-size:.85rem;padding:9px 18px;border-radius:3px;cursor:pointer">← '+t.back+'</button>'
-    +'<div style="position:absolute;bottom:20px;inset-inline-start:clamp(20px,4vw,56px);display:flex;gap:8px">'
-    +'<span style="background:rgba(0,0,0,.6);backdrop-filter:blur(6px);color:'+statusColor+';font-size:.8rem;font-weight:700;padding:6px 14px;border-radius:3px">'+status+'</span>'
-    +'<span style="background:rgba(0,0,0,.6);backdrop-filter:blur(6px);color:rgba(255,255,255,.8);font-size:.8rem;font-weight:700;padding:6px 14px;border-radius:3px">'+cat+'</span>'
-    +'</div>'
-    +'</div>'
-
-    // Content
-    +'<section style="background:#faf9f6;padding:clamp(32px,5vw,60px) clamp(24px,6vw,80px)">'
-    +'<div style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 340px;gap:40px;align-items:start">'
-
-    // Main
-    +'<div>'
-    +'<div style="font-size:.74rem;color:#a8a59d;font-family:\'Jost\',sans-serif;margin-bottom:8px">'+o.id+'</div>'
-    +'<h1 style="font-size:clamp(1.5rem,3vw,2.2rem);font-weight:800;color:#16181d;margin-bottom:8px">'+title+'</h1>'
-    +'<div style="color:#6b6a64;font-size:.95rem;margin-bottom:24px">'+(o.city||'')+(o.district?' · '+o.district:'')+'</div>'
-    +'<div style="font-size:2rem;font-weight:800;color:#16181d;margin-bottom:28px">'+fmt(o.price)+' <span style="font-size:1rem;font-weight:400;color:#a8a59d">'+t.sar+'</span></div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;margin-bottom:28px">'
-    +(o.area>0?'<div><div style="font-size:.74rem;color:#a8a59d;margin-bottom:3px">'+t.area+'</div><div style="color:#16181d;font-weight:600">'+fmt(o.area)+' '+t.m2+'</div></div>':'')
-    +'<div><div style="font-size:.74rem;color:#a8a59d;margin-bottom:3px">'+t.type+'</div><div style="color:#16181d;font-weight:600">'+cat+'</div></div>'
-    +(o.beds>0?'<div><div style="font-size:.74rem;color:#a8a59d;margin-bottom:3px">'+t.beds+'</div><div style="color:#16181d;font-weight:600">'+o.beds+'</div></div>':'')
-    +(o.baths>0?'<div><div style="font-size:.74rem;color:#a8a59d;margin-bottom:3px">'+t.baths+'</div><div style="color:#16181d;font-weight:600">'+o.baths+'</div></div>':'')
-    +'</div>'
-    +(o.desc?'<div style="border-top:1px solid #ecebe6;padding-top:24px"><p style="color:#3f3e3a;font-size:.98rem;line-height:2">'+o.desc+'</p></div>':'')
-    // Interest form
-    +'<div style="margin-top:36px;background:#fff;border:1px solid #ecebe6;border-radius:8px;padding:28px">'
-    +'<h3 style="font-size:1.05rem;font-weight:700;color:#16181d;margin-bottom:6px">'+t.interestTitle+'</h3>'
-    +'<p style="color:#6b6a64;font-size:.88rem;margin-bottom:20px">'+t.interestBody+'</p>'
-    +'<form onsubmit="submitInterest(event)" style="display:flex;flex-direction:column;gap:12px">'
-    +'<input name="offer" type="hidden" value="'+o.id+'">'
-    +'<input name="name" required placeholder="'+t.fName+'" style="border:1px solid #d9d7cf;border-radius:4px;padding:13px 16px;font-size:1rem;outline:none;color:#16181d;background:#fff">'
-    +'<input name="phone" required type="tel" placeholder="'+t.fPhone+'" style="border:1px solid #d9d7cf;border-radius:4px;padding:13px 16px;font-size:1rem;outline:none;color:#16181d;background:#fff;direction:ltr;text-align:start">'
-    +'<input name="note" placeholder="'+t.fNote+'" style="border:1px solid #d9d7cf;border-radius:4px;padding:13px 16px;font-size:1rem;outline:none;color:#16181d;background:#fff">'
-    +'<button type="submit" style="background:#0b0b0c;color:#fff;border:none;font-weight:700;font-size:1rem;padding:14px;border-radius:4px;cursor:pointer">'+t.send+'</button>'
-    +'</form>'
-    +'</div>'
-    +'</div>'
-
-    // Sticky sidebar
-    +'<div style="position:sticky;top:80px">'
-    +'<div style="background:#fff;border:1px solid #ecebe6;border-radius:8px;padding:24px;margin-bottom:16px">'
-    +'<div style="font-size:1.6rem;font-weight:800;color:#16181d;margin-bottom:4px">'+fmt(o.price)+'</div>'
-    +'<div style="font-size:.85rem;color:#a8a59d;margin-bottom:20px">'+t.sar+'</div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;margin-bottom:20px">'
-    +(o.area>0?'<div><div style="font-size:.7rem;color:#a8a59d;margin-bottom:2px">'+t.area+'</div><div style="color:#16181d;font-weight:600;font-size:.9rem">'+fmt(o.area)+' '+t.m2+'</div></div>':'')
-    +'<div><div style="font-size:.7rem;color:#a8a59d;margin-bottom:2px">'+t.type+'</div><div style="color:#16181d;font-weight:600;font-size:.9rem">'+cat+'</div></div>'
-    +(o.beds>0?'<div><div style="font-size:.7rem;color:#a8a59d;margin-bottom:2px">'+t.beds+'</div><div style="color:#16181d;font-weight:600;font-size:.9rem">'+o.beds+'</div></div>':'')
-    +(o.baths>0?'<div><div style="font-size:.7rem;color:#a8a59d;margin-bottom:2px">'+t.baths+'</div><div style="color:#16181d;font-weight:600;font-size:.9rem">'+o.baths+'</div></div>':'')
-    +'</div>'
-    +'<button onclick="ST.offerActionsOpen=!ST.offerActionsOpen;renderPage()" style="width:100%;background:#0b0b0c;color:#fff;font-weight:700;font-size:1rem;padding:15px;border-radius:6px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">'+t.contactShare+' <span style="font-size:.8rem;opacity:.7">▾</span></button>'
-    +(actionsOpen?'<div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;padding:12px;background:#faf9f6;border:1px solid #ecebe6;border-radius:8px;animation:rise .25s both">'
-      +'<a href="'+waUrl+'" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#1f8a4c;color:#fff;font-weight:700;padding:14px;border-radius:6px;text-decoration:none">'+t.sendWa+'</a>'
-      +'<button onclick="savePdf(ST.offers.find(function(x){return x.id===\''+o.id+'\';}))" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;border:1px solid #d9d7cf;color:#16181d;font-weight:600;font-size:.95rem;padding:14px;border-radius:6px;cursor:pointer">'+t.savePdf+'</button>'
-      +'</div>':'')
-    +'</div>'
-    +'</div>'
-
-    +'</div>'
-    +'</section>'
-
-    // Map
-    +'<section style="background:#0b0b0c;background-image:var(--deco);background-size:60px 60px;padding:clamp(40px,6vw,70px) clamp(24px,6vw,80px)">'
-    +'<div style="max-width:1200px;margin:0 auto">'
-    +'<div style="font-family:\'Jost\',sans-serif;font-size:.74rem;letter-spacing:.22em;color:rgba(255,255,255,.4);margin-bottom:18px">'+t.offerLoc+'</div>'
-    +'<div style="position:relative;height:280px;border-radius:8px;overflow:hidden;background:#141416;border:1px solid rgba(255,255,255,.08)">'
-    +'<div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:38px 38px"></div>'
-    +'<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-100%);display:flex;flex-direction:column;align-items:center">'
-    +'<div style="width:16px;height:16px;border-radius:50% 50% 50% 0;background:#fff;transform:rotate(-45deg);box-shadow:0 6px 18px rgba(255,255,255,.3)"></div>'
-    +'<div style="color:rgba(255,255,255,.65);font-size:.82rem;margin-top:12px">'+(o.city||'')+(o.district?' — '+o.district:'')+'</div>'
-    +'</div>'
-    +'<a href="'+mapUrl+'" target="_blank" style="position:absolute;bottom:16px;inset-inline-end:16px;background:#f4f3ef;color:#0b0b0c;font-size:.84rem;font-weight:700;padding:11px 18px;border-radius:3px;text-decoration:none">'+t.openMap+'</a>'
-    +'</div>'
-    +'</div>'
-    +'</section>'
-    +'</div>';
-}
-
-function renderSell(){
-  var t=T();
-  var catOpts=cats().filter(function(c){return c.id!=='all';});
-  var ar=ST.lang==='ar';
-  var optHTML=catOpts.map(function(c){return '<option value="'+c.id+'">'+( ar?c.ar:c.en)+'</option>';}).join('');
-  return '<div class="anim-rise" style="min-height:100vh;background-color:#0b0b0c;background-image:var(--deco),radial-gradient(120% 80% at 75% 5%,#1b1b1e,#0b0b0c 60%);background-size:60px 60px,cover;padding:120px clamp(24px,6vw,80px) 80px">'
-    +'<div style="max-width:620px;margin:0 auto">'
-    +'<div style="font-family:\'Jost\',sans-serif;font-size:.74rem;letter-spacing:.26em;color:rgba(255,255,255,.4);margin-bottom:14px">SHARK · '+t.nav_sell+'</div>'
-    +'<h1 style="font-size:clamp(1.9rem,4vw,3rem);font-weight:200;color:#fff;margin-bottom:12px">'+t.sellTitle+'</h1>'
-    +'<p style="color:rgba(255,255,255,.55);font-size:1rem;margin-bottom:36px;line-height:1.9">'+t.sellBody+'</p>'
-    +'<form onsubmit="submitSell(event)" style="display:flex;flex-direction:column;gap:14px">'
-    +'<input name="name" required placeholder="'+t.fName+'" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);border-radius:4px;padding:15px 18px;color:#fff;font-size:1rem;outline:none">'
-    +'<input name="phone" required type="tel" placeholder="'+t.fPhone+'" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);border-radius:4px;padding:15px 18px;color:#fff;font-size:1rem;outline:none;direction:ltr;text-align:start">'
-    +'<select name="type" required style="background:rgba(20,20,22,.9);border:1px solid rgba(255,255,255,.16);border-radius:4px;padding:15px 18px;color:#fff;font-size:1rem;outline:none"><option value="">'+t.reqType+'</option>'+optHTML+'</select>'
-    +'<input name="city" placeholder="'+(ar?'المدينة / الحي':'City / District')+'" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);border-radius:4px;padding:15px 18px;color:#fff;font-size:1rem;outline:none">'
-    +'<textarea name="note" rows="3" placeholder="'+(ar?'تفاصيل العقار والسعر المطلوب':'Property details and asking price')+'" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);border-radius:4px;padding:15px 18px;color:#fff;font-size:1rem;outline:none;resize:vertical"></textarea>'
-    +'<button type="submit" style="background:#f4f3ef;color:#0b0b0c;border:none;font-weight:700;font-size:1rem;padding:16px;border-radius:4px;cursor:pointer">'+t.send+'</button>'
-    +'</form>'
-    +'</div>'
-    +'</div>';
-}
-
-function renderRequest(){
-  var t=T();
-  var catOpts=cats().filter(function(c){return c.id!=='all';});
-  var ar=ST.lang==='ar';
-  var optHTML=catOpts.map(function(c){return '<option value="'+c.id+'">'+( ar?c.ar:c.en)+'</option>';}).join('');
-  return '<div class="anim-rise" style="min-height:100vh;background-color:#0b0b0c;background-image:var(--deco),radial-gradient(120% 80% at 75% 5%,#1b1b1e,#0b0b0c 60%);background-size:60px 60px,cover;padding:120px clamp(24px,6vw,80px) 80px">'
-    +'<div style="max-width:620px;margin:0 auto">'
-    +'<div style="font-family:\'Jost\',sans-serif;font-size:.74rem;letter-spacing:.26em;color:rgba(255,255,255,.4);margin-bottom:14px">SHARK · '+t.nav_request+'</div>'
-    +'<h1 style="font-size:clamp(1.9rem,4vw,3rem);font-weight:200;color:#fff;margin-bottom:12px">'+t.reqTitle+'</h1>'
-    +'<p style="color:rgba(255,255,255,.55);font-size:1rem;margin-bottom:36px;line-height:1.9">'+t.reqBody+'</p>'
-    +'<form onsubmit="submitRequest(event)" style="display:flex;flex-direction:column;gap:14px">'
-    +'<input name="name" required placeholder="'+t.fName+'" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);border-radius:4px;padding:15px 18px;color:#fff;font-size:1rem;outline:none">'
-    +'<input name="phone" required type="tel" placeholder="'+t.fPhone+'" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);border-radius:4px;padding:15px 18px;color:#fff;font-size:1rem;outline:none;direction:ltr;text-align:start">'
-    +'<select name="type" required style="background:rgba(20,20,22,.9);border:1px solid rgba(255,255,255,.16);border-radius:4px;padding:15px 18px;color:#fff;font-size:1rem;outline:none"><option value="">'+t.reqType+'</option>'+optHTML+'</select>'
-    +'<input name="city" placeholder="'+(ar?'المدينة / الحي المفضل':'Preferred city / district')+'" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);border-radius:4px;padding:15px 18px;color:#fff;font-size:1rem;outline:none">'
-    +'<textarea name="note" rows="3" placeholder="'+(ar?'الميزانية والمواصفات المطلوبة':'Budget and desired specs')+'" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);border-radius:4px;padding:15px 18px;color:#fff;font-size:1rem;outline:none;resize:vertical"></textarea>'
-    +'<button type="submit" style="background:#f4f3ef;color:#0b0b0c;border:none;font-weight:700;font-size:1rem;padding:16px;border-radius:4px;cursor:pointer">'+t.send+'</button>'
-    +'</form>'
-    +'</div>'
-    +'</div>';
-}
-
-function renderAbout(){
-  var t=T();
-  return '<div class="anim-rise" style="min-height:100vh;background:#0b0b0c;background-image:var(--deco);background-size:60px 60px;padding:120px clamp(24px,6vw,80px) 80px">'
-    +'<div style="max-width:900px;margin:0 auto">'
-    +'<div style="font-family:\'Jost\',sans-serif;font-size:.74rem;letter-spacing:.3em;color:rgba(255,255,255,.35);margin-bottom:16px">'+t.aboutPage_kicker+'</div>'
-    +'<h1 style="font-family:\'Cormorant Garamond\',serif;font-size:clamp(2rem,5vw,4rem);font-weight:300;color:#fff;margin-bottom:28px;line-height:1.1">'+t.aboutPage_title+'</h1>'
-    +'<p style="color:rgba(255,255,255,.6);font-size:1.1rem;line-height:2;max-width:680px;margin-bottom:60px">'+t.aboutPage_body+'</p>'
-
-    +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-bottom:60px">'
-    +[t.svc1,t.svc2,t.svc3,t.svc4].map(function(s,i){
-      var nums=['01','02','03','04'];
-      return '<div style="border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:28px 24px"><div style="font-family:\'Jost\',sans-serif;font-size:.7rem;color:rgba(255,255,255,.25);letter-spacing:.18em;margin-bottom:14px">'+nums[i]+'</div><div style="color:#fff;font-size:1rem;font-weight:600;line-height:1.5">'+s+'</div></div>';
-    }).join('')
-    +'</div>'
-
-    +'<div style="border-top:1px solid rgba(255,255,255,.08);padding-top:40px;display:grid;grid-template-columns:1fr 1fr;gap:40px">'
-    +'<div>'
-    +'<div style="font-family:\'Jost\',sans-serif;font-size:.7rem;letter-spacing:.18em;color:rgba(255,255,255,.35);margin-bottom:16px">'+t.hoursTitle+'</div>'
-    +'<div style="color:#fff;font-size:1rem;margin-bottom:8px">'+t.hours1+'</div>'
-    +'<div style="color:rgba(255,255,255,.45);font-size:.88rem">'+t.location+'</div>'
-    +'</div>'
-    +'<div>'
-    +'<div style="font-family:\'Jost\',sans-serif;font-size:.7rem;letter-spacing:.18em;color:rgba(255,255,255,.35);margin-bottom:16px">CONTACT</div>'
-    +'<div style="display:flex;flex-direction:column;gap:8px">'
-    +'<a href="https://wa.me/9660539997060" target="_blank" style="color:rgba(255,255,255,.65);font-size:.95rem;direction:ltr;text-align:end">0539997060</a>'
-    +'<a href="https://wa.me/9660539995070" target="_blank" style="color:rgba(255,255,255,.65);font-size:.95rem;direction:ltr;text-align:end">0539995070</a>'
-    +'<a href="https://wa.me/9660539996010" target="_blank" style="color:rgba(255,255,255,.65);font-size:.95rem;direction:ltr;text-align:end">0539996010</a>'
-    +'</div>'
-    +'</div>'
-    +'</div>'
-    +'</div>'
-    +'</div>';
-}
-
-// ---- Main render ----
-function renderPage(){
-  var html='';
-  if(ST.page==='home') html=renderHome();
-  else if(ST.page==='listings') html=renderListings();
-  else if(ST.page==='offer') html=renderOffer();
-  else if(ST.page==='sell') html=renderSell();
-  else if(ST.page==='request') html=renderRequest();
-  else if(ST.page==='about') html=renderAbout();
-  else html=renderHome();
-  document.getElementById('pageContent').innerHTML=html;
-}
-
-function renderNav(){
-  var t=T();
-  var ar=ST.lang==='ar';
-  var pages=['home','listings','sell','request','about'];
-  pages.forEach(function(p){
-    var el=document.getElementById('nl_'+p);
-    if(el) el.className='navLink'+(ST.page===p?' active':'');
-    var dl=document.getElementById('dl_'+p);
-    if(dl) dl.className='drawerLink'+(ST.page===p?' active':'');
-  });
-  var lb=document.getElementById('langBtn');
-  if(lb) lb.textContent=t.langBtn;
-  var lbd=document.getElementById('langBtnDrawer');
-  if(lbd) lbd.textContent=t.langBtn;
-  var wa=document.getElementById('waNavBtn');
-  if(wa) wa.textContent=t.waBtn;
-  // Update footer texts
-  var fb=document.getElementById('footerBlurb');
-  if(fb) fb.textContent=t.footerBlurb;
-  var fr=document.getElementById('footerRights');
-  if(fr) fr.textContent=t.footerRights;
-  var fh=document.getElementById('footerHours');
-  if(fh) fh.textContent=t.hours1;
-  // Nav links text
-  var navMap={nl_home:t.nav_home,nl_listings:t.nav_listings,nl_sell:t.nav_sell,nl_request:t.nav_request,nl_about:t.nav_about,
-    dl_home:t.nav_home,dl_listings:t.nav_listings,dl_sell:t.nav_sell,dl_request:t.nav_request,dl_about:t.nav_about,
-    fl_home:t.nav_home,fl_listings:t.nav_listings,fl_sell:t.nav_sell,fl_request:t.nav_request,fl_about:t.nav_about};
-  Object.keys(navMap).forEach(function(id){var el=document.getElementById(id);if(el)el.textContent=navMap[id];});
-}
-
-function renderAll(){
-  renderNav();
-  renderPage();
-  document.getElementById('drawer').style.display=ST.drawerOpen?'block':'none';
-}
-
-// ---- Logo secret tap setup ----
-document.getElementById('logoBtn').addEventListener('click',function(){secretTap();});
-
-// ---- Init ----
-renderAll();
-loadOffers();
-
-// ---- URL hash routing ----
 (function(){
-  try{
-    var h=decodeURIComponent(location.hash||'');
-    var s=(location.search||'');
-    if(/admin|panel|لوحة/i.test(h)||/admin=1|panel=1/i.test(s)){
-      window.location.href='admin.html';
+    var PHONE='966539997060';
+  var TL={warehouses:'مستودع',commercial:'تجاري',residential:'سكني',villas:'فيلا',villa:'فيلا',apartments:'شقة',apartment:'شقة',lands:'أرض',land:'أرض',agricultural:'زراعي',rest:'استراحة',chalets:'شاليه'};
+  var CC={'الرياض':[24.7136,46.6753],'جدة':[21.4858,39.1925],'مكة المكرمة':[21.3891,39.8579],'المدينة المنورة':[24.5247,39.5692],'الدمام':[26.4207,50.0888],'الخبر':[26.2172,50.1971],'الأحساء':[25.3814,49.5875],'تبوك':[28.3998,36.5700],'أبها':[18.2164,42.5053],'بريدة':[26.3292,43.9749],'حائل':[27.5219,41.7087],'نجران':[17.5656,44.2289],'جازان':[16.8892,42.5511],'ينبع':[24.0895,38.0618],'خميس مشيط':[18.3000,42.7333],'الجبيل':[27.0025,49.6603]};
+
+  function gs(k){try{return JSON.parse(localStorage.getItem(k)||'null');}catch(e){return null;}}
+  /* الحفظ في صفحة العملاء والشيت يتم عبر clients.js */
+  function save(r){ return SharkClients.save(r); }
+  function now(){return new Date().toLocaleString('ar-SA',{timeZone:'Asia/Riyadh'});}
+  function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function fmt(n){if(!n)return'—';var v=Number(String(n).replace(/,/g,''));if(!v)return n;if(v>=1000000)return(v/1000000).toLocaleString('ar',{maximumFractionDigits:2})+' مليون ريال';return v.toLocaleString('ar-SA')+' ريال';}
+
+  window.openWA=function(){window.open('https://wa.me/'+PHONE+'?text='+encodeURIComponent('السلام عليكم، أود الاستفسار عن العقارات'),'_blank');};
+  window.closeM=function(id){document.getElementById(id).classList.remove('open');};
+  document.querySelectorAll('.modal-bg').forEach(function(m){m.addEventListener('click',function(e){if(e.target===m)m.classList.remove('open');});});
+  window.openLb=function(s){document.getElementById('lb-img').src=s;document.getElementById('lb').style.display='flex';document.body.style.overflow='hidden';};
+  window.closeLb=function(){document.getElementById('lb').style.display='none';document.body.style.overflow='';};
+  document.addEventListener('click',function(e){
+    var t=e.target.closest('[data-lb]');
+    if(t){e.stopPropagation();openLb(t.getAttribute('data-lb'));}
+  });
+
+  window.subInv=function(){
+    var n=document.getElementById('si-name').value.trim(),p=document.getElementById('si-phone').value.trim();
+    if(!n||!p){alert('الرجاء إدخال الاسم ورقم الجوال');return;}
+    var r={name:n,phone:p,type:'رغبة استثمار',interest:document.getElementById('si-type').value,note:document.getElementById('si-note').value.trim(),source:'invest',date:now()};
+    save(r);
+    document.getElementById('inv-f').style.display='none';document.getElementById('inv-ok').style.display='block';
+    setTimeout(function(){closeM('mod-inv');document.getElementById('inv-f').style.display='block';document.getElementById('inv-ok').style.display='none';['si-name','si-phone','si-note'].forEach(function(i){document.getElementById(i).value='';});},3000);
+  };
+  window.subMkt=function(){
+    var n=document.getElementById('sm-name').value.trim(),p=document.getElementById('sm-phone').value.trim();
+    if(!n||!p){alert('الرجاء إدخال الاسم ورقم الجوال');return;}
+    var r={name:n,phone:p,type:'عرض عقار',interest:document.getElementById('sm-kind').value,note:document.getElementById('sm-note').value.trim(),source:'marketing',date:now()};
+    save(r);
+    document.getElementById('mkt-f').style.display='none';document.getElementById('mkt-ok').style.display='block';
+    setTimeout(function(){closeM('mod-mkt');document.getElementById('mkt-f').style.display='block';document.getElementById('mkt-ok').style.display='none';['sm-name','sm-phone','sm-note'].forEach(function(i){document.getElementById(i).value='';});},3000);
+  };
+
+  window.openInterest=function(offerId,offerName){
+    if(offerName===undefined){ offerName=offerId; offerId=''; }
+    if(offerName && _offers.some(function(x){return x.id===offerName;}) && !_offers.some(function(x){return x.id===offerId;})){ var tmp=offerId; offerId=offerName; offerName=tmp; }
+    if(!offerName && offerId){ var oo=_offers.find(function(x){return x.id===offerId;}); offerName=oo?(oo.ar||oo.name||''):''; }
+    closeM('mod-offer');
+    document.getElementById('int-offer-name').textContent=offerName?'العرض: '+offerName:'';
+    document.getElementById('int-offer-name').dataset.offer=offerName||'';
+    document.getElementById('int-offer-name').dataset.offerId=offerId||'';
+    document.getElementById('int-f').style.display='block';
+    document.getElementById('int-ok').style.display='none';
+    ['int-name','int-phone','int-note'].forEach(function(i){document.getElementById(i).value='';});
+    document.getElementById('mod-interest').classList.add('open');
+  };
+  window.subInterest=function(){
+    var n=document.getElementById('int-name').value.trim(),p=document.getElementById('int-phone').value.trim();
+    if(!n||!p){alert('الرجاء إدخال الاسم ورقم الجوال');return;}
+    var offer=document.getElementById('int-offer-name').dataset.offer||'';
+    var offerId=document.getElementById('int-offer-name').dataset.offerId||'';
+    var r={name:n,phone:p,type:'تسجيل اهتمام',offer:offer,offerName:offer,offerTitle:offer,offerId:offerId,note:document.getElementById('int-note').value.trim(),source:'interest',date:now()};
+    save(r);
+    document.getElementById('int-f').style.display='none';document.getElementById('int-ok').style.display='block';
+    setTimeout(function(){closeM('mod-interest');},3000);
+  };
+
+  /* ── FIREBASE ── */
+  var _fsdb=null;
+  function initFS(){
+    var cfg={apiKey:"AIzaSyCJ59kjkb7mZ7pcsLImkT4L2-fdHFDTVko",authDomain:"sharek-re.firebaseapp.com",projectId:"sharek-re",storageBucket:"sharek-re.firebasestorage.app",messagingSenderId:"1000796915275",appId:"1:1000796915275:web:bb556f80db9d2f7f99efce"};
+    if(!firebase.apps.length) firebase.initializeApp(cfg);
+    _fsdb=firebase.firestore();
+  }
+
+  /* ── OFFERS ── */
+  var _offers=[];
+  function loadOffers(){
+    try{ initFS(); }catch(e){}
+    if(_fsdb){
+      _fsdb.collection('offers').orderBy('_ts','desc').get()
+        .then(function(snap){
+          _offers=snap.docs.map(function(d){return d.data();});
+          if(!_offers.length) _offers=gs('shark_offers')||[];
+          renderOffers('all');
+        })
+        .catch(function(){
+          _offers=gs('shark_offers')||[];
+          renderOffers('all');
+        });
+    } else {
+      _offers=gs('shark_offers')||[];
+      renderOffers('all');
     }
-<<<<<<< HEAD
+  }
+  window.filterOffers=function(type,btn){
+    document.querySelectorAll('.f-btn').forEach(function(b){b.classList.remove('active');});
+    btn.classList.add('active');
+    renderOffers(type);
+  };
+  function renderOffers(type){
+    var g=document.getElementById('offers-grid');
+    var list=type==='all'?_offers:_offers.filter(function(o){return o.type===type;});
+    if(!list.length){g.innerHTML='<div class="o-empty">لا توجد عروض '+(type==='all'?'بعد':'في هذه الفئة')+'</div>';return;}
+    g.innerHTML=list.map(function(o){
+      return '<div class="o-card" onclick="showOffer(\''+esc(o.id)+'\')"><div>'
+        +(o.coverImg?'<img src="'+esc(o.coverImg)+'" loading="lazy">':'<div class="o-no-img">🏠</div>')
+        +'</div><div class="o-body">'
+        +'<div class="o-type">'+(TL[o.type]||o.type||'عقار')+'</div>'
+        +'<div class="o-name">'+esc(o.ar||o.name||'عرض عقاري')+'</div>'
+        +'<div class="o-loc"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>'+esc((o.city||'')+(o.district?' · '+o.district:''))+'</div>'
+        +'<div class="o-price">'+fmt(o.price)+'</div>'
+        +((o.area||o.beds)?'<div class="o-meta">'+(o.area?'<span>📐 '+o.area+' م²</span>':'')+(o.beds?'<span>🛏 '+o.beds+'</span>':'')+'</div>':'')
+        +'<div class="o-card-actions"><button class="o-int-btn" onclick="event.stopPropagation();openInterest(\''+esc(o.id||'')+'\',\''+esc(o.ar||o.name||'')+'\')" >تسجيل اهتمام</button></div>'
+        +'</div></div>';
+    }).join('');
+  }
+
+  window.showOffer=function(id){
+    var o=_offers.find(function(x){return x.id===id;}); if(!o) return;
+    var imgs=o.gallery?o.gallery.split('\n').filter(Boolean):[];
+    var TL2={warehouses:'مستودع',land:'أرض',villa:'فيلا',apartment:'شقة',commercial:'تجاري',office:'مكتب'};
+    var typeLabel=TL2[o.type]||o.type||'عقار';
+    var _backBtn='<button class="od-back-btn" onclick="odGoBack()" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>رجوع</button>';
+    var heroHTML=o.coverImg
+      ?'<div class="od-hero"><img src="'+esc(o.coverImg)+'" data-lb="'+esc(o.coverImg)+'" loading="lazy" style="cursor:zoom-in"><div class="od-hero-overlay"></div>'+_backBtn+'<div class="od-hero-badge">'+typeLabel+'</div><button class="od-share-btn" onclick="shareOffer(\''+esc(id)+'\')" type="button"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>مشاركة</button></div>'
+      :'<div class="od-hero-noimg" style="position:relative">'+_backBtn+'🏠</div>';
+    var priceVal=o.price?Number(o.price).toLocaleString('ar-SA'):'—';
+    var priceHTML='<div class="od-price-row"><div><div class="od-price-label">السعر</div><div class="od-price-val">'+priceVal+'</div><div class="od-price-unit">ريال سعودي</div></div>'+(o.price&&o.area?'<div style="text-align:left"><div class="od-price-label">سعر المتر</div><div style="font-size:15px;font-weight:800;color:var(--sub)">'+Math.round(Number(o.price)/Number(o.area)).toLocaleString('ar-SA')+'</div><div class="od-price-unit">ريال/م²</div></div>':'')+'</div>';
+    var statsHTML='<div class="od-stats">'+(o.area?'<div class="od-s"><div class="od-sv">'+o.area+'</div><div class="od-sk">المساحة م²</div></div>':'')+(o.beds?'<div class="od-s"><div class="od-sv">'+o.beds+'</div><div class="od-sk">الغرف</div></div>':'')+(o.baths?'<div class="od-s"><div class="od-sv">'+o.baths+'</div><div class="od-sk">الحمامات</div></div>':'')+(o.floor?'<div class="od-s"><div class="od-sv">'+o.floor+'</div><div class="od-sk">الدور</div></div>':'')+(o.age?'<div class="od-s"><div class="od-sv">'+o.age+'</div><div class="od-sk">العمر</div></div>':'')+'</div>';
+    var descHTML=o.desc?'<div class="od-desc">'+esc(o.desc)+'</div>':'';
+    var featsArr=o.features?(Array.isArray(o.features)?o.features:o.features.split(',').map(function(f){return f.trim();})).filter(Boolean):[];
+    var featsHTML=featsArr.length?'<div class="od-feats">'+featsArr.map(function(f){return'<span class="od-feat">'+esc(f)+'</span>';}).join('')+'</div>':'';
+    var gallHTML=imgs.length>1?'<div class="od-gall">'+imgs.slice(1).map(function(u){return'<img src="'+esc(u)+'" data-lb="'+esc(u)+'" style="cursor:zoom-in">';}).join('')+'</div>':'';
+    var mapHTML='';
+    if(o.lat&&o.lng){mapHTML='<div class="od-map-wrap"><div class="od-map-label">الموقع على الخريطة</div><iframe src="https://www.openstreetmap.org/export/embed.html?bbox='+(parseFloat(o.lng)-.005)+','+(parseFloat(o.lat)-.005)+','+(parseFloat(o.lng)+.005)+','+(parseFloat(o.lat)+.005)+'&layer=mapnik&marker='+o.lat+','+o.lng+'" style="width:100%;height:180px;border-radius:10px;border:1px solid rgba(255,255,255,.06);filter:invert(1) hue-rotate(180deg)" loading="lazy"></iframe></div>';}
+    var waNum=o.waPhone||PHONE;
+    var waMsg=encodeURIComponent('مرحباً، أنا مهتم بعرض: '+(o.ar||o.name||'')+(o.price?' بسعر '+Number(o.price).toLocaleString('ar-SA')+' ريال':''));
+    var locStr=(o.city||'')+(o.district?' — '+o.district:'');
+    document.getElementById('od-body').innerHTML=
+      heroHTML
+      +'<div class="od-content">'
+      +'<div class="od-title-row"><div class="od-type-tag">'+typeLabel+'</div><div class="od-title">'+esc(o.ar||o.name||'')+'</div>'+(locStr?'<div class="od-loc"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>'+esc(locStr)+'</div>':'')+'</div>'
+      +priceHTML+statsHTML+descHTML+featsHTML+gallHTML+mapHTML
+      +'<div class="od-btns">'
+      +'<button class="btn-wa-od" onclick="window.open(\'https://wa.me/'+waNum+'?text='+waMsg+'\',\'_blank\')" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>تواصل عبر واتساب</button>'
+      +'<button class="btn-int-od" onclick="openInterest(\''+esc(id)+'\',\''+esc(o.ar||o.name||'')+'\')" type="button">✦ سجّل اهتمامك بهذا العرض</button>'
+      +'</div>'
+      +'</div>';
+    document.getElementById('mod-offer').classList.add('open');
+    history.replaceState(null,'','?offer='+encodeURIComponent(id));
+  };
+  window.shareOffer=function(id){
+    var o=_offers.find(function(x){return x.id===id;}); if(!o) return;
+    var url='https://sharekre.sa/?offer='+encodeURIComponent(id);
+    var name=esc(o.ar||o.name||'عرض عقاري');
+    var waMsg=encodeURIComponent('السلام عليكم،\n\nعرض عقاري من شارك العقارية:\n'+(o.ar||o.name||'')+(o.city?'\n📍 '+o.city+(o.district?' — '+o.district:''):'')+(o.price?'\n💰 '+Number(o.price).toLocaleString('ar-SA')+' ريال':'')+(o.area?'\n📐 '+o.area+' م²':'')+'\n\n🔗 '+url);
+    var qrSrc='https://api.qrserver.com/v1/create-qr-code/?size=300x300&format=svg&color=0d0f16&bgcolor=f5f0e8&qzone=2&data='+encodeURIComponent(url);
+    var sheet=document.getElementById('mod-share');
+    sheet.querySelector('.ss-title').textContent='مشاركة: '+name;
+    sheet.querySelector('.ss-qr-img').src=qrSrc;
+    sheet.querySelector('.ss-copy-url').value=url;
+    sheet.querySelector('.ss-btn.wa').onclick=function(){window.open('https://wa.me/?text='+waMsg,'_blank');};
+    sheet.querySelector('.ss-btn.native').onclick=function(){
+      if(navigator.share){navigator.share({title:'عرض عقاري — شارك العقارية',url:url}).catch(function(){});}
+    };
+    sheet.querySelector('.ss-btn.copy').onclick=function(){
+      var btn=this; var orig=btn.querySelector('.ss-icon').textContent;
+      if(navigator.clipboard){navigator.clipboard.writeText(url).then(function(){btn.querySelector('.ss-icon').textContent='✓';setTimeout(function(){btn.querySelector('.ss-icon').textContent=orig;},2000);});}
+      else{var ta=document.createElement('textarea');ta.value=url;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);btn.querySelector('.ss-icon').textContent='✓';setTimeout(function(){btn.querySelector('.ss-icon').textContent=orig;},2000);}
+    };
+    sheet.classList.add('open');
+  };
+  window.closeShare=function(){document.getElementById('mod-share').classList.remove('open');};
+  window.odGoBack=function(){
+    closeM('mod-offer');
+    history.replaceState(null,'',location.pathname);
+    if(document.referrer&&document.referrer.indexOf(location.hostname)>=0&&history.length>1){
+      history.back();
+    } else {
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+  };
+  document.addEventListener('click',function(e){if(e.target===document.getElementById('mod-share'))closeShare();});
+  window.waOffer=function(t){window.open('https://wa.me/'+PHONE+'?text='+encodeURIComponent('السلام عليكم، أنا مهتم بالعقار: '+t),'_blank');};
+
+
+  /* ── CITY MAP INTERACTION ── */
+  window.cityClick=function(cityName){
+    var list=_offers.filter(function(o){
+      return (o.city||'').indexOf(cityName)>=0 || cityName.indexOf(o.city||'')>=0;
+    });
+    document.getElementById('city-pop-title').textContent='📍 ' + cityName;
+    document.getElementById('city-pop-count').textContent = list.length
+      ? list.length + ' عرض متاح'
+      : 'لا توجد عروض حالياً في هذه المدينة';
+    var listEl=document.getElementById('city-pop-list');
+    if(!list.length){
+      listEl.innerHTML='<div style="text-align:center;padding:32px 16px;color:var(--sub);font-size:14px">لا توجد عروض حالياً في '+cityName+'<br><small style="font-size:12px;opacity:.6">تواصل معنا لمعرفة آخر المتاح</small></div>';
+    } else {
+      listEl.innerHTML=list.map(function(o){
+        return '<div class="cpop-card" onclick="closeCityPop();showOffer(\''+esc(o.id)+'\')">'
+          +(o.coverImg?'<img src="'+esc(o.coverImg)+'" loading="lazy">':'<div class="cpop-no-img">🏠</div>')
+          +'<div class="cpop-info">'
+          +'<div class="cpop-name">'+esc(o.ar||o.name||'عرض عقاري')+'</div>'
+          +'<div class="cpop-loc">'+esc((o.district?o.district+' · ':'')+cityName)+'</div>'
+          +(o.price?'<div class="cpop-price">'+fmt(o.price)+'</div>':'')
+          +'</div></div>';
+      }).join('');
+    }
     document.getElementById('city-pop').classList.add('open');
     document.body.style.overflow='hidden';
   };
@@ -892,27 +1032,41 @@ loadOffers();
 
   loadOffers();
   (function(){var p=new URLSearchParams(location.search).get('offer');if(p){var t=setInterval(function(){var o=_offers.find(function(x){return x.id===p;});if(o||_offers.length>0){clearInterval(t);if(o)showOffer(p);}},400);setTimeout(function(){clearInterval(t);},8000);}})();
-=======
-    var offerM=s.match(/[?&]offer=([^&]+)/);
-    if(offerM){
-      var oid=decodeURIComponent(offerM[1]);
-      ST.currentOfferId=oid;
-      ST.page='offer';
-      renderNav();
-    }
-  }catch(e){}
->>>>>>> 6816c46 (Implement new dark-themed public website design)
 })();
+
 </script>
-<style>
-@media(max-width:820px){
-  #siteFooter > div > div:first-child > div:last-child,
-  #siteFooter > div > div:first-child > div:nth-child(2){display:none}
-}
-@media(max-width:900px){
-  /* offer detail two-col → one-col */
-  section .offer-grid{grid-template-columns:1fr!important}
-}
-</style>
+<!-- Share Sheet Modal -->
+<div id="mod-share">
+  <div class="share-sheet">
+    <div class="ss-handle"></div>
+    <div class="ss-head">
+      <div class="ss-title">مشاركة العرض</div>
+      <button class="ss-close" onclick="closeShare()">×</button>
+    </div>
+    <div class="ss-qr-wrap">
+      <img class="ss-qr-img" src="" alt="QR">
+      <div class="ss-qr-label">وجّه كاميرا الهاتف لفتح العرض مباشرةً وتسجيل الاهتمام</div>
+    </div>
+    <div class="ss-divider"></div>
+    <div class="ss-actions">
+      <button class="ss-btn wa">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+        <span>واتساب</span>
+      </button>
+      <button class="ss-btn native">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        <span>مشاركة</span>
+      </button>
+      <button class="ss-btn copy">
+        <span class="ss-icon">⎘</span>
+        <span>نسخ الرابط</span>
+      </button>
+    </div>
+    <div class="ss-copy-row">
+      <input class="ss-copy-url" type="text" readonly>
+      <button class="ss-copy-btn" onclick="document.querySelector('.ss-btn.copy').click()">نسخ</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
